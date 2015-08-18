@@ -1,10 +1,16 @@
 #include <iostream>
 #include "glall.h"
+#include "Game.h"
+#include "FpsCounter.h"
 
+Game game;
+FpsCounter fps;
 
 void OnFramebufferSize(GLFWwindow * win, int width, int height)
 {
   glViewport(0, 0, width, height);
+  if (width && height)
+    game.resize(float(width) / height);
 }
 
 //void OnWindowSize(GLFWwindow * win, int width, int height)
@@ -42,7 +48,7 @@ int main()
 
     const int initWinWidth = 640;
     const int initWinHeight = 480;
-    GLFWwindow * win = glfwCreateWindow(initWinWidth, initWinHeight, "TxCube", NULL, NULL);
+    GLFWwindow * win = glfwCreateWindow(initWinWidth, initWinHeight, "glTetris", NULL, NULL);
 
     if (win)
     {
@@ -53,50 +59,21 @@ int main()
       glfwSetKeyCallback(win, OnKeyClick);
       glfwSetMouseButtonCallback(win, OnMouseClick);
       glfwSetCursorPosCallback(win, OnMouseMove);
-
       glfwSwapInterval(1);
-      glewExperimental = GL_TRUE;
 
-      if (glewInit() == GLEW_OK)
+      if(game.init())
       {
-        // workaround GLEW issue with GL_INVALID_ENUM rising just after glewInit
-        glGetError();
-
-        GLuint vertexArrayId;
-        glGenVertexArrays(1, &vertexArrayId);       assert(!glGetError());
-        glBindVertexArray(vertexArrayId);           assert(!glGetError());
-        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  assert(!glGetError());
-        glEnable(GL_CULL_FACE);                     assert(!glGetError());
-        glCullFace(GL_FRONT);                       assert(!glGetError());
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-        glClearDepth(1.0f);
-
-        int cnt = 0;
-        uint64_t freq = Crosy::getPerformanceFrequency();
-        uint64_t ticks = Crosy::getPerformanceCounter();
+        game.resize(float(initWinWidth) / initWinHeight);
+        fps.init(win);
 
         while (!glfwWindowShouldClose(win))
         {
-          glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);     assert(!glGetError());
+          game.pulse();
+          fps.pulse();
 
           glfwSwapBuffers(win);
           glfwPollEvents();
-          cnt++;
-
           Crosy::sleep(10);
-
-          float timePass = float(Crosy::getPerformanceCounter() - ticks) / freq;
-
-          if (timePass > 10)
-          {
-            float fps = cnt / timePass;
-            const int bufSize = 256;
-            char str[bufSize];
-            Crosy::snprintf(str, bufSize, "Fps: %.3f", fps);
-            glfwSetWindowTitle(win, str);
-            ticks = Crosy::getPerformanceCounter();
-            cnt = 0;
-          }
         }
 
         retVal = 0;
