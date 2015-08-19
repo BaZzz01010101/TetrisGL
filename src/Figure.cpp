@@ -36,6 +36,9 @@ Figure::Figure(int dim, glm::vec3 color, const char * data) :
 
 Figure::~Figure()
 {
+  glDeleteBuffers(1, &figureVertexBufferId);
+  glDeleteBuffers(1, &figureUVBufferId);
+  glDeleteBuffers(1, &borderMaskBufferId);
 }
 
 void Figure::init()
@@ -257,7 +260,6 @@ void Figure::buildMeshes()
 
 void Figure::rotate(int halfPiAngles)
 {
-
 }
 
 void Figure::setScreenScale(const glm::vec2 & scale)

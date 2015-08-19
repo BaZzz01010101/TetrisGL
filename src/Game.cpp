@@ -83,13 +83,14 @@ void Game::pulse()
 
   background.draw();
 
-  Figure fig0(3, Figure::clOrange, "010111000");
+  static Figure fig0(3, Figure::clOrange, "010111000");
+  static Figure fig1(3, Figure::clRed, "110011000");
+  static Figure fig2(4, Figure::clCyan, "0000111100000000");
+  static Figure fig3(2, Figure::clYellow, "1111");
+
   fig0.draw(-0.66f, -0.8f, 0.1f);
-  Figure fig1(3, Figure::clRed, "110011000");
   fig1.draw(-0.66f + 0.2f, -0.8f, 0.1f);
-  Figure fig2(4, Figure::clCyan, "0000111100000000");
   fig2.draw(-0.66f + 0.4f, -0.7f, 0.1f);
-  Figure fig3(2, Figure::clYellow, "1111");
   fig3.draw(-0.66f + 0.6f, -0.6f, 0.1f);
 }
 

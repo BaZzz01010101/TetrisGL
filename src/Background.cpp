@@ -14,6 +14,9 @@ Background::Background() :
 
 Background::~Background()
 {
+  glDeleteBuffers(1, &vertexBufferId);
+  glDeleteBuffers(1, &uvBufferId);
+  glDeleteTextures(1, &textureId);
 }
 
 void Background::init()
