@@ -60,6 +60,9 @@
     <ClCompile Include="..\..\src\3rdParty\SOIL2\etc1_utils.c">
       <Filter>Source Files\3rd party\SOIL2</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Figure.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\Game.h">
@@ -130,6 +133,9 @@
     </ClInclude>
     <ClInclude Include="..\..\src\3rdParty\SOIL2\etc1_utils.h">
       <Filter>Header Files\3rd party\SOIL2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Figure.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

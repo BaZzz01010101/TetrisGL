@@ -7,7 +7,7 @@ Background::Background() :
   vertexBufferId(0),
   uvBufferId(0),
   textureId(0),
-  proj(1),
+  screenScale(1.0f),
   aspect(0.66f)
 {
 }
@@ -18,12 +18,12 @@ Background::~Background()
 
 void Background::init()
 {
-  GLfloat vertexBufferData[6 * 3] =
+  GLfloat vertexBufferData[6 * 2] =
   {
-    -aspect, -1.0f, 0.0f,
-    -aspect, 1.0f, 0.0f,
-    aspect, -1.0f, 0.0f,
-    aspect, 1.0f, 0.0f,
+    -aspect, -1.0f,
+    -aspect, 1.0f,
+    aspect, -1.0f,
+    aspect, 1.0f,
   };
 
   const float xReps = 40;
@@ -64,15 +64,15 @@ void Background::init()
 
   vert.compileFromString(
     "#version 330 core\n"
-    "layout(location = 0) in vec3 vertexPos;\n"
+    "layout(location = 0) in vec2 vertexPos;\n"
     "layout(location = 1) in vec2 vertexUV;\n"
-    "uniform mat3 proj;\n"
-    "out vec3 pos;\n"
+    "uniform vec2 screenScale;\n"
+    "out vec2 pos;\n"
     "out vec2 uv;\n"
 
     "void main()\n"
     "{\n"
-    "  gl_Position = vec4(proj * vertexPos, 1);\n"
+    "  gl_Position = vec4(screenScale * vertexPos, 1, 1);\n"
     "  uv = vertexUV;\n"
     "  pos = vertexPos;\n"
     "}\n");
@@ -82,7 +82,7 @@ void Background::init()
     "#version 330 core\n"
     "uniform sampler2D tex;\n"
     "in vec2 uv;\n"
-    "in vec3 pos;\n"
+    "in vec2 pos;\n"
     "out vec3 color;\n"
 
     "float rand(vec2 co) {\n"
@@ -107,7 +107,6 @@ void Background::init()
   prog.use();
   assert(!prog.isError());
 
-  //std::string texPath = Crosy::getExePath() + "\\textures\\test.jpg";
   std::string texPath = Crosy::getExePath() + "\\textures\\background.jpg";
   textureId = SOIL_load_OGL_texture(texPath.c_str(), 0, 0, SOIL_FLAG_MIPMAPS | SOIL_FLAG_TEXTURE_REPEATS);
   assert(textureId);
@@ -120,22 +119,25 @@ void Background::init()
   assert(!glGetError());
 }
 
-void Background::setProjMatrix(const glm::mat3 & m)
+void Background::setScreenScale(const glm::vec2 & scale)
 {
-  proj = m;
+  screenScale = scale;
 
   prog.use();
   assert(!prog.isError());
 
-  GLuint mvId = glGetUniformLocation(prog.getId(), "proj");
+  GLuint projId = glGetUniformLocation(prog.getId(), "screenScale");
   assert(!glGetError());
 
-  glUniformMatrix3fv(mvId, 1, GL_FALSE, &(proj)[0][0]);
+  glUniform2fv(projId, 1, &screenScale.x);
   assert(!glGetError());
 }
 
 void Background::draw() const
 {
+  glBindTexture(GL_TEXTURE_2D, textureId);
+  assert(!glGetError());
+
   prog.use();
   assert(!prog.isError());
 
@@ -145,7 +147,7 @@ void Background::draw() const
   glEnableVertexAttribArray(0);
   assert(!glGetError());
 
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
   assert(!glGetError());
 
   glBindBuffer(GL_ARRAY_BUFFER, uvBufferId);

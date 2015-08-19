@@ -1,4 +1,5 @@
 #include "Game.h"
+#include "Figure.h"
 
 
 Game::Game() :
@@ -32,7 +33,7 @@ bool Game::init()
   assert(!glGetError());
 
   //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  assert(!glGetError());
-  glEnable(GL_CULL_FACE);
+  glDisable(GL_CULL_FACE);
   assert(!glGetError());
   
   glCullFace(GL_FRONT);
@@ -51,61 +52,28 @@ bool Game::init()
   assert(!glGetError());
 
   background.init();
-
-  //blockTexture.generate();
-
-  //const int horzBlocks = 10;
-  //const int vertBlocks = 20;
-  //glass.resize(horzBlocks * vertBlocks);
-
-  //blockVS.compileFromString(
-  //  "#version 330 core\n"
-  //  "layout(location = 0) in vec3 vertexPos;\n"
-  //  "layout(location = 1) in vec2 vertexUV;\n"
-  //  "out vec2 uv;\n"
-
-  //  "void main()\n"
-  //  "{\n"
-  //  "  gl_Position = /*mvp * */vec4(vertexPos, 1);\n"
-  //  "  uv = vertexUV;\n"
-  //  "}\n");
-  //assert(!blockVS.isError());
-
-  //blockFS.compileFromString(
-  //  "#version 330 core\n"
-  //  "uniform sampler2D mytexture;\n"
-  //  "in vec2 uv;\n"
-  //  "out vec3 color;\n"
-
-  //  "void main()\n"
-  //  "{\n"
-  //  "  color = texture(mytexture, uv).rgb;\n"
-  //  "}\n");
-  //assert(!blockFS.isError());
-
-  //blockProg.attachShader(blockVS);      assert(!blockProg.isError());
-  //blockProg.attachShader(blockFS);      assert(!blockProg.isError());
-  //blockProg.link();                     assert(!blockProg.isError()); 
+  Figure::init();
 
   return true;
 }
 
 void Game::resize(float aspect)
 {
-  glm::mat3 proj(1);
+  glm::vec2 screenScale(1);
 
   if (aspect > background.aspect)
   {
-    proj[0][0] = 1 / aspect;
-    proj[1][1] = 1.0f;
+    screenScale.x = 1 / aspect;
+    screenScale.y = 1.0f;
   }
   else
   {
-    proj[0][0] = 1 / background.aspect;
-    proj[1][1] = aspect / background.aspect;
+    screenScale.x = 1 / background.aspect;
+    screenScale.y = aspect / background.aspect;
   }
 
-  background.setProjMatrix(proj);
+  background.setScreenScale(screenScale);
+  Figure::setScreenScale(screenScale);
 }
 
 void Game::pulse()
@@ -115,7 +83,14 @@ void Game::pulse()
 
   background.draw();
 
-  //drawGlass();
+  Figure fig0(3, Figure::clOrange, "010111000");
+  fig0.draw(-0.66f, -0.8f, 0.1f);
+  Figure fig1(3, Figure::clRed, "110011000");
+  fig1.draw(-0.66f + 0.2f, -0.8f, 0.1f);
+  Figure fig2(4, Figure::clCyan, "0000111100000000");
+  fig2.draw(-0.66f + 0.4f, -0.7f, 0.1f);
+  Figure fig3(2, Figure::clYellow, "1111");
+  fig3.draw(-0.66f + 0.6f, -0.6f, 0.1f);
 }
 
 void drawBackground()

@@ -11,7 +11,7 @@ private:
   GLuint textureId;
   Program prog;
   Shader vert, frag;
-  glm::mat3 proj;
+  glm::vec2 screenScale;
 
 public:
   const float aspect;
@@ -19,7 +19,7 @@ public:
   ~Background();
 
   void init();
-  void setProjMatrix(const glm::mat3 & m);
+  void setScreenScale(const glm::vec2 & scale);
   void draw() const;
 };
 

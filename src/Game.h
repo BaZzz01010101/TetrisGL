@@ -1,6 +1,5 @@
 #pragma once
 #include "Background.h"
-//#include "BlockTexture.h"
 #include "Shader.h"
 #include "Program.h"
 
@@ -9,10 +8,8 @@ class Game
 private:
   GLuint vertexArrayId;
   Background background;
-//  BlockTexture blockTexture;
   Shader blockVS, blockFS;
   Program blockProg;
-//  std::vector<Block> glass;
   const float width;
   const float height;
 

@@ -23,7 +23,7 @@ void FpsCounter::pulse()
   cnt++;
   float timePass = float(Crosy::getPerformanceCounter() - ticks) / freq;
 
-  if (timePass > 10)
+  if (timePass > 1)
   {
     float fps = cnt / timePass;
     const int bufSize = 256;

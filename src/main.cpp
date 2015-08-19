@@ -41,7 +41,7 @@ int main()
   {
     //glfwWindowHint(GLFW_DOUBLEBUFFER, GL_FALSE);
     glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
-    //glfwWindowHint(GLFW_SAMPLES, 4);
+    glfwWindowHint(GLFW_SAMPLES, 16);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -59,7 +59,7 @@ int main()
       glfwSetKeyCallback(win, OnKeyClick);
       glfwSetMouseButtonCallback(win, OnMouseClick);
       glfwSetCursorPosCallback(win, OnMouseMove);
-      glfwSwapInterval(1);
+      glfwSwapInterval(0);
 
       if(game.init())
       {
@@ -73,7 +73,7 @@ int main()
 
           glfwSwapBuffers(win);
           glfwPollEvents();
-          Crosy::sleep(10);
+          //Crosy::sleep(10);
         }
 
         retVal = 0;
