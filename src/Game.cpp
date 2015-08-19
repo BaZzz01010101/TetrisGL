@@ -32,12 +32,23 @@ bool Game::init()
   assert(!glGetError());
 
   //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  assert(!glGetError());
-  glEnable(GL_CULL_FACE);                     assert(!glGetError());
-  glCullFace(GL_FRONT);                       assert(!glGetError());
-  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);       assert(!glGetError());
-  glClearDepth(1.0f);                         assert(!glGetError());
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);         assert(!glGetError());
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);         assert(!glGetError());
+  glEnable(GL_CULL_FACE);
+  assert(!glGetError());
+  
+  glCullFace(GL_FRONT);
+  assert(!glGetError());
+  
+  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+  assert(!glGetError());
+
+  glClearDepth(1.0f);
+  assert(!glGetError());
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  assert(!glGetError());
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  assert(!glGetError());
 
   background.init();
 
@@ -81,7 +92,7 @@ bool Game::init()
 
 void Game::resize(float aspect)
 {
-  glm::mat3x3 proj(1);
+  glm::mat3 proj(1);
 
   if (aspect > background.aspect)
   {

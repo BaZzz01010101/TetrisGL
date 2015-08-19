@@ -91,7 +91,7 @@ void Background::init()
 
     "void main()\n"
     "{\n"
-    "  color = (1 - (0.4 * length(pos) - 0.3 * pos.y)) * texture(tex, uv).rgb;\n"
+    "  color = (1 - (0.5 * length(pos) - 0.2 * pos.y)) * texture(tex, uv).rgb;\n"
     "}\n");
   assert(!frag.isError());
 
@@ -107,6 +107,7 @@ void Background::init()
   prog.use();
   assert(!prog.isError());
 
+  //std::string texPath = Crosy::getExePath() + "\\textures\\test.jpg";
   std::string texPath = Crosy::getExePath() + "\\textures\\background.jpg";
   textureId = SOIL_load_OGL_texture(texPath.c_str(), 0, 0, SOIL_FLAG_MIPMAPS | SOIL_FLAG_TEXTURE_REPEATS);
   assert(textureId);
@@ -119,7 +120,7 @@ void Background::init()
   assert(!glGetError());
 }
 
-void Background::setProjMatrix(const glm::mat3x3 & m)
+void Background::setProjMatrix(const glm::mat3 & m)
 {
   proj = m;
 
