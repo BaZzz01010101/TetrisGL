@@ -5,8 +5,11 @@
 
 class Figure
 {
+public:
+  enum Color { clRed = 0, clOrange, clYellow, clGreen, clCyan, clBlue, clPurple };
+
 private:
-  glm::vec3 color;
+  Color color;
   std::vector<float> figureVertexBufferData;
   std::vector<float> figureUVBufferData;
   std::vector<int> borderMaskBufferData;
@@ -24,19 +27,13 @@ private:
   static glm::vec2 screenScale;
 
   void buildMeshes();
+  void addVertex(float x, float y, float dx, float dy, float dv);
 
 public:
   int dim;
   std::vector<int> data;
-  static const glm::vec3 clRed;
-  static const glm::vec3 clOrange;
-  static const glm::vec3 clYellow;
-  static const glm::vec3 clGreen;
-  static const glm::vec3 clCyan;
-  static const glm::vec3 clBlue;
-  static const glm::vec3 clPurple;
 
-  Figure(int dim, glm::vec3 color, const char * data);
+  Figure(int dim, Color color, const char * data);
   ~Figure();
 
   static void init();

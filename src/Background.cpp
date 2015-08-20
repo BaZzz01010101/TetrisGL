@@ -75,7 +75,7 @@ void Background::init()
 
     "void main()\n"
     "{\n"
-    "  gl_Position = vec4(screenScale * vertexPos, 1, 1);\n"
+    "  gl_Position = vec4(screenScale * vertexPos, 0, 1);\n"
     "  uv = vertexUV;\n"
     "  pos = vertexPos;\n"
     "}\n");
