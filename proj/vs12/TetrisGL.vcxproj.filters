@@ -63,6 +63,9 @@
     <ClCompile Include="..\..\src\Figure.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\DropTrail.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\Game.h">
@@ -135,6 +138,9 @@
       <Filter>Header Files\3rd party\SOIL2</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\Figure.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\DropTrail.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -29,8 +29,8 @@ void Background::init()
     aspect, 1.0f,
   };
 
-  const float xReps = 40;
-  const float yReps = xReps / aspect;
+  const float xReps = 50;
+  const float yReps = xReps / aspect * 0.85;
   const float texScaleCorrection = 0.56f;
   const float xVal = xReps * texScaleCorrection;
   const float yVal = yReps;
@@ -67,35 +67,32 @@ void Background::init()
 
   vert.compileFromString(
     "#version 330 core\n"
-    "layout(location = 0) in vec2 vertexPos;\n"
-    "layout(location = 1) in vec2 vertexUV;\n"
-    "uniform vec2 screenScale;\n"
-    "out vec2 pos;\n"
-    "out vec2 uv;\n"
+    "layout(location = 0) in vec2 vertexPos;"
+    "layout(location = 1) in vec2 vertexUV;"
+    "uniform vec2 screenScale;"
+    "out vec2 pos;"
+    "out vec2 uv;"
 
-    "void main()\n"
-    "{\n"
-    "  gl_Position = vec4(screenScale * vertexPos, 0, 1);\n"
-    "  uv = vertexUV;\n"
-    "  pos = vertexPos;\n"
-    "}\n");
+    "void main()"
+    "{"
+    "  gl_Position = vec4(screenScale * vertexPos, 0, 1);"
+    "  uv = vertexUV;"
+    "  pos = vertexPos / screenScale;"
+    "}");
   assert(!vert.isError());
 
   frag.compileFromString(
     "#version 330 core\n"
-    "uniform sampler2D tex;\n"
-    "in vec2 uv;\n"
-    "in vec2 pos;\n"
-    "out vec3 color;\n"
+    "uniform sampler2D tex;"
+    "in vec2 uv;"
+    "in vec2 pos;"
+    "out vec4 color;"
 
-    "float rand(vec2 co) {\n"
-    "  return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);\n"
-    "}\n"
-
-    "void main()\n"
-    "{\n"
-    "  color = (1 - (0.5 * length(pos) - 0.2 * pos.y)) * texture(tex, uv).rgb;\n"
-    "}\n");
+    "void main()"
+    "{"
+    "  float mul = 0.9 - 0.3 * length(pos) + 0.3 * pos.y;"
+    "  color = vec4(mul * texture(tex, uv).rgb, 1);"
+    "}");
   assert(!frag.isError());
 
   prog.attachShader(vert);    
@@ -110,7 +107,7 @@ void Background::init()
   prog.use();
   assert(!prog.isError());
 
-  std::string texPath = Crosy::getExePath() + "\\textures\\background.jpg";
+  std::string texPath = Crosy::getExePath() + "\\textures\\background.png";
   textureId = SOIL_load_OGL_texture(texPath.c_str(), 0, 0, SOIL_FLAG_MIPMAPS | SOIL_FLAG_TEXTURE_REPEATS);
   assert(textureId);
   assert(!glGetError());

@@ -33,6 +33,15 @@ bool Game::init()
   assert(!glGetError());
 
   //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  assert(!glGetError());
+  glDisable(GL_DEPTH_TEST);
+  assert(!glGetError());
+
+  glEnable(GL_BLEND);
+  assert(!glGetError());
+
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  assert(!glGetError());
+
   glDisable(GL_CULL_FACE);
   assert(!glGetError());
   
@@ -83,15 +92,36 @@ void Game::pulse()
 
   background.draw();
 
-  static Figure fig0(3, Figure::clOrange, "010111000");
+  static Figure fig0(3, Figure::clPurple, "010111000");
   static Figure fig1(3, Figure::clRed, "110011000");
   static Figure fig2(4, Figure::clCyan, "0000111100000000");
   static Figure fig3(2, Figure::clYellow, "1111");
+  static Figure fig4(3, Figure::clOrange, "001111000");
 
-  fig0.draw(-0.66f, -0.8f, 0.1f);
-  fig1.draw(-0.66f + 0.2f, -0.8f, 0.1f);
-  fig2.draw(-0.66f + 0.4f, -0.7f, 0.1f);
-  fig3.draw(-0.66f + 0.6f, -0.6f, 0.1f);
+  fig0.drawShadow(-0.66f, -0.7f, 0.1f);
+  fig1.drawShadow(-0.66f + 0.2f, -0.7f, 0.1f);
+  fig2.drawShadow(-0.66f + 0.4f, -0.6f, 0.1f);
+  fig3.drawShadow(-0.66f + 0.6f, -0.5f, 0.1f);
+  fig4.drawShadow(-0.66f + 0.5f, -0.0f, 0.1f);
+
+  fig0.drawFigure(-0.66f, -0.7f, 0.1f);
+  fig1.drawFigure(-0.66f + 0.2f, -0.7f, 0.1f);
+  fig2.drawFigure(-0.66f + 0.4f, -0.6f, 0.1f);
+  fig3.drawFigure(-0.66f + 0.6f, -0.5f, 0.1f);
+  fig4.drawFigure(-0.66f + 0.5f, -0.0f, 0.1f);
+
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+//  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  assert(!glGetError());
+
+  fig0.drawGlow(-0.66f, -0.7f, 0.1f);
+  fig1.drawGlow(-0.66f + 0.2f, -0.7f, 0.1f);
+  fig2.drawGlow(-0.66f + 0.4f, -0.6f, 0.1f);
+  fig3.drawGlow(-0.66f + 0.6f, -0.5f, 0.1f);
+  fig4.drawGlow(-0.66f + 0.5f, -0.0f, 0.1f);
+
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  assert(!glGetError());
 }
 
 void drawBackground()

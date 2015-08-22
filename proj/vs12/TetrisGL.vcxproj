@@ -47,6 +47,7 @@
     <ClCompile Include="..\..\src\Crosy.cpp" />
     <ClCompile Include="..\..\src\Figure.cpp" />
     <ClCompile Include="..\..\src\FpsCounter.cpp" />
+    <ClCompile Include="..\..\src\DropTrail.cpp" />
     <ClCompile Include="..\..\src\Game.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
     <ClCompile Include="..\..\src\Program.cpp" />
@@ -73,6 +74,7 @@
     <ClInclude Include="..\..\src\Crosy.h" />
     <ClInclude Include="..\..\src\Figure.h" />
     <ClInclude Include="..\..\src\FpsCounter.h" />
+    <ClInclude Include="..\..\src\DropTrail.h" />
     <ClInclude Include="..\..\src\Game.h" />
     <ClInclude Include="..\..\src\glall.h" />
     <ClInclude Include="..\..\src\Program.h" />
