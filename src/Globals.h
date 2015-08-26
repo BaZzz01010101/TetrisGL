@@ -1,5 +1,6 @@
 #pragma once
 #include "glall.h"
+#include <iostream>
 
 class Globals
 {

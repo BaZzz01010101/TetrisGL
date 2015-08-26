@@ -77,7 +77,6 @@ void Background::init()
     "  uv = vertexUV;"
     "  pos = vertexPos / screen;"
     "}");
-  assert(!vert.isError());
 
   frag.compileFromString(
     "#version 330 core\n"
@@ -92,25 +91,13 @@ void Background::init()
     "  float mul = 0.9 - 0.3 * length(pos) + 0.3 * pos.y;"
     "  color = vec4(mul * texture(tex, vec3(uv, texIndex)).rgb, 1);"
     "}");
-  assert(!frag.isError());
 
   prog.attachShader(vert);    
-  assert(!prog.isError());
-
   prog.attachShader(frag);    
-  assert(!prog.isError());
-
   prog.link();                
-  assert(!prog.isError());
-
   prog.use();
-  assert(!prog.isError());
-
   prog.setUniform("tex", 0);
-  assert(!prog.isError());
-
   prog.setUniform("texIndex", float(Globals::backgroundTexIndex));
-  assert(!prog.isError());
 
   //prog.setUniform("texChunkPos", Globals::atlasChunkSize * 7.0f + Globals::atlasBorderSize, Globals::atlasChunkSize * 1.0f + Globals::atlasBorderSize);
   //assert(!prog.isError());
@@ -122,16 +109,12 @@ void Background::init()
 void Background::setScreen(const glm::vec2 & screen)
 {
   prog.use();
-  assert(!prog.isError());
-
   prog.setUniform("screen", screen);
-  assert(!prog.isError());
 }
 
 void Background::draw() const
 {
   prog.use();
-  assert(!prog.isError());
 
   //glBindTexture(GL_TEXTURE_2D, Globals::mainTextureAtlasId);
   //assert(!checkGlErrors());

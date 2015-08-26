@@ -1,11 +1,10 @@
 #include "Shader.h"
-
+#include "Globals.h"
 
 Shader::Shader(GLenum type)
 {
   this->type = type;
   id = 0;
-  errorFlagged = false;
 }
 
 
@@ -14,35 +13,7 @@ Shader::~Shader()
   glDeleteShader(id);
 }
 
-void Shader::setErrMsg(const char * str)
-{
-  size_t len = strlen(str);
-  errMsg.resize(len + 1);
-  strncpy(&errMsg.front(), str, errMsg.size());
-  errMsg[len] = '\0';
-}
-
-bool Shader::checkGlErrors()
-{
-  GLenum errCode = glGetError();
-
-  if (errCode)
-  {
-    const GLubyte * errStr = gluErrorString(errCode);
-
-    if (errStr)
-      setErrMsg((const char*)errStr);
-    else
-      setErrMsg("Unknown error");
-  }
-  else
-    setErrMsg("");
-
-  errorFlagged = errCode != 0;
-  return errorFlagged;
-}
-
-bool Shader::compileFromString(const char * source)
+void Shader::compileFromString(const char * source)
 {
   GLint Result = GL_FALSE;
 
@@ -50,49 +21,35 @@ bool Shader::compileFromString(const char * source)
   {
     checkGlErrors();
     id = glCreateShader(type);
-
-    if (checkGlErrors())
-       return false;
+    assert(!checkGlErrors());
   }
 
   glShaderSource(id, 1, &source, NULL);
-
-  if (checkGlErrors())
-    return false;
+  assert(!checkGlErrors());
 
   glCompileShader(id);
-
-  if (checkGlErrors())
-    return false;
+  assert(!checkGlErrors());
 
   glGetShaderiv(id, GL_COMPILE_STATUS, &Result);
-
-  if (checkGlErrors())
-    return false;
+  assert(!checkGlErrors());
 
   if (Result == GL_FALSE)
   {
     int length = 0;
     glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-
-    if (checkGlErrors())
-      return false;
+    assert(!checkGlErrors());
 
     errMsg.resize(length);
     glGetShaderInfoLog(id, length, NULL, &errMsg.front());
+    assert(!checkGlErrors());
 
-    checkGlErrors();
-
-    errorFlagged = true;
-    return false;
+    Globals::glErrorMessage = &errMsg.front();
+    std::cout << Globals::glErrorMessage << "\n";
+    assert(0);
   }
-
-  errorFlagged = false;
-  return true;
 }
 
-bool Shader::compileFromFile(const char * filename)
+void Shader::compileFromFile(const char * filename)
 {
-  errorFlagged = true;
-  return false;
+  assert(0);
 }

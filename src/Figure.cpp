@@ -59,7 +59,6 @@ void Figure::init()
     "  gl_Position = vec4(screen * (vertexPos * scale + pos), 0, 1);"
     "  uvw = vertexUVW;"
     "}");
-  assert(!figureVert.isError());
 
   figureFrag.compileFromString(
     "#version 330 core\n"
@@ -71,22 +70,12 @@ void Figure::init()
     "{"
     "  out_color = texture(tex, uvw).rgba;"
     "}");
-  assert(!figureFrag.isError());
 
   figureProg.attachShader(figureVert);
-  assert(!figureProg.isError());
-
   figureProg.attachShader(figureFrag);
-  assert(!figureProg.isError());
-
   figureProg.link();
-  assert(!figureProg.isError());
-
   figureProg.use();
-  assert(!figureProg.isError());
-
   figureProg.setUniform("tex", 0);
-  assert(!figureProg.isError());
 
   glowVert.compileFromString(
     "#version 330 core\n"
@@ -106,7 +95,6 @@ void Figure::init()
     "  color = texture(tex, vec3(0.5, 0.5, texLayer)).rgb;"
     "  alpha = vertexAlpha;"
     "}");
-  assert(!glowVert.isError());
 
   glowFrag.compileFromString(
     "#version 330 core\n"
@@ -118,22 +106,12 @@ void Figure::init()
     "{"
     "  out_color = vec4(color, alpha);"
     "}");
-  assert(!glowFrag.isError());
 
   glowProg.attachShader(glowVert);
-  assert(!glowProg.isError());
-
   glowProg.attachShader(glowFrag);
-  assert(!glowProg.isError());
-
   glowProg.link();
-  assert(!glowProg.isError());
-
   glowProg.use();
-  assert(!glowProg.isError());
-
   glowProg.setUniform("tex", 0);
-  assert(!glowProg.isError());
 }
 
 void Figure::buildMeshes()
@@ -723,31 +701,17 @@ void Figure::rotate(int halfPiAngles)
 void Figure::setScreen(const glm::vec2 & screen)
 {
   figureProg.use();
-  assert(!figureProg.isError());
-
   figureProg.setUniform("screen", screen);
-  assert(!figureProg.isError());
-
   glowProg.use();
-  assert(!glowProg.isError());
-
   glowProg.setUniform("screen", screen);
-  assert(!glowProg.isError());
 }
 
 void Figure::setScale(float scale)
 {
   figureProg.use();
-  assert(!figureProg.isError());
-
   figureProg.setUniform("scale", scale);
-  assert(!figureProg.isError());
-
   glowProg.use();
-  assert(!glowProg.isError());
-
   glowProg.setUniform("scale", scale);
-  assert(!glowProg.isError());
 }
 
 void beginDrawFigure();
@@ -756,11 +720,7 @@ void endDrawFigure();
 void Figure::drawFigure()
 {
   Figure::figureProg.use();
-  assert(!Figure::figureProg.isError());
-
   figureProg.setUniform("pos", pos);
-  assert(!figureProg.isError());
-
   glEnableVertexAttribArray(0);
   assert(!checkGlErrors());
   glEnableVertexAttribArray(1);
@@ -790,10 +750,7 @@ void Figure::drawFigure()
 void Figure::drawShadow()
 {
   figureProg.use();
-  assert(!figureProg.isError());
-
   figureProg.setUniform("pos", pos);
-  assert(!figureProg.isError());
 
   glEnableVertexAttribArray(0);
   assert(!checkGlErrors());
@@ -824,14 +781,8 @@ void Figure::drawShadow()
 void Figure::drawGlow()
 {
   glowProg.use();
-  assert(!glowProg.isError());
-
   glowProg.setUniform("pos", pos);
-  assert(!glowProg.isError());
-
   glowProg.setUniform("texLayer", float(Globals::openedBlocksTexIndex + color));
-  assert(!glowProg.isError());
-
 
   glEnableVertexAttribArray(0);
   assert(!checkGlErrors());
@@ -848,10 +799,8 @@ void Figure::drawGlow()
   glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 0, (void*)0);
   assert(!checkGlErrors());
 
-
   glDrawArrays(GL_TRIANGLES, 0, glowVertCount);
   assert(!checkGlErrors());
-
 
   glDisableVertexAttribArray(0);
   assert(!checkGlErrors());
