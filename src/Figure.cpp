@@ -1,21 +1,21 @@
 #include "Figure.h"
+#include "Globals.h"
 #include "Crosy.h"
 
-GLuint Figure::textureId = 0;
 Program Figure::figureProg;
 Shader Figure::figureVert(GL_VERTEX_SHADER);
 Shader Figure::figureFrag(GL_FRAGMENT_SHADER);
 Program Figure::glowProg;
 Shader Figure::glowVert(GL_VERTEX_SHADER);
 Shader Figure::glowFrag(GL_FRAGMENT_SHADER);
-glm::vec2 Figure::screenScale(1.0f);
 
 // data - is a string of '0' and '1'
 Figure::Figure(int dim, Color color, const char * data) :
   dim(dim),
+  pos(0.0f, 0.0f),
   color(color),
   figureVertexBufferId(0),
-  figureUVBufferId(0),
+  figureUVWBufferId(0),
   shadowVertexBufferId(0),
   shadowUVBufferId(0),
   glowVertexBufferId(0),
@@ -35,7 +35,7 @@ Figure::Figure(int dim, Color color, const char * data) :
 Figure::~Figure()
 {
   glDeleteBuffers(1, &figureVertexBufferId);
-  glDeleteBuffers(1, &figureUVBufferId);
+  glDeleteBuffers(1, &figureUVWBufferId);
   glDeleteBuffers(1, &shadowVertexBufferId);
   glDeleteBuffers(1, &shadowUVBufferId);
   glDeleteBuffers(1, &glowVertexBufferId);
@@ -45,36 +45,31 @@ Figure::~Figure()
 
 void Figure::init()
 {
-  std::string texPath = Crosy::getExePath() + "\\textures\\blocks.png";
-  textureId = SOIL_load_OGL_texture(texPath.c_str(), 0, 0, 0);
-  assert(textureId);
-  assert(!glGetError());
-
   figureVert.compileFromString(
     "#version 330 core\n"
     "layout(location = 0) in vec2 vertexPos;"
-    "layout(location = 1) in vec2 vertexUV;"
-    "uniform vec2 screenScale;"
-    "uniform float sqSize;"
+    "layout(location = 1) in vec3 vertexUVW;"
+    "uniform vec2 screen;"
+    "uniform float scale;"
     "uniform vec2 pos;"
-    "out vec2 uv;"
+    "out vec3 uvw;"
 
     "void main()"
     "{"
-    "  gl_Position = vec4(screenScale * (vertexPos * sqSize + pos), 0, 1);"
-    "  uv = vertexUV;"
+    "  gl_Position = vec4(screen * (vertexPos * scale + pos), 0, 1);"
+    "  uvw = vertexUVW;"
     "}");
   assert(!figureVert.isError());
 
   figureFrag.compileFromString(
     "#version 330 core\n"
-    "uniform sampler2D tex;"
-    "in vec2 uv;"
+    "uniform sampler2DArray tex;"
+    "in vec3 uvw;"
     "out vec4 out_color;"
 
     "void main()"
     "{"
-    "  out_color = texture(tex, uv).rgba;"
+    "  out_color = texture(tex, uvw).rgba;"
     "}");
   assert(!figureFrag.isError());
 
@@ -90,28 +85,25 @@ void Figure::init()
   figureProg.use();
   assert(!figureProg.isError());
 
-  GLuint texId = glGetUniformLocation(figureProg.getId(), "tex");
-  assert(!glGetError());
-
-  glUniform1i(texId, 0);
-  assert(!glGetError());
+  figureProg.setUniform("tex", 0);
+  assert(!figureProg.isError());
 
   glowVert.compileFromString(
     "#version 330 core\n"
     "layout(location = 0) in vec2 vertexPos;"
-    "layout(location = 1) in vec2 vertexUV;"
-    "layout(location = 2) in float vertexAlpha;"
-    "uniform vec2 screenScale;"
-    "uniform float sqSize;"
+    "layout(location = 1) in float vertexAlpha;"
+    "uniform vec2 screen;"
+    "uniform float scale;"
     "uniform vec2 pos;"
-    "uniform sampler2D tex;"
+    "uniform float texLayer;"
+    "uniform sampler2DArray tex;"
     "flat out vec3 color;"
     "out float alpha;"
 
     "void main()"
     "{"
-    "  gl_Position = vec4(screenScale * (vertexPos * sqSize + pos), 0, 1);"
-    "  color = texture(tex, vertexUV).rgb;"
+    "  gl_Position = vec4(screen * (vertexPos * scale + pos), 0, 1);"
+    "  color = texture(tex, vec3(0.5, 0.5, texLayer)).rgb;"
     "  alpha = vertexAlpha;"
     "}");
   assert(!glowVert.isError());
@@ -137,11 +129,11 @@ void Figure::init()
   glowProg.link();
   assert(!glowProg.isError());
 
-  texId = glGetUniformLocation(glowProg.getId(), "tex");
-  assert(!glGetError());
+  glowProg.use();
+  assert(!glowProg.isError());
 
-  glUniform1i(texId, 0);
-  assert(!glGetError());
+  glowProg.setUniform("tex", 0);
+  assert(!glowProg.isError());
 }
 
 void Figure::buildMeshes()
@@ -152,10 +144,6 @@ void Figure::buildMeshes()
   for (int iy = 0; iy < dim; iy++)
   for (int ix = 0; ix < dim; ix++)
   {
-    const float openedBlockDV = 0.0f;
-    const float closedBlockDV = 0.125f;
-    const float horzBlockDV = 0.25f;
-    const float vertBlockDV = 0.375f;
     float fx = float(ix);
     float fy = float(-iy);
 
@@ -173,276 +161,277 @@ void Figure::buildMeshes()
       if (iy == dim - 1 || !data[index + dim])                        bm |= bmBottom;
       if (!ix || iy == dim - 1 || !data[index + dim - 1])             bm |= bmBottomLeft;
 
-      float dv;
+      int blockArrayIndex;
 
       switch (bm & (bmLeft | bmLeftTop | bmTop))
       {
       case bmLeft | bmLeftTop | bmTop:
-        dv = closedBlockDV;
+        blockArrayIndex = Globals::closedBlocksTexIndex;
         break;
       case 0:
-        dv = openedBlockDV;
+        blockArrayIndex = Globals::openedBlocksTexIndex;
         break;
       case bmTop :
       case bmTop | bmLeftTop:
       case bmLeftTop:
-        dv = horzBlockDV;
+        blockArrayIndex = Globals::horzBlocksTexIndex;
         break;
       case bmLeft :
       case bmLeft | bmLeftTop:
-        dv = vertBlockDV;
+        blockArrayIndex = Globals::vertBlocksTexIndex;
         break;
       default:
-        dv = openedBlockDV;
+        blockArrayIndex = Globals::openedBlocksTexIndex;
       }
 
-      addFigureVertex(fx, fy, 0.0f, 0.0f, dv);
-      addFigureVertex(fx, fy, 0.5f, -0.5f, dv);
-      addFigureVertex(fx, fy, 0.0f, -0.5f, dv);
+      addFigureVertex(fx, fy, 0.0f, 0.0f, blockArrayIndex);
+      addFigureVertex(fx, fy, 0.5f, 0.5f, blockArrayIndex);
+      addFigureVertex(fx, fy, 0.0f, 0.5f, blockArrayIndex);
 
       switch (bm & (bmLeft | bmLeftTop | bmTop))
       {
       case bmLeft | bmLeftTop | bmTop:
-        dv = closedBlockDV;
+        blockArrayIndex = Globals::closedBlocksTexIndex;
         break;
       case 0:
-        dv = openedBlockDV;
+        blockArrayIndex = Globals::openedBlocksTexIndex;
         break;
       case bmTop:
       case bmTop | bmLeftTop:
-        dv = horzBlockDV;
+        blockArrayIndex = Globals::horzBlocksTexIndex;
         break;
       case bmLeft :
       case bmLeft | bmLeftTop:
       case bmLeftTop:
-        dv = vertBlockDV;
+        blockArrayIndex = Globals::vertBlocksTexIndex;
         break;
       default:
-        dv = openedBlockDV;
+        blockArrayIndex = Globals::openedBlocksTexIndex;
       }
 
-      addFigureVertex(fx, fy, 0.0f, 0.0f, dv);
-      addFigureVertex(fx, fy, 0.5f, 0.0f, dv);
-      addFigureVertex(fx, fy, 0.5f, -0.5f, dv);
+      addFigureVertex(fx, fy, 0.0f, 0.0f, blockArrayIndex);
+      addFigureVertex(fx, fy, 0.5f, 0.0f, blockArrayIndex);
+      addFigureVertex(fx, fy, 0.5f, 0.5f, blockArrayIndex);
 
       switch (bm & (bmTop | bmTopRight | bmRight))
       {
       case bmTop | bmTopRight | bmRight:
-        dv = closedBlockDV;
+        blockArrayIndex = Globals::closedBlocksTexIndex;
         break;
       case 0:
-        dv = openedBlockDV;
+        blockArrayIndex = Globals::openedBlocksTexIndex;
         break;
       case bmTop:
       case bmTop | bmTopRight:
-        dv = horzBlockDV;
+        blockArrayIndex = Globals::horzBlocksTexIndex;
         break;
       case bmRight:
       case bmRight | bmTopRight:
       case bmTopRight:
-        dv = vertBlockDV;
+        blockArrayIndex = Globals::vertBlocksTexIndex;
         break;
       default:
-        dv = openedBlockDV;
+        blockArrayIndex = Globals::openedBlocksTexIndex;
       }
 
-      addFigureVertex(fx, fy, 0.5f, 0.0f, dv);
-      addFigureVertex(fx, fy, 1.0f, 0.0f, dv);
-      addFigureVertex(fx, fy, 0.5f, -0.5f, dv);
+      addFigureVertex(fx, fy, 0.5f, 0.0f, blockArrayIndex);
+      addFigureVertex(fx, fy, 1.0f, 0.0f, blockArrayIndex);
+      addFigureVertex(fx, fy, 0.5f, 0.5f, blockArrayIndex);
 
       switch (bm & (bmRight | bmTopRight | bmTop))
       {
       case bmRight | bmTopRight | bmTop:
-        dv = closedBlockDV;
+        blockArrayIndex = Globals::closedBlocksTexIndex;
         break;
       case 0:
-        dv = openedBlockDV;
+        blockArrayIndex = Globals::openedBlocksTexIndex;
         break;
       case bmTop:
       case bmTop | bmTopRight:
       case bmTopRight:
-        dv = horzBlockDV;
+        blockArrayIndex = Globals::horzBlocksTexIndex;
         break;
       case bmRight:
       case bmRight | bmTopRight:
-        dv = vertBlockDV;
+        blockArrayIndex = Globals::vertBlocksTexIndex;
         break;
       default:
-        dv = openedBlockDV;
+        blockArrayIndex = Globals::openedBlocksTexIndex;
       }
 
-      addFigureVertex(fx, fy, 1.0f, 0.0f, dv);
-      addFigureVertex(fx, fy, 1.0f, -0.5f, dv);
-      addFigureVertex(fx, fy, 0.5f, -0.5f, dv);
+      addFigureVertex(fx, fy, 1.0f, 0.0f, blockArrayIndex);
+      addFigureVertex(fx, fy, 1.0f, 0.5f, blockArrayIndex);
+      addFigureVertex(fx, fy, 0.5f, 0.5f, blockArrayIndex);
 
       switch (bm & (bmRight | bmRightBottom | bmBottom))
       {
       case bmRight | bmRightBottom | bmBottom:
-        dv = closedBlockDV;
+        blockArrayIndex = Globals::closedBlocksTexIndex;
         break;
       case 0:
-        dv = openedBlockDV;
+        blockArrayIndex = Globals::openedBlocksTexIndex;
         break;
       case bmBottom:
       case bmBottom | bmRightBottom:
       case bmRightBottom:
-        dv = horzBlockDV;
+        blockArrayIndex = Globals::horzBlocksTexIndex;
         break;
       case bmRight:
       case bmRight | bmRightBottom:
-        dv = vertBlockDV;
+        blockArrayIndex = Globals::vertBlocksTexIndex;
         break;
       default:
-        dv = openedBlockDV;
+        blockArrayIndex = Globals::openedBlocksTexIndex;
       }
 
-      addFigureVertex(fx, fy, 0.5f, -0.5f, dv);
-      addFigureVertex(fx, fy, 1.0f, -0.5f, dv);
-      addFigureVertex(fx, fy, 1.0f, -1.0f, dv);
+      addFigureVertex(fx, fy, 0.5f, 0.5f, blockArrayIndex);
+      addFigureVertex(fx, fy, 1.0f, 0.5f, blockArrayIndex);
+      addFigureVertex(fx, fy, 1.0f, 1.0f, blockArrayIndex);
 
       switch (bm & (bmRight | bmRightBottom | bmBottom))
       {
       case bmRight | bmRightBottom | bmBottom:
-        dv = closedBlockDV;
+        blockArrayIndex = Globals::closedBlocksTexIndex;
         break;
       case 0:
-        dv = openedBlockDV;
+        blockArrayIndex = Globals::openedBlocksTexIndex;
         break;
       case bmBottom:
       case bmBottom | bmRightBottom:
-        dv = horzBlockDV;
+        blockArrayIndex = Globals::horzBlocksTexIndex;
         break;
       case bmRight:
       case bmRight | bmRightBottom:
       case bmRightBottom:
-        dv = vertBlockDV;
+        blockArrayIndex = Globals::vertBlocksTexIndex;
         break;
       default:
-        dv = openedBlockDV;
+        blockArrayIndex = Globals::openedBlocksTexIndex;
       }
 
-      addFigureVertex(fx, fy, 0.5f, -0.5f, dv);
-      addFigureVertex(fx, fy, 1.0f, -1.0f, dv);
-      addFigureVertex(fx, fy, 0.5f, -1.0f, dv);
+      addFigureVertex(fx, fy, 0.5f, 0.5f, blockArrayIndex);
+      addFigureVertex(fx, fy, 1.0f, 1.0f, blockArrayIndex);
+      addFigureVertex(fx, fy, 0.5f, 1.0f, blockArrayIndex);
 
       switch (bm & (bmBottom | bmBottomLeft | bmLeft))
       {
       case bmBottom | bmBottomLeft | bmLeft:
-        dv = closedBlockDV;
+        blockArrayIndex = Globals::closedBlocksTexIndex;
         break;
       case 0:
-        dv = openedBlockDV;
+        blockArrayIndex = Globals::openedBlocksTexIndex;
         break;
       case bmBottom:
       case bmBottom | bmBottomLeft:
-        dv = horzBlockDV;
+        blockArrayIndex = Globals::horzBlocksTexIndex;
         break;
       case bmLeft:
       case bmLeft | bmBottomLeft:
       case bmBottomLeft:
-        dv = vertBlockDV;
+        blockArrayIndex = Globals::vertBlocksTexIndex;
         break;
       default:
-        dv = openedBlockDV;
+        blockArrayIndex = Globals::openedBlocksTexIndex;
       }
 
-      addFigureVertex(fx, fy, 0.5f, -0.5f, dv);
-      addFigureVertex(fx, fy, 0.5f, -1.0f, dv);
-      addFigureVertex(fx, fy, 0.0f, -1.0f, dv);
+      addFigureVertex(fx, fy, 0.5f, 0.5f, blockArrayIndex);
+      addFigureVertex(fx, fy, 0.5f, 1.0f, blockArrayIndex);
+      addFigureVertex(fx, fy, 0.0f, 1.0f, blockArrayIndex);
 
       switch (bm & (bmLeft | bmBottomLeft | bmBottom))
       {
       case bmLeft | bmBottomLeft | bmBottom:
-        dv = closedBlockDV;
+        blockArrayIndex = Globals::closedBlocksTexIndex;
         break;
       case 0:
-        dv = openedBlockDV;
+        blockArrayIndex = Globals::openedBlocksTexIndex;
         break;
       case bmBottom:
       case bmBottom | bmBottomLeft:
       case bmBottomLeft:
-        dv = horzBlockDV;
+        blockArrayIndex = Globals::horzBlocksTexIndex;
         break;
       case bmLeft:
       case bmLeft | bmBottomLeft:
-        dv = vertBlockDV;
+        blockArrayIndex = Globals::vertBlocksTexIndex;
         break;
       default:
-        dv = openedBlockDV;
+        blockArrayIndex = Globals::openedBlocksTexIndex;
       }
 
-      addFigureVertex(fx, fy, 0.5f, -0.5f, dv);
-      addFigureVertex(fx, fy, 0.0f, -1.0f, dv);
-      addFigureVertex(fx, fy, 0.0f, -0.5f, dv);
+      addFigureVertex(fx, fy, 0.5f, 0.5f, blockArrayIndex);
+      addFigureVertex(fx, fy, 0.0f, 1.0f, blockArrayIndex);
+      addFigureVertex(fx, fy, 0.0f, 0.5f, blockArrayIndex);
 
       const float shadowWidth = 0.2f;
 
       if (bm & bmBottom)
       {
-        const float ru = 511.0f / 512.0f;
+        const float ru = 0.9f;
         float lu;
 
         if (bm & bmLeft)
-          lu = 0.877f;
+          lu = 0.0f;
         else
-          lu = 0.9375f;
+          lu = 0.5f;
 
-        addShadowVertex(fx, fy, 0.0f, -1.0f, lu, 0.0f);
-        addShadowVertex(fx, fy, 1.0f, -1.0f, ru, 0.0f);
+        addShadowVertex(fx + 0.0f, fy - 1.0f, lu, 0.0f);
+        addShadowVertex(fx + 1.0f, fy - 1.0f, ru, 0.0f);
 
         if (bm & bmRightBottom)
         {
-          addShadowVertex(fx, fy, 1.0f + shadowWidth, -1.0f - shadowWidth, ru, 0.125f);
-          addShadowVertex(fx, fy, 1.0f + shadowWidth, -1.0f - shadowWidth, ru, 0.125f);
+          addShadowVertex(fx + 1.0f + shadowWidth, fy - 1.0f - shadowWidth, ru, 1.0f);
+          addShadowVertex(fx + 1.0f + shadowWidth, fy - 1.0f - shadowWidth, ru, 1.0f);
         }
         else
         {
-          addShadowVertex(fx, fy, 1.0f, - 1.0f - shadowWidth, ru, 0.125f);
-          addShadowVertex(fx, fy, 1.0f, - 1.0f - shadowWidth, ru, 0.125f);
+          addShadowVertex(fx + 1.0f, fy - 1.0f - shadowWidth, ru, 1.0);
+          addShadowVertex(fx + 1.0f, fy - 1.0f - shadowWidth, ru, 1.0);
         }
 
-        addShadowVertex(fx, fy, 0.0f, -1.0f, lu, 0.0f);
+        addShadowVertex(fx + 0.0f, fy - 1.0f, lu, 0.0f);
 
         if (bm & bmBottomLeft)
-          addShadowVertex(fx + shadowWidth, fy, 0.0f, -1.0f - shadowWidth, lu, 0.125f);
+          addShadowVertex(fx + shadowWidth, fy - 1.0f - shadowWidth, lu, 1.0);
         else
-          addShadowVertex(fx, fy, 0.0f, -1.0f - shadowWidth, lu, 0.125f);
+          addShadowVertex(fx + 0.0f, fy - 1.0f - shadowWidth, lu, 1.0f);
       }
 
       if (bm & bmRight)
       {
-        const float bu = 511.0f / 512.0f;
+        const float bu = 0.9f;
         float tu;
 
         if (bm & bmTop)
-          tu = 0.877f;
+          tu = 0.0f;
         else
-          tu = 0.9375f;
+          tu = 0.5f;
 
-        addShadowVertex(fx, fy, 1.0f, 0.0f, tu, 0.0f);
-        addShadowVertex(fx, fy, 1.0f, -1.0f, bu, 0.0f);
+        addShadowVertex(fx + 1.0f, fy - 0.0f, tu, 0.0f);
+        addShadowVertex(fx + 1.0f, fy - 1.0f, bu, 0.0f);
 
         if (bm & bmRightBottom)
         {
-          addShadowVertex(fx, fy, 1.0f + shadowWidth, -1.0f - shadowWidth, bu, 0.125f);
-          addShadowVertex(fx, fy, 1.0f + shadowWidth, -1.0f - shadowWidth, bu, 0.125f);
+          addShadowVertex(fx + 1.0f + shadowWidth, fy - 1.0f - shadowWidth, bu, 1.0f);
+          addShadowVertex(fx + 1.0f + shadowWidth, fy - 1.0f - shadowWidth, bu, 1.0f);
         }
         else
         {
-          addShadowVertex(fx, fy, 1.0f + shadowWidth, -1.0f, bu, 0.125f);
-          addShadowVertex(fx, fy, 1.0f + shadowWidth, -1.0f, bu, 0.125f);
+          addShadowVertex(fx + 1.0f + shadowWidth, fy - 1.0f, bu, 1.0f);
+          addShadowVertex(fx + 1.0f + shadowWidth, fy - 1.0f, bu, 1.0f);
         }
 
-        addShadowVertex(fx, fy, 1.0f, 0.0f, tu, 0.0f);
+        addShadowVertex(fx + 1.0f, fy + 0.0f, tu, 0.0f);
 
         if (bm & bmTopRight)
-          addShadowVertex(fx, fy, 1.0f + shadowWidth, -shadowWidth, tu, 0.125f);
+          addShadowVertex(fx + 1.0f + shadowWidth, fy - shadowWidth, tu, 1.0f);
         else
-          addShadowVertex(fx, fy, 1.0f + shadowWidth, 0.0f, tu, 0.125f);
+          addShadowVertex(fx + 1.0f + shadowWidth, fy - 0.0f, tu, 1.0f);
       }
 
 
       const float glowWidth = 0.5f;
+      const float glowBias = 0.0f / 64.0f;
       const float maxAlpha = 0.2f;
       const float minAlpha = 0.0f;
       float dx = 0.0f;
@@ -452,8 +441,8 @@ void Figure::buildMeshes()
       {
         dx = -glowWidth;
 
-        addGlowVertex(fx, fy, 0.0f, 0.0f, maxAlpha);
-        addGlowVertex(fx, fy, 0.0f, -1.0f, maxAlpha);
+        addGlowVertex(fx + 0.0f + glowBias, fy + 0.0f - glowBias, maxAlpha);
+        addGlowVertex(fx + 0.0f + glowBias, fy - 1.0f + glowBias, maxAlpha);
 
         switch (bm & (bmBottom | bmBottomLeft))
         {
@@ -467,10 +456,10 @@ void Figure::buildMeshes()
           dy = -1.0f + glowWidth;
         }
 
-        addGlowVertex(fx, fy, dx, dy, minAlpha);
+        addGlowVertex(fx + dx, fy + dy, minAlpha);
 
-        addGlowVertex(fx, fy, 0.0f, 0.0f, maxAlpha);
-        addGlowVertex(fx, fy, dx, dy, minAlpha);
+        addGlowVertex(fx + 0.0f + glowBias, fy + 0.0f - glowBias, maxAlpha);
+        addGlowVertex(fx + dx, fy + dy, minAlpha);
 
         switch (bm & (bmTop | bmLeftTop))
         {
@@ -484,15 +473,15 @@ void Figure::buildMeshes()
           dy = 0.0f - glowWidth;
         }
 
-        addGlowVertex(fx, fy, dx, dy, minAlpha);
+        addGlowVertex(fx + dx, fy + dy, minAlpha);
       }
 
       if (bm & bmTop)
       {
         dy = glowWidth;
 
-        addGlowVertex(fx, fy, 1.0f, 0.0f, maxAlpha);
-        addGlowVertex(fx, fy, 0.0f, 0.0f, maxAlpha);
+        addGlowVertex(fx + 1.0f - glowBias, fy + 0.0f - glowBias, maxAlpha);
+        addGlowVertex(fx + 0.0f + glowBias, fy + 0.0f - glowBias, maxAlpha);
 
         switch (bm & (bmLeft | bmLeftTop))
         {
@@ -506,10 +495,10 @@ void Figure::buildMeshes()
           dx = glowWidth;
         }
 
-        addGlowVertex(fx, fy, dx, dy, minAlpha);
+        addGlowVertex(fx + dx, fy + dy, minAlpha);
 
-        addGlowVertex(fx, fy, 1.0f, 0.0f, maxAlpha);
-        addGlowVertex(fx, fy, dx, dy, minAlpha);
+        addGlowVertex(fx + 1.0f - glowBias, fy + 0.0f - glowBias, maxAlpha);
+        addGlowVertex(fx + dx, fy + dy, minAlpha);
 
         switch (bm & (bmRight | bmTopRight))
         {
@@ -523,15 +512,15 @@ void Figure::buildMeshes()
           dx = 1.0f - glowWidth;
         }
 
-        addGlowVertex(fx, fy, dx, dy, minAlpha);
+        addGlowVertex(fx + dx, fy + dy, minAlpha);
       }
 
       if (bm & bmRight)
       {
         dx = 1.0f + glowWidth;
 
-        addGlowVertex(fx, fy, 1.0f, 0.0f, maxAlpha);
-        addGlowVertex(fx, fy, 1.0f, -1.0f, maxAlpha);
+        addGlowVertex(fx + 1.0f - glowBias, fy + 0.0f - glowBias, maxAlpha);
+        addGlowVertex(fx + 1.0f - glowBias, fy - 1.0f + glowBias, maxAlpha);
 
         switch (bm & (bmTop | bmTopRight))
         {
@@ -545,10 +534,10 @@ void Figure::buildMeshes()
           dy = glowWidth;
         }
 
-        addGlowVertex(fx, fy, dx, dy, minAlpha);
+        addGlowVertex(fx + dx, fy + dy, minAlpha);
 
-        addGlowVertex(fx, fy, 1.0f, -1.0f, maxAlpha);
-        addGlowVertex(fx, fy, dx, dy, minAlpha);
+        addGlowVertex(fx + 1.0f - glowBias, fy - 1.0f + glowBias, maxAlpha);
+        addGlowVertex(fx + dx, fy + dy, minAlpha);
 
         switch (bm & (bmBottom | bmRightBottom))
         {
@@ -562,15 +551,15 @@ void Figure::buildMeshes()
           dy = -1.0f + glowWidth;
         }
 
-        addGlowVertex(fx, fy, dx, dy, minAlpha);
+        addGlowVertex(fx + dx, fy + dy, minAlpha);
       }
 
       if (bm & bmBottom)
       {
         dy = -1.0f - glowWidth;
 
-        addGlowVertex(fx, fy, 0.0f, -1.0f, maxAlpha);
-        addGlowVertex(fx, fy, 1.0f, -1.0f, maxAlpha);
+        addGlowVertex(fx + 0.0f + glowBias, fy - 1.0f + glowBias, maxAlpha);
+        addGlowVertex(fx + 1.0f - glowBias, fy - 1.0f + glowBias, maxAlpha);
 
         switch (bm & (bmRight | bmRightBottom))
         {
@@ -584,10 +573,10 @@ void Figure::buildMeshes()
           dx = 1.0f - glowWidth;
         }
 
-        addGlowVertex(fx, fy, dx, dy, minAlpha);
+        addGlowVertex(fx + dx, fy + dy, minAlpha);
 
-        addGlowVertex(fx, fy, 0.0f, -1.0f, maxAlpha);
-        addGlowVertex(fx, fy, dx, dy, minAlpha);
+        addGlowVertex(fx + 0.0f + glowBias, fy - 1.0f + glowBias, maxAlpha);
+        addGlowVertex(fx + dx, fy + dy, minAlpha);
 
         switch (bm & (bmLeft | bmBottomLeft))
         {
@@ -601,7 +590,7 @@ void Figure::buildMeshes()
           dx = glowWidth;
         }
 
-        addGlowVertex(fx, fy, dx, dy, minAlpha);
+        addGlowVertex(fx + dx, fy + dy, minAlpha);
       }
 
     }
@@ -611,86 +600,74 @@ void Figure::buildMeshes()
 
   if (!figureVertexBufferId) {
     glGenBuffers(1, &figureVertexBufferId);
-    assert(!glGetError());
+    assert(!checkGlErrors());
   }
 
   glBindBuffer(GL_ARRAY_BUFFER, figureVertexBufferId);
-  assert(!glGetError());
+  assert(!checkGlErrors());
 
   glBufferData(GL_ARRAY_BUFFER, figureVertexBufferData.size() * sizeof(float), &figureVertexBufferData.front(), GL_STATIC_DRAW);
-  assert(!glGetError());
+  assert(!checkGlErrors());
 
 
-  if (!figureUVBufferId) {
-    glGenBuffers(1, &figureUVBufferId);
-    assert(!glGetError());
+  if (!figureUVWBufferId) {
+    glGenBuffers(1, &figureUVWBufferId);
+    assert(!checkGlErrors());
   }
 
-  glBindBuffer(GL_ARRAY_BUFFER, figureUVBufferId);
-  assert(!glGetError());
+  glBindBuffer(GL_ARRAY_BUFFER, figureUVWBufferId);
+  assert(!checkGlErrors());
 
   glBufferData(GL_ARRAY_BUFFER, figureUVBufferData.size() * sizeof(float), &figureUVBufferData.front(), GL_STATIC_DRAW);
-  assert(!glGetError());
+  assert(!checkGlErrors());
 
 
   if (!shadowVertexBufferId) {
     glGenBuffers(1, &shadowVertexBufferId);
-    assert(!glGetError());
+    assert(!checkGlErrors());
   }
 
   glBindBuffer(GL_ARRAY_BUFFER, shadowVertexBufferId);
-  assert(!glGetError());
+  assert(!checkGlErrors());
 
   glBufferData(GL_ARRAY_BUFFER, shadowVertexBufferData.size() * sizeof(float), &shadowVertexBufferData.front(), GL_STATIC_DRAW);
-  assert(!glGetError());
+  assert(!checkGlErrors());
 
 
   if (!shadowUVBufferId) {
     glGenBuffers(1, &shadowUVBufferId);
-    assert(!glGetError());
+    assert(!checkGlErrors());
   }
 
   glBindBuffer(GL_ARRAY_BUFFER, shadowUVBufferId);
-  assert(!glGetError());
+  assert(!checkGlErrors());
 
   glBufferData(GL_ARRAY_BUFFER, shadowUVBufferData.size() * sizeof(float), &shadowUVBufferData.front(), GL_STATIC_DRAW);
-  assert(!glGetError());
+  assert(!checkGlErrors());
 
 
   if (!glowVertexBufferId) {
     glGenBuffers(1, &glowVertexBufferId);
-    assert(!glGetError());
+    assert(!checkGlErrors());
   }
 
   glBindBuffer(GL_ARRAY_BUFFER, glowVertexBufferId);
-  assert(!glGetError());
+  assert(!checkGlErrors());
 
   glBufferData(GL_ARRAY_BUFFER, glowVertexBufferData.size() * sizeof(float), &glowVertexBufferData.front(), GL_STATIC_DRAW);
-  assert(!glGetError());
-
-
-  if (!glowUVBufferId) {
-    glGenBuffers(1, &glowUVBufferId);
-    assert(!glGetError());
-  }
-
-  glBindBuffer(GL_ARRAY_BUFFER, glowUVBufferId);
-  assert(!glGetError());
-
-  glBufferData(GL_ARRAY_BUFFER, glowUVBufferData.size() * sizeof(float), &glowUVBufferData.front(), GL_STATIC_DRAW);
-  assert(!glGetError());
+  assert(!checkGlErrors());
 
 
   if (!glowAlphaBufferId) {
     glGenBuffers(1, &glowAlphaBufferId);
-    assert(!glGetError());
+    assert(!checkGlErrors());
   }
 
   glBindBuffer(GL_ARRAY_BUFFER, glowAlphaBufferId);
-  assert(!glGetError());
+  assert(!checkGlErrors());
 
   glBufferData(GL_ARRAY_BUFFER, glowAlphaBufferData.size() * sizeof(float), &glowAlphaBufferData.front(), GL_STATIC_DRAW);
-  assert(!glGetError());
+  assert(!checkGlErrors());
 }
 
 void Figure::clearVertexBuffersData()
@@ -708,34 +685,32 @@ void Figure::clearVertexBuffersData()
   glowVertCount = 0;
 }
 
-void Figure::addFigureVertex(float x, float y, float dx, float dy, float dv)
+void Figure::addFigureVertex(float sqx, float sqy, float u, float v, int blockArrayIndex)
 {
-  const float du = 0.125f * float(color);
-
-  figureVertexBufferData.push_back(x + dx);
-  figureVertexBufferData.push_back(y + dy);
-  figureUVBufferData.push_back(dx * 0.125f * 62.0f / 64.0f + du + 1.0f / 512.0f);
-  figureUVBufferData.push_back(-dy * 0.25f * 62.0f / 64.0f / 2 + dv + 1.0f / 512.0f);
+  figureVertexBufferData.push_back(sqx + u);
+  figureVertexBufferData.push_back(sqy - v);
+  figureUVBufferData.push_back(u);
+  figureUVBufferData.push_back(v);
+  figureUVBufferData.push_back(float(blockArrayIndex + color));
 
   figureVertCount++;
 }
 
-void Figure::addShadowVertex(float x, float y, float dx, float dy, float u, float v)
+void Figure::addShadowVertex(float x, float y, float u, float v)
 {
-  shadowVertexBufferData.push_back(x + dx);
-  shadowVertexBufferData.push_back(y + dy);
+  shadowVertexBufferData.push_back(x);
+  shadowVertexBufferData.push_back(y);
   shadowUVBufferData.push_back(u);
   shadowUVBufferData.push_back(v);
+  shadowUVBufferData.push_back(float(Globals::shadowTexIndex));
 
   shadowVertCount++;
 }
 
-void Figure::addGlowVertex(float x, float y, float dx, float dy, float alpha)
+void Figure::addGlowVertex(float x, float y, float alpha)
 {
-  glowVertexBufferData.push_back(x + dx);
-  glowVertexBufferData.push_back(y + dy);
-  glowUVBufferData.push_back(0.125f * float(color));
-  glowUVBufferData.push_back(0.0625f);
+  glowVertexBufferData.push_back(x);
+  glowVertexBufferData.push_back(y);
   glowAlphaBufferData.push_back(alpha);
 
   glowVertCount++;
@@ -745,177 +720,141 @@ void Figure::rotate(int halfPiAngles)
 {
 }
 
-void Figure::setScreenScale(const glm::vec2 & scale)
+void Figure::setScreen(const glm::vec2 & screen)
 {
-  screenScale = scale;
-
   figureProg.use();
   assert(!figureProg.isError());
 
-  GLuint figureProjId = glGetUniformLocation(figureProg.getId(), "screenScale");
-  assert(!glGetError());
-
-  glUniform2fv(figureProjId, 1, &screenScale.x);
-  assert(!glGetError());
+  figureProg.setUniform("screen", screen);
+  assert(!figureProg.isError());
 
   glowProg.use();
   assert(!glowProg.isError());
 
-  GLuint glowProjId = glGetUniformLocation(glowProg.getId(), "screenScale");
-  assert(!glGetError());
-
-  glUniform2fv(glowProjId, 1, &screenScale.x);
-  assert(!glGetError());
+  glowProg.setUniform("screen", screen);
+  assert(!glowProg.isError());
 }
 
-void Figure::drawFigure(float x, float y, float sqSize)
+void Figure::setScale(float scale)
+{
+  figureProg.use();
+  assert(!figureProg.isError());
+
+  figureProg.setUniform("scale", scale);
+  assert(!figureProg.isError());
+
+  glowProg.use();
+  assert(!glowProg.isError());
+
+  glowProg.setUniform("scale", scale);
+  assert(!glowProg.isError());
+}
+
+void beginDrawFigure();
+void addFigureDraw();
+void endDrawFigure();
+void Figure::drawFigure()
 {
   Figure::figureProg.use();
   assert(!Figure::figureProg.isError());
 
-  glBindTexture(GL_TEXTURE_2D, textureId);
-  assert(!glGetError());
-
-
-  GLuint posId = glGetUniformLocation(figureProg.getId(), "pos");
-  assert(!glGetError());
-
-  glUniform2f(posId, x, y);
-  assert(!glGetError());
-
-  GLuint sizeId = glGetUniformLocation(figureProg.getId(), "sqSize");
-  assert(!glGetError());
-
-  glUniform1f(sizeId, sqSize);
-  assert(!glGetError());
-
+  figureProg.setUniform("pos", pos);
+  assert(!figureProg.isError());
 
   glEnableVertexAttribArray(0);
-  assert(!glGetError());
+  assert(!checkGlErrors());
   glEnableVertexAttribArray(1);
-  assert(!glGetError());
+  assert(!checkGlErrors());
 
 
   glBindBuffer(GL_ARRAY_BUFFER, figureVertexBufferId);
-  assert(!glGetError());
+  assert(!checkGlErrors());
   glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
-  assert(!glGetError());
+  assert(!checkGlErrors());
 
-  glBindBuffer(GL_ARRAY_BUFFER, figureUVBufferId);
-  assert(!glGetError());
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
-  assert(!glGetError());
+  glBindBuffer(GL_ARRAY_BUFFER, figureUVWBufferId);
+  assert(!checkGlErrors());
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+  assert(!checkGlErrors());
 
   glDrawArrays(GL_TRIANGLES, 0, figureVertCount);
-  assert(!glGetError());
+  assert(!checkGlErrors());
 
 
   glDisableVertexAttribArray(0);
-  assert(!glGetError());
+  assert(!checkGlErrors());
   glDisableVertexAttribArray(1);
-  assert(!glGetError());
+  assert(!checkGlErrors());
 }
 
-void Figure::drawShadow(float x, float y, float sqSize)
+void Figure::drawShadow()
 {
-  Figure::figureProg.use();
-  assert(!Figure::figureProg.isError());
+  figureProg.use();
+  assert(!figureProg.isError());
 
-  glBindTexture(GL_TEXTURE_2D, textureId);
-  assert(!glGetError());
-
-
-  GLuint posId = glGetUniformLocation(figureProg.getId(), "pos");
-  assert(!glGetError());
-
-  glUniform2f(posId, x, y);
-  assert(!glGetError());
-
-  GLuint sizeId = glGetUniformLocation(figureProg.getId(), "sqSize");
-  assert(!glGetError());
-
-  glUniform1f(sizeId, sqSize);
-  assert(!glGetError());
-
+  figureProg.setUniform("pos", pos);
+  assert(!figureProg.isError());
 
   glEnableVertexAttribArray(0);
-  assert(!glGetError());
+  assert(!checkGlErrors());
   glEnableVertexAttribArray(1);
-  assert(!glGetError());
+  assert(!checkGlErrors());
+
 
   glBindBuffer(GL_ARRAY_BUFFER, shadowVertexBufferId);
-  assert(!glGetError());
+  assert(!checkGlErrors());
   glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
-  assert(!glGetError());
+  assert(!checkGlErrors());
 
   glBindBuffer(GL_ARRAY_BUFFER, shadowUVBufferId);
-  assert(!glGetError());
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
-  assert(!glGetError());
+  assert(!checkGlErrors());
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+  assert(!checkGlErrors());
 
   glDrawArrays(GL_TRIANGLES, 0, shadowVertCount);
-  assert(!glGetError());
+  assert(!checkGlErrors());
 
 
   glDisableVertexAttribArray(0);
-  assert(!glGetError());
+  assert(!checkGlErrors());
   glDisableVertexAttribArray(1);
-  assert(!glGetError());
+  assert(!checkGlErrors());
 }
 
-void Figure::drawGlow(float x, float y, float sqSize)
+void Figure::drawGlow()
 {
-  Figure::glowProg.use();
-  assert(!Figure::glowProg.isError());
+  glowProg.use();
+  assert(!glowProg.isError());
 
-  glBindTexture(GL_TEXTURE_2D, textureId);
-  assert(!glGetError());
+  glowProg.setUniform("pos", pos);
+  assert(!glowProg.isError());
 
-
-  GLuint posId = glGetUniformLocation(glowProg.getId(), "pos");
-  assert(!glGetError());
-
-  glUniform2f(posId, x, y);
-  assert(!glGetError());
-
-  GLuint sizeId = glGetUniformLocation(glowProg.getId(), "sqSize");
-  assert(!glGetError());
-
-  glUniform1f(sizeId, sqSize);
-  assert(!glGetError());
+  glowProg.setUniform("texLayer", float(Globals::openedBlocksTexIndex + color));
+  assert(!glowProg.isError());
 
 
   glEnableVertexAttribArray(0);
-  assert(!glGetError());
+  assert(!checkGlErrors());
   glEnableVertexAttribArray(1);
-  assert(!glGetError());
-  glEnableVertexAttribArray(2);
-  assert(!glGetError());
+  assert(!checkGlErrors());
 
   glBindBuffer(GL_ARRAY_BUFFER, glowVertexBufferId);
-  assert(!glGetError());
+  assert(!checkGlErrors());
   glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
-  assert(!glGetError());
-
-  glBindBuffer(GL_ARRAY_BUFFER, glowUVBufferId);
-  assert(!glGetError());
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
-  assert(!glGetError());
+  assert(!checkGlErrors());
 
   glBindBuffer(GL_ARRAY_BUFFER, glowAlphaBufferId);
-  assert(!glGetError());
-  glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 0, (void*)0);
-  assert(!glGetError());
+  assert(!checkGlErrors());
+  glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 0, (void*)0);
+  assert(!checkGlErrors());
 
 
   glDrawArrays(GL_TRIANGLES, 0, glowVertCount);
-  assert(!glGetError());
+  assert(!checkGlErrors());
 
 
   glDisableVertexAttribArray(0);
-  assert(!glGetError());
+  assert(!checkGlErrors());
   glDisableVertexAttribArray(1);
-  assert(!glGetError());
-  glDisableVertexAttribArray(2);
-  assert(!glGetError());
+  assert(!checkGlErrors());
 }

@@ -9,6 +9,7 @@ public:
   enum Color { clRed = 0, clOrange, clYellow, clGreen, clCyan, clBlue, clPurple };
 
 private:
+  glm::vec2 pos;
   Color color;
   std::vector<float> figureVertexBufferData;
   std::vector<float> figureUVBufferData;
@@ -18,7 +19,7 @@ private:
   std::vector<float> glowUVBufferData;
   std::vector<float> glowAlphaBufferData;
   GLuint figureVertexBufferId;
-  GLuint figureUVBufferId;
+  GLuint figureUVWBufferId;
   GLuint shadowVertexBufferId;
   GLuint shadowUVBufferId;
   GLuint glowVertexBufferId;
@@ -27,20 +28,18 @@ private:
   int figureVertCount;
   int shadowVertCount;
   int glowVertCount;
-  static GLuint textureId;
   static Program figureProg;
   static Shader figureVert;
   static Shader figureFrag;
   static Program glowProg;
   static Shader glowVert;
   static Shader glowFrag;
-  static glm::vec2 screenScale;
 
   void buildMeshes();
   void clearVertexBuffersData();
-  void addFigureVertex(float x, float y, float dx, float dy, float dv);
-  void addShadowVertex(float x, float y, float dx, float dy, float u, float v);
-  void addGlowVertex(float x, float y, float dx, float dy, float alpha);
+  void addFigureVertex(float sqx, float sqy, float u, float v, int blockArrayIndex);
+  void addShadowVertex(float x, float y, float u, float v);
+  void addGlowVertex(float x, float y, float alpha);
 
 public:
   int dim;
@@ -50,10 +49,16 @@ public:
   ~Figure();
 
   static void init();
-  static void setScreenScale(const glm::vec2 & scale);
+  static void setScreen(const glm::vec2 & screen);
+  static void setScale(float scale);
+
+  inline void setPos(float x, float y) { this->pos = glm::vec2(x, y); }
+  inline void setPos(const glm::vec2 & pos) { this->pos = pos; }
+  inline glm::vec2 getPos() { return pos; };
+
   void rotate(int halfPiAngles);
-  void drawFigure(float x, float y, float sqSize);
-  void drawShadow(float x, float y, float sqSize);
-  void drawGlow(float x, float y, float sqSize);
+  void drawFigure();
+  void drawShadow();
+  void drawGlow();
 };
 

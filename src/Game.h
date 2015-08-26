@@ -8,8 +8,6 @@ class Game
 private:
   GLuint vertexArrayId;
   Background background;
-  Shader blockVS, blockFS;
-  Program blockProg;
   const float width;
   const float height;
 

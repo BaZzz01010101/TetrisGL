@@ -1,10 +1,9 @@
+#include "Globals.h"
 #include "Game.h"
 #include "Figure.h"
 
 
 Game::Game() :
-  blockVS(GL_VERTEX_SHADER),
-  blockFS(GL_FRAGMENT_SHADER),
   width(0.5f),
   height(1.0f)
 {
@@ -26,39 +25,59 @@ bool Game::init()
   // workaround GLEW issue with GL_INVALID_ENUM rising just after glewInit
   glGetError();
 
+  std::string backPath = Crosy::getExePath() + "\\textures\\blocks.png";
+  int width, height, channels;
+  unsigned char * img = SOIL_load_image(backPath.c_str(), &width, &height, &channels, SOIL_LOAD_RGBA);
+  assert(width == Globals::mainArrayTextureSize);
+  assert(!(height % Globals::mainArrayTextureSize));
+
+  glGenTextures(1, &Globals::mainArrayTextureId);
+  assert(!checkGlErrors());
+  glBindTexture(GL_TEXTURE_2D_ARRAY, Globals::mainArrayTextureId);
+  assert(!checkGlErrors());
+  glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, Globals::mainArrayTextureSize, Globals::mainArrayTextureSize, height / Globals::mainArrayTextureSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, img);
+  assert(!checkGlErrors());
+  glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
+  assert(!checkGlErrors());
+  SOIL_free_image_data(img);
+
   glGenVertexArrays(1, &vertexArrayId);
-  assert(!glGetError());
+  assert(!checkGlErrors());
 
   glBindVertexArray(vertexArrayId);
-  assert(!glGetError());
+  assert(!checkGlErrors());
 
-  //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  assert(!glGetError());
+  //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  assert(!checkGlErrors());
   glDisable(GL_DEPTH_TEST);
-  assert(!glGetError());
+  assert(!checkGlErrors());
 
   glEnable(GL_BLEND);
-  assert(!glGetError());
+  assert(!checkGlErrors());
 
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  assert(!glGetError());
+  assert(!checkGlErrors());
 
   glDisable(GL_CULL_FACE);
-  assert(!glGetError());
+  assert(!checkGlErrors());
   
-  glCullFace(GL_FRONT);
-  assert(!glGetError());
+  //glCullFace(GL_FRONT);
+  //assert(!checkGlErrors());
   
   glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-  assert(!glGetError());
+  assert(!checkGlErrors());
 
   glClearDepth(1.0f);
-  assert(!glGetError());
+  assert(!checkGlErrors());
 
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  assert(!glGetError());
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, 5000+GL_LINEAR);
+  assert(!checkGlErrors());
 
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  assert(!glGetError());
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+  //glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  assert(!checkGlErrors());
+
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_LOD_BIAS, -1);
+  assert(!checkGlErrors());
 
   background.init();
   Figure::init();
@@ -68,27 +87,30 @@ bool Game::init()
 
 void Game::resize(float aspect)
 {
-  glm::vec2 screenScale(1);
+  glm::vec2 screen(1.0f);
 
   if (aspect > background.aspect)
   {
-    screenScale.x = 1 / aspect;
-    screenScale.y = 1.0f;
+    screen.x = 1.0f / aspect;
+    screen.y = 1.0f;
   }
   else
   {
-    screenScale.x = 1 / background.aspect;
-    screenScale.y = aspect / background.aspect;
+    screen.x = 1.0f / background.aspect;
+    screen.y = aspect / background.aspect;
   }
 
-  background.setScreenScale(screenScale);
-  Figure::setScreenScale(screenScale);
+  background.setScreen(screen);
+  Figure::setScreen(screen);
 }
 
 void Game::pulse()
 {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  assert(!glGetError());
+  assert(!checkGlErrors());
+
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  assert(!checkGlErrors());
 
   background.draw();
 
@@ -98,30 +120,46 @@ void Game::pulse()
   static Figure fig3(2, Figure::clYellow, "1111");
   static Figure fig4(3, Figure::clOrange, "001111000");
 
-  fig0.drawShadow(-0.66f, -0.7f, 0.1f);
-  fig1.drawShadow(-0.66f + 0.2f, -0.7f, 0.1f);
-  fig2.drawShadow(-0.66f + 0.4f, -0.6f, 0.1f);
-  fig3.drawShadow(-0.66f + 0.6f, -0.5f, 0.1f);
-  fig4.drawShadow(-0.66f + 0.5f, -0.0f, 0.1f);
+  fig0.setPos(-0.66f, -0.7f);
+  fig1.setPos(-0.66f + 0.2f, -0.7f);
+  fig2.setPos(-0.66f + 0.4f, -0.6f);
+  fig3.setPos(-0.66f + 0.6f, -0.5f);
+  fig4.setPos(-0.66f + 0.5f, -0.0f);
 
-  fig0.drawFigure(-0.66f, -0.7f, 0.1f);
-  fig1.drawFigure(-0.66f + 0.2f, -0.7f, 0.1f);
-  fig2.drawFigure(-0.66f + 0.4f, -0.6f, 0.1f);
-  fig3.drawFigure(-0.66f + 0.6f, -0.5f, 0.1f);
-  fig4.drawFigure(-0.66f + 0.5f, -0.0f, 0.1f);
+  Figure::setScale(0.1f);
+
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+  assert(!checkGlErrors());
+
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+  assert(!checkGlErrors());
+
+  fig0.drawShadow();
+  fig1.drawShadow();
+  fig2.drawShadow();
+  fig3.drawShadow();
+  fig4.drawShadow();
+
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  assert(!checkGlErrors());
+
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  assert(!checkGlErrors());
+
+  fig0.drawFigure();
+  fig1.drawFigure();
+  fig2.drawFigure();
+  fig3.drawFigure();
+  fig4.drawFigure();
 
   glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-//  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  assert(!glGetError());
+  assert(!checkGlErrors());
 
-  fig0.drawGlow(-0.66f, -0.7f, 0.1f);
-  fig1.drawGlow(-0.66f + 0.2f, -0.7f, 0.1f);
-  fig2.drawGlow(-0.66f + 0.4f, -0.6f, 0.1f);
-  fig3.drawGlow(-0.66f + 0.6f, -0.5f, 0.1f);
-  fig4.drawGlow(-0.66f + 0.5f, -0.0f, 0.1f);
-
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  assert(!glGetError());
+  fig0.drawGlow();
+  fig1.drawGlow();
+  fig2.drawGlow();
+  fig3.drawGlow();
+  fig4.drawGlow();
 }
 
 void drawBackground()

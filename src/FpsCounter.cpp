@@ -21,16 +21,20 @@ void FpsCounter::init(GLFWwindow* window)
 void FpsCounter::pulse()
 {
   cnt++;
-  float timePass = float(Crosy::getPerformanceCounter() - ticks) / freq;
 
-  if (timePass > 1)
+  if (freq)
   {
-    float fps = cnt / timePass;
-    const int bufSize = 256;
-    char str[bufSize];
-    Crosy::snprintf(str, bufSize, "Fps: %.3f", fps);
-    glfwSetWindowTitle(win, str);
-    ticks = Crosy::getPerformanceCounter();
-    cnt = 0;
+    float timePass = float(Crosy::getPerformanceCounter() - ticks) / freq;
+
+    if (timePass > 1)
+    {
+      float fps = cnt / timePass;
+      const int bufSize = 256;
+      char str[bufSize];
+      Crosy::snprintf(str, bufSize, "Fps: %.3f", fps);
+      glfwSetWindowTitle(win, str);
+      ticks = Crosy::getPerformanceCounter();
+      cnt = 0;
+    }
   }
 }

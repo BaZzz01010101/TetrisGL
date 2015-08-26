@@ -21,4 +21,9 @@ public:
   bool attachShader(const Shader & shader);
   bool link();
   bool use() const;
+  bool setUniform(const char * name, GLint value);
+  bool setUniform(const char * name, GLfloat value);
+  bool setUniform(const char * name, GLfloat value1, GLfloat value2);
+  bool setUniform(const char * name, const glm::vec2 & value);
+  bool setUniform(const char * name, const glm::mat3 & value);
 };

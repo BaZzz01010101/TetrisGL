@@ -8,10 +8,8 @@ class Background
 private:
   GLuint vertexBufferId;
   GLuint uvBufferId;
-  GLuint textureId;
   Program prog;
   Shader vert, frag;
-  glm::vec2 screenScale;
 
 public:
   const float aspect;
@@ -19,7 +17,7 @@ public:
   ~Background();
 
   void init();
-  void setScreenScale(const glm::vec2 & scale);
+  void setScreen(const glm::vec2 & screen);
   void draw() const;
 };
 

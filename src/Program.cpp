@@ -113,3 +113,68 @@ bool Program::use() const
 
   return (!checkGlErrors());
 }
+
+bool Program::setUniform(const char * name, GLint value)
+{
+  GLuint uid = glGetUniformLocation(id, name);
+  if (checkGlErrors())
+    return false;
+
+  glUniform1i(uid, value);
+  if (checkGlErrors())
+    return false;
+
+  return true;
+}
+
+bool Program::setUniform(const char * name, GLfloat value)
+{
+  GLuint uid = glGetUniformLocation(id, name);
+  if (checkGlErrors())
+    return false;
+
+  glUniform1f(uid, value);
+  if (checkGlErrors())
+    return false;
+
+  return true;
+}
+
+bool Program::setUniform(const char * name, GLfloat value1, GLfloat value2)
+{
+  GLuint uid = glGetUniformLocation(id, name);
+  if (checkGlErrors())
+    return false;
+
+  glUniform2f(uid, value1, value2);
+  if (checkGlErrors())
+    return false;
+
+  return true;
+}
+
+bool Program::setUniform(const char * name, const glm::vec2 & value)
+{
+  GLuint uid = glGetUniformLocation(id, name);
+  if (checkGlErrors())
+    return false;
+
+  glUniform2fv(uid, 1, &value.x);
+  if (checkGlErrors())
+    return false;
+
+  return true;
+}
+
+bool Program::setUniform(const char * name, const glm::mat3 & value)
+{
+  GLuint uid = glGetUniformLocation(id, name);
+  if (checkGlErrors())
+    return false;
+
+  glUniformMatrix3fv(uid, 1, false, &value[0][0]);
+  if (checkGlErrors())
+    return false;
+
+  return true;
+}
