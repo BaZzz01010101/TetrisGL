@@ -91,26 +91,6 @@ bool Game::init()
   return true;
 }
 
-void Game::resize(float aspect)
-{
-  glm::vec2 screen(1.0f);
-  const float gameBkAspect = Globals::gameBkSize.x / Globals::gameBkSize.y;
-
-  if (aspect > gameBkAspect)
-  {
-    screen.x = 1.0f / aspect;
-    screen.y = 1.0f;
-  }
-  else
-  {
-    screen.x = 1.0f / gameBkAspect;
-    screen.y = aspect / gameBkAspect;
-  }
-
-  background.setScreen(screen);
-  Figure::setScreen(screen);
-}
-
 void Game::pulse()
 {
   switch (gameState)

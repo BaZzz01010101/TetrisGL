@@ -68,7 +68,6 @@ void Background::init()
     "#version 330 core\n"
     "layout(location = 0) in vec2 vertexPos;"
     "layout(location = 1) in vec2 vertexUV;"
-    "uniform vec2 screen;"
     "uniform vec2 pos;"
     "uniform vec2 size;"
     "out vec2 pixPos;"
@@ -76,9 +75,9 @@ void Background::init()
 
     "void main()"
     "{"
-    "  gl_Position = vec4(screen * (vertexPos * size + pos), 0, 1);"
+    "  gl_Position = vec4(vertexPos * size + pos, 0, 1);"
     "  uv = vertexUV;"
-    "  pixPos = (vertexPos + vec2(-0.5, 0.5)) * 2.0 / screen;"
+    "  pixPos = (vertexPos + vec2(-0.5, 0.5)) * 2.0;"
     "}");
 
   gameBkFrag.compileFromString(
@@ -107,15 +106,14 @@ void Background::init()
   glassBkVert.compileFromString(
     "#version 330 core\n"
     "layout(location = 0) in vec2 vertexPos;"
-    "uniform vec2 screen;"
     "uniform vec2 pos;"
     "uniform vec2 size;"
     "out vec2 pixPos;"
 
     "void main()"
     "{"
-    "  gl_Position = vec4(screen * (vertexPos * size + pos), 0, 1);"
-    "  pixPos = (vertexPos + vec2(-0.5, 0.5)) * 2.0 / screen;"
+    "  gl_Position = vec4(vertexPos * size + pos, 0, 1);"
+    "  pixPos = (vertexPos + vec2(-0.5, 0.5)) * 2.0;"
     "}");
 
   glassBkFrag.compileFromString(
@@ -139,15 +137,6 @@ void Background::init()
   glassBkProg.use();
   glassBkProg.setUniform("pos", Globals::glassPos);
   glassBkProg.setUniform("size", Globals::glassSize);
-}
-
-void Background::setScreen(const glm::vec2 & screen)
-{
-  gameBkProg.use();
-  gameBkProg.setUniform("screen", screen);
-
-  glassBkProg.use();
-  glassBkProg.setUniform("screen", screen);
 }
 
 void Background::draw() const

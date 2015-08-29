@@ -16,8 +16,6 @@ Program Figure::glowProg;
 Shader Figure::glowVert(GL_VERTEX_SHADER);
 Shader Figure::glowFrag(GL_FRAGMENT_SHADER);
 
-glm::vec2 Figure::origin = { 0.0f, 0.0f };
-
 Figure::Figure() :
   dim(0),
   col(0),
@@ -122,14 +120,13 @@ void Figure::init()
     "#version 330 core\n"
     "layout(location = 0) in vec2 vertexPos;"
     "layout(location = 1) in vec3 vertexUVW;"
-    "uniform vec2 screen;"
     "uniform float scale;"
     "uniform vec2 pos;"
     "out vec3 uvw;"
 
     "void main()"
     "{"
-    "  gl_Position = vec4(screen * (pos + vertexPos * scale), 0, 1);"
+    "  gl_Position = vec4(vertexPos * scale + pos, 0, 1);"
     "  uvw = vertexUVW;"
     "}");
 
@@ -154,17 +151,16 @@ void Figure::init()
     "#version 330 core\n"
     "layout(location = 0) in vec2 vertexPos;"
     "layout(location = 1) in float vertexAlpha;"
-    "uniform vec2 screen;"
+    "uniform sampler2DArray tex;"
+    "uniform float texLayer;"
     "uniform float scale;"
     "uniform vec2 pos;"
-    "uniform float texLayer;"
-    "uniform sampler2DArray tex;"
     "flat out vec3 color;"
     "out float alpha;"
 
     "void main()"
     "{"
-    "  gl_Position = vec4(screen * (pos + vertexPos * scale), 0, 1);"
+    "  gl_Position = vec4(vertexPos * scale + pos, 0, 1);"
     "  color = texture(tex, vec3(0.5, 0.5, texLayer)).rgb;"
     "  alpha = vertexAlpha;"
     "}");
@@ -190,7 +186,7 @@ void Figure::init()
 
 void Figure::buildMeshes()
 {
-  clearVertexBuffersData();
+  clearBuffersData();
   int index = 0;
 
   for (int iy = 0; iy < dim; iy++)
@@ -722,7 +718,7 @@ void Figure::buildMeshes()
   assert(!checkGlErrors());
 }
 
-void Figure::clearVertexBuffersData()
+void Figure::clearBuffersData()
 {
   figureVertexBufferData.clear();
   figureUVBufferData.clear();
@@ -787,14 +783,6 @@ void Figure::rotate(Rotation rot)
       data[x + y * dim] = curData[y + (dim - x - 1) * dim];
     }
   }
-}
-
-void Figure::setScreen(const glm::vec2 & screen)
-{
-  figureProg.use();
-  figureProg.setUniform("screen", screen);
-  glowProg.use();
-  glowProg.setUniform("screen", screen);
 }
 
 void Figure::setScale(float scale)

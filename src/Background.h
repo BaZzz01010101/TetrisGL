@@ -20,7 +20,6 @@ public:
   ~Background();
 
   void init();
-  void setScreen(const glm::vec2 & screen);
   void draw() const;
 };
 

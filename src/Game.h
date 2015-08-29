@@ -43,7 +43,6 @@ public:
   ~Game();
 
   bool init();
-  void resize(float aspect);
   void pulse();
   void onKeyClick(int key, int scancode, int action, int mods);
   void onMouseClick(int key, int action, int mods);

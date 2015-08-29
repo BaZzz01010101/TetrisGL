@@ -2,21 +2,20 @@
 #include "glall.h"
 #include "Game.h"
 #include "FpsCounter.h"
+#include "Globals.h"
 
 Game game;
 FpsCounter fps;
 
 void OnFramebufferSize(GLFWwindow * win, int width, int height)
 {
-  glViewport(0, 0, width, height);
-  if (width && height)
-    game.resize(float(width) / height);
-}
+  const float gameAspect = Globals::gameBkSize.x / Globals::gameBkSize.y;
 
-//void OnWindowSize(GLFWwindow * win, int width, int height)
-//{
-//  glViewport(0, 0, width, height);
-//}
+  if (float(width) / height > gameAspect)
+    glViewport((width - height) / 2, 0, height, height);
+  else
+    glViewport(width * (1 - 1 / gameAspect) / 2, (height - width / gameAspect) / 2, width / gameAspect, width / gameAspect);
+}
 
 void OnKeyClick(GLFWwindow * win, int key, int scancode, int action, int mods)
 {
@@ -96,7 +95,7 @@ int main()
 
       if(game.init())
       {
-        game.resize(float(initWinWidth) / initWinHeight);
+        OnFramebufferSize(win, initWinWidth, initWinHeight);
         fps.init(win);
 
         while (!glfwWindowShouldClose(win))
