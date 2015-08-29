@@ -2,6 +2,13 @@
 #include "Globals.h"
 #include "Crosy.h"
 
+std::vector<float> Figure::figureVertexBufferData;
+std::vector<float> Figure::figureUVBufferData;
+std::vector<float> Figure::shadowVertexBufferData;
+std::vector<float> Figure::shadowUVBufferData;
+std::vector<float> Figure::glowVertexBufferData;
+std::vector<float> Figure::glowAlphaBufferData;
+
 Program Figure::figureProg;
 Shader Figure::figureVert(GL_VERTEX_SHADER);
 Shader Figure::figureFrag(GL_FRAGMENT_SHADER);
@@ -9,24 +16,91 @@ Program Figure::glowProg;
 Shader Figure::glowVert(GL_VERTEX_SHADER);
 Shader Figure::glowFrag(GL_FRAGMENT_SHADER);
 
+glm::vec2 Figure::origin = { 0.0f, 0.0f };
+
+Figure::Figure() :
+  dim(0),
+  col(0),
+  row(0),
+  color(clRed),
+  figureVertexBufferId(0),
+  figureUVWBufferId(0),
+  shadowVertexBufferId(0),
+  shadowUVBufferId(0),
+  glowVertexBufferId(0),
+  glowAlphaBufferId(0),
+  figureVertCount(0),
+  shadowVertCount(0)
+{
+  Type type = Type(rand() * TYPE_COUNT / RAND_MAX);
+  char * cdata = NULL;
+
+  switch (type)
+  {
+  case typeI:
+    dim = 4;
+    color = clCyan;
+    cdata = "0000111100000000";
+    break;
+  case typeJ:
+    dim = 3;
+    color = clBlue;
+    cdata = "100111000";
+    break;
+  case typeL:
+    dim = 3;
+    color = clOrange;
+    cdata = "001111000";
+    break;
+  case typeO:
+    dim = 2;
+    color = clYellow;
+    cdata = "1111";
+    break;
+  case typeS:
+    dim = 3;
+    color = clGreen;
+    cdata = "011110000";
+    break;
+  case typeT:
+    dim = 3;
+    color = clPurple;
+    cdata = "010111000";
+    break;
+  case typeZ:
+    dim = 3;
+    color = clRed;
+    cdata = "110011000";
+    break;
+  default: 
+    assert(0);
+  }
+
+  assert(strlen(cdata) == dim * dim);
+
+  for (const char * ptr = cdata, *end = cdata + dim * dim; ptr < end; ptr++)
+    this->data.push_back(*ptr - '0');
+
+  buildMeshes();
+}
 // data - is a string of '0' and '1'
-Figure::Figure(int dim, Color color, const char * data) :
+Figure::Figure(int dim, Color color, const char * cdata) :
   dim(dim),
-  pos(0.0f, 0.0f),
+  col(0),
+  row(0),
   color(color),
   figureVertexBufferId(0),
   figureUVWBufferId(0),
   shadowVertexBufferId(0),
   shadowUVBufferId(0),
   glowVertexBufferId(0),
-  glowUVBufferId(0),
   glowAlphaBufferId(0),
   figureVertCount(0),
   shadowVertCount(0)
 {
-  assert(strlen(data) == dim * dim);
+  assert(strlen(cdata) == dim * dim);
 
-  for (const char * ptr = data, * end = data + dim * dim; ptr < end; ptr++)
+  for (const char * ptr = cdata, * end = cdata + dim * dim; ptr < end; ptr++)
     this->data.push_back(*ptr - '0');
 
   buildMeshes();
@@ -39,7 +113,6 @@ Figure::~Figure()
   glDeleteBuffers(1, &shadowVertexBufferId);
   glDeleteBuffers(1, &shadowUVBufferId);
   glDeleteBuffers(1, &glowVertexBufferId);
-  glDeleteBuffers(1, &glowUVBufferId);
   glDeleteBuffers(1, &glowAlphaBufferId);
 }
 
@@ -56,7 +129,7 @@ void Figure::init()
 
     "void main()"
     "{"
-    "  gl_Position = vec4(screen * (vertexPos * scale + pos), 0, 1);"
+    "  gl_Position = vec4(screen * (pos + vertexPos * scale), 0, 1);"
     "  uvw = vertexUVW;"
     "}");
 
@@ -91,7 +164,7 @@ void Figure::init()
 
     "void main()"
     "{"
-    "  gl_Position = vec4(screen * (vertexPos * scale + pos), 0, 1);"
+    "  gl_Position = vec4(screen * (pos + vertexPos * scale), 0, 1);"
     "  color = texture(tex, vec3(0.5, 0.5, texLayer)).rgb;"
     "  alpha = vertexAlpha;"
     "}");
@@ -104,7 +177,8 @@ void Figure::init()
 
     "void main()"
     "{"
-    "  out_color = vec4(color, alpha);"
+    "  out_color.rgb = color;"
+    "  out_color.a = alpha;"
     "}");
 
   glowProg.attachShader(glowVert);
@@ -509,7 +583,7 @@ void Figure::buildMeshes()
           dy = 0.0f;
           break;
         default:
-          dy = glowWidth;
+          dy = -glowWidth;
         }
 
         addGlowVertex(fx + dx, fy + dy, minAlpha);
@@ -655,7 +729,6 @@ void Figure::clearVertexBuffersData()
   shadowVertexBufferData.clear();
   shadowUVBufferData.clear();
   glowVertexBufferData.clear();
-  glowUVBufferData.clear();
   glowAlphaBufferData.clear();
 
   figureVertCount = 0;
@@ -694,8 +767,26 @@ void Figure::addGlowVertex(float x, float y, float alpha)
   glowVertCount++;
 }
 
-void Figure::rotate(int halfPiAngles)
+void Figure::rotate(Rotation rot)
 {
+  std::vector<int> curData = data;
+
+  if (rot == rotLeft)
+  {
+    for (int x = 0; x < dim; x++)
+    for (int y = 0; y < dim; y++)
+    {
+      data[x + y * dim] = curData[(dim - y - 1) + x * dim];
+    }
+  }
+  else if (rot == rotRight)
+  {
+    for (int x = 0; x < dim; x++)
+    for (int y = 0; y < dim; y++)
+    {
+      data[x + y * dim] = curData[y + (dim - x - 1) * dim];
+    }
+  }
 }
 
 void Figure::setScreen(const glm::vec2 & screen)
@@ -714,13 +805,10 @@ void Figure::setScale(float scale)
   glowProg.setUniform("scale", scale);
 }
 
-void beginDrawFigure();
-void addFigureDraw();
-void endDrawFigure();
-void Figure::drawFigure()
+void Figure::drawFigure(float x, float y)
 {
-  Figure::figureProg.use();
-  figureProg.setUniform("pos", pos);
+  figureProg.use();
+  figureProg.setUniform("pos", glm::vec2(x, y));
   glEnableVertexAttribArray(0);
   assert(!checkGlErrors());
   glEnableVertexAttribArray(1);
@@ -747,10 +835,10 @@ void Figure::drawFigure()
   assert(!checkGlErrors());
 }
 
-void Figure::drawShadow()
+void Figure::drawShadow(float x, float y)
 {
   figureProg.use();
-  figureProg.setUniform("pos", pos);
+  figureProg.setUniform("pos", glm::vec2(x, y));
 
   glEnableVertexAttribArray(0);
   assert(!checkGlErrors());
@@ -778,10 +866,10 @@ void Figure::drawShadow()
   assert(!checkGlErrors());
 }
 
-void Figure::drawGlow()
+void Figure::drawGlow(float x, float y)
 {
   glowProg.use();
-  glowProg.setUniform("pos", pos);
+  glowProg.setUniform("pos", glm::vec2(x, y));
   glowProg.setUniform("texLayer", float(Globals::openedBlocksTexIndex + color));
 
   glEnableVertexAttribArray(0);

@@ -3,11 +3,12 @@
 #include "Crosy.h"
 
 Background::Background() :
-  vert(GL_VERTEX_SHADER),
-  frag(GL_FRAGMENT_SHADER),
+  gameBkVert(GL_VERTEX_SHADER),
+  gameBkFrag(GL_FRAGMENT_SHADER),
+  glassBkVert(GL_VERTEX_SHADER),
+  glassBkFrag(GL_FRAGMENT_SHADER),
   vertexBufferId(0),
-  uvBufferId(0),
-  aspect(0.66f)
+  uvBufferId(0)
 {
 }
 
@@ -21,15 +22,15 @@ void Background::init()
 {
   GLfloat vertexBufferData[6 * 2] =
   {
-    -aspect, -1.0f,
-    -aspect, 1.0f,
-    aspect, -1.0f,
-    aspect, 1.0f,
+    0.0f, 0.0f,
+    0.0f, -1.0f,
+    1.0f, 0.0f,
+    1.0f, -1.0f,
   };
 
   const float xReps = 50.0f;
-  const float yReps = xReps / aspect * 0.85f;
-  const float texScaleCorrection = 0.56f;
+  const float yReps = xReps / Globals::gameBkSize.x * Globals::gameBkSize.y * 0.85f;
+  const float texScaleCorrection = 0.56f; // tile deformation to get power of two texture size
   const float xVal = xReps * texScaleCorrection;
   const float yVal = yReps;
 
@@ -63,61 +64,95 @@ void Background::init()
   glBufferData(GL_ARRAY_BUFFER, sizeof(uvBufferData), uvBufferData, GL_STATIC_DRAW);
   assert(!checkGlErrors());
 
-  vert.compileFromString(
+  gameBkVert.compileFromString(
     "#version 330 core\n"
     "layout(location = 0) in vec2 vertexPos;"
     "layout(location = 1) in vec2 vertexUV;"
     "uniform vec2 screen;"
-    "out vec2 pos;"
+    "uniform vec2 pos;"
+    "uniform vec2 size;"
+    "out vec2 pixPos;"
     "out vec2 uv;"
 
     "void main()"
     "{"
-    "  gl_Position = vec4(screen * vertexPos, 0, 1);"
+    "  gl_Position = vec4(screen * (vertexPos * size + pos), 0, 1);"
     "  uv = vertexUV;"
-    "  pos = vertexPos / screen;"
+    "  pixPos = (vertexPos + vec2(-0.5, 0.5)) * 2.0 / screen;"
     "}");
 
-  frag.compileFromString(
+  gameBkFrag.compileFromString(
     "#version 330 core\n"
     "uniform sampler2DArray tex;"
     "uniform float texIndex;"
     "in vec2 uv;"
-    "in vec2 pos;"
+    "in vec2 pixPos;"
     "out vec4 color;"
 
     "void main()"
     "{"
-    "  float mul = 0.9 - 0.3 * length(pos) + 0.3 * pos.y;"
+    "  float mul = 0.9 - 0.3 * length(pixPos) + 0.3 * pixPos.y;"
     "  color = vec4(mul * texture(tex, vec3(uv, texIndex)).rgb, 1);"
     "}");
 
-  prog.attachShader(vert);    
-  prog.attachShader(frag);    
-  prog.link();                
-  prog.use();
-  prog.setUniform("tex", 0);
-  prog.setUniform("texIndex", float(Globals::backgroundTexIndex));
+  gameBkProg.attachShader(gameBkVert);    
+  gameBkProg.attachShader(gameBkFrag);    
+  gameBkProg.link();                
+  gameBkProg.use();
+  gameBkProg.setUniform("tex", 0);
+  gameBkProg.setUniform("texIndex", float(Globals::backgroundTexIndex));
+  gameBkProg.setUniform("pos", Globals::gameBkPos);
+  gameBkProg.setUniform("size", Globals::gameBkSize);
 
-  //prog.setUniform("texChunkPos", Globals::atlasChunkSize * 7.0f + Globals::atlasBorderSize, Globals::atlasChunkSize * 1.0f + Globals::atlasBorderSize);
-  //assert(!prog.isError());
+  glassBkVert.compileFromString(
+    "#version 330 core\n"
+    "layout(location = 0) in vec2 vertexPos;"
+    "uniform vec2 screen;"
+    "uniform vec2 pos;"
+    "uniform vec2 size;"
+    "out vec2 pixPos;"
 
-  //prog.setUniform("texChunkSize", Globals::atlasChunkSize - 2.0f * Globals::atlasBorderSize);
-  //assert(!prog.isError());
+    "void main()"
+    "{"
+    "  gl_Position = vec4(screen * (vertexPos * size + pos), 0, 1);"
+    "  pixPos = (vertexPos + vec2(-0.5, 0.5)) * 2.0 / screen;"
+    "}");
+
+  glassBkFrag.compileFromString(
+    "#version 330 core\n"
+    "in vec2 pixPos;"
+    "out vec4 color;"
+
+    "float rand(vec2 co){"
+    "  return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);"
+    "}"
+
+    "void main()"
+    "{"
+    "  float mul = pow(0.1 * length(pixPos) + 0.1 * abs(pixPos.x), 2) + rand(pixPos) / 200;"
+    "  color = vec4(vec3(0.1, 0.2, 0.3) + vec3(1.0, 2.0, 1.6) * mul, 1.0);"
+    "}");
+
+  glassBkProg.attachShader(glassBkVert);
+  glassBkProg.attachShader(glassBkFrag);
+  glassBkProg.link();
+  glassBkProg.use();
+  glassBkProg.setUniform("pos", Globals::glassPos);
+  glassBkProg.setUniform("size", Globals::glassSize);
 }
 
 void Background::setScreen(const glm::vec2 & screen)
 {
-  prog.use();
-  prog.setUniform("screen", screen);
+  gameBkProg.use();
+  gameBkProg.setUniform("screen", screen);
+
+  glassBkProg.use();
+  glassBkProg.setUniform("screen", screen);
 }
 
 void Background::draw() const
 {
-  prog.use();
-
-  //glBindTexture(GL_TEXTURE_2D, Globals::mainTextureAtlasId);
-  //assert(!checkGlErrors());
+  gameBkProg.use();
 
   glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId);
   assert(!checkGlErrors());
@@ -141,10 +176,28 @@ void Background::draw() const
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   assert(!checkGlErrors());
 
-
   glDisableVertexAttribArray(0);
   assert(!checkGlErrors());
 
   glDisableVertexAttribArray(1);
   assert(!checkGlErrors());
+
+
+  glassBkProg.use();
+
+  glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId);
+  assert(!checkGlErrors());
+
+  glEnableVertexAttribArray(0);
+  assert(!checkGlErrors());
+
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+  assert(!checkGlErrors());
+
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+  assert(!checkGlErrors());
+
+  glDisableVertexAttribArray(0);
+  assert(!checkGlErrors());
+
 }

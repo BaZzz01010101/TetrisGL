@@ -2,10 +2,16 @@
 #include "Game.h"
 #include "Figure.h"
 
-
 Game::Game() :
-  width(0.5f),
-  height(1.0f)
+  glassWidth(10),
+  glassHeight(20),
+  glassSqSize(Globals::glassSize.y / glassHeight),
+  maxLevel(100),
+  maxStepTime(0.1f),
+  minStepTime(0.05f),
+  level(1),
+  curFigure(NULL),
+  gameState(gsStartGame)
 {
   vertexArrayId = 0;
 }
@@ -88,16 +94,17 @@ bool Game::init()
 void Game::resize(float aspect)
 {
   glm::vec2 screen(1.0f);
+  const float gameBkAspect = Globals::gameBkSize.x / Globals::gameBkSize.y;
 
-  if (aspect > background.aspect)
+  if (aspect > gameBkAspect)
   {
     screen.x = 1.0f / aspect;
     screen.y = 1.0f;
   }
   else
   {
-    screen.x = 1.0f / background.aspect;
-    screen.y = aspect / background.aspect;
+    screen.x = 1.0f / gameBkAspect;
+    screen.y = aspect / gameBkAspect;
   }
 
   background.setScreen(screen);
@@ -105,6 +112,48 @@ void Game::resize(float aspect)
 }
 
 void Game::pulse()
+{
+  switch (gameState)
+  {
+  case gsStartGame:
+    beforeStartGame();
+    gameState = gsPlayingGame;
+    break;
+  case gsPlayingGame:
+    step();
+    draw();
+    break;
+  case gsGameOver:
+    draw();
+    break;
+  default:
+    assert(0);
+  }
+
+}
+
+float Game::getTime()
+{
+  static uint64_t freq = Crosy::getPerformanceFrequency();
+  assert(freq);
+
+  return float(Crosy::getPerformanceCounter()) / freq;
+}
+
+void Game::beforeStartGame()
+{
+  glassFallingFigures.clear();
+  glassFigures.clear();
+  nextFigures.clear();
+  nextFigures.emplace(nextFigures.end());
+  nextFigures.emplace(nextFigures.end());
+  nextFigures.emplace(nextFigures.end());
+  curFigure = &nextFigures.front();
+  curFigure->col = glassWidth / 2 - curFigure->dim / 2;
+  curFigure->row = -1;
+}
+
+void Game::draw()
 {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   assert(!checkGlErrors());
@@ -114,19 +163,7 @@ void Game::pulse()
 
   background.draw();
 
-  static Figure fig0(3, Figure::clPurple, "010111000");
-  static Figure fig1(3, Figure::clRed, "110011000");
-  static Figure fig2(4, Figure::clCyan, "0000111100000000");
-  static Figure fig3(2, Figure::clYellow, "1111");
-  static Figure fig4(3, Figure::clOrange, "001111000");
-
-  fig0.setPos(-0.66f, -0.7f);
-  fig1.setPos(-0.66f + 0.2f, -0.7f);
-  fig2.setPos(-0.66f + 0.4f, -0.6f);
-  fig3.setPos(-0.66f + 0.6f, -0.5f);
-  fig4.setPos(-0.66f + 0.5f, -0.0f);
-
-  Figure::setScale(0.1f);
+  Figure::setScale(glassSqSize);
 
   glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
   assert(!checkGlErrors());
@@ -134,11 +171,10 @@ void Game::pulse()
   glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
   assert(!checkGlErrors());
 
-  fig0.drawShadow();
-  fig1.drawShadow();
-  fig2.drawShadow();
-  fig3.drawShadow();
-  fig4.drawShadow();
+  curFigure->drawShadow(Globals::glassPos.x + curFigure->col * glassSqSize, Globals::glassPos.y - curFigure->row * glassSqSize);
+
+  for (std::list<Figure>::iterator it = glassFigures.begin(); it != glassFigures.end(); ++it)
+    it->drawShadow(Globals::glassPos.x + it->col * glassSqSize, Globals::glassPos.y - it->row * glassSqSize);
 
   glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
   assert(!checkGlErrors());
@@ -146,28 +182,188 @@ void Game::pulse()
   glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
   assert(!checkGlErrors());
 
-  fig0.drawFigure();
-  fig1.drawFigure();
-  fig2.drawFigure();
-  fig3.drawFigure();
-  fig4.drawFigure();
+  curFigure->drawFigure(Globals::glassPos.x + curFigure->col * glassSqSize, Globals::glassPos.y - curFigure->row * glassSqSize);
+
+  for (std::list<Figure>::iterator it = glassFigures.begin(); it != glassFigures.end(); ++it)
+    it->drawFigure(Globals::glassPos.x + it->col * glassSqSize, Globals::glassPos.y - it->row * glassSqSize);
 
   glBlendFunc(GL_SRC_ALPHA, GL_ONE);
   assert(!checkGlErrors());
 
-  fig0.drawGlow();
-  fig1.drawGlow();
-  fig2.drawGlow();
-  fig3.drawGlow();
-  fig4.drawGlow();
+  curFigure->drawGlow(Globals::glassPos.x + curFigure->col * glassSqSize, Globals::glassPos.y - curFigure->row * glassSqSize);
+
+  for (std::list<Figure>::iterator it = glassFigures.begin(); it != glassFigures.end(); ++it)
+    it->drawGlow(Globals::glassPos.x + it->col * glassSqSize, Globals::glassPos.y - it->row * glassSqSize);
+
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  assert(!checkGlErrors());
 }
 
-void drawBackground()
+void Game::step()
 {
-  
+  float curTime = getTime();
+
+  static float lastMoveTime = getTime();
+  const float moveTime = 0.05f;
+
+  if (keyState & kmLeft)
+  {
+    if (checkPos(-1, 0))
+      curFigure->col--;
+
+    keyState &= ~kmLeft;
+  }
+
+  if (keyState & kmRight)
+  {
+    if (checkPos(1, 0))
+      curFigure->col++;
+
+    keyState &= ~kmRight;
+  }
+
+  if (keyState & kmRotLeft)
+  {
+    curFigure->rotate(Figure::rotLeft);
+
+    if (!validateRotation())
+      curFigure->rotate(Figure::rotRight);
+    else
+      curFigure->buildMeshes();
+
+    keyState &= ~kmRotLeft;
+  }
+
+  if (keyState & kmRotRight)
+  {
+    curFigure->rotate(Figure::rotRight);
+
+    if (!validateRotation())
+      curFigure->rotate(Figure::rotLeft);
+    else
+      curFigure->buildMeshes();
+
+    keyState &= ~kmRotRight;
+  }
+
+  if (keyState & kmDrop)
+  {
+    drop();
+
+    keyState &= ~kmDrop;
+  }
+
+  static float lastStepTime = getTime();
+  const float stepTime = maxStepTime - (maxStepTime - minStepTime) * level / maxLevel;
+
+  if (curTime > lastStepTime + stepTime)
+  {
+    if (checkPos(0, 1))
+      curFigure->row++;
+    else
+      nextFigure();
+
+    lastStepTime = curTime;
+  }
+
 }
 
-void Game::drawGlass()
+void Game::drop()
 {
+  int y0 = curFigure->row;
 
+  do curFigure->row++;
+  while (checkPos(0, 1));
+}
+
+void Game::nextFigure()
+{
+  glassFigures.splice(glassFigures.end(), nextFigures, nextFigures.begin());
+  nextFigures.emplace(nextFigures.end());
+  curFigure = &nextFigures.front();
+  curFigure->col = glassWidth / 2 - curFigure->dim / 2;
+
+  for (int i = 0; i < curFigure->dim * curFigure->dim; i++)
+  if (curFigure->data[i])
+  {
+    curFigure->row = -i / curFigure->dim;
+    break;
+  }
+
+  if (!checkPos(0, 0))
+    gameState = gsGameOver;
+}
+
+bool Game::validateRotation()
+{
+  if (checkPos(0, 0))
+    return true;
+
+  const int shift = curFigure->dim / 2 + (curFigure->dim & 1);
+
+  for (int dx = 1; dx < shift; dx++)
+  {
+    if (checkPos(dx, 0))
+    {
+      curFigure->col += dx;
+      return true;
+    }
+
+    if (checkPos(-dx, 0))
+    {
+      curFigure->col -= dx;
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool Game::checkPos(int dx, int dy)
+{
+  for (int curx = 0; curx < curFigure->dim; curx++)
+  for (int cury = 0; cury < curFigure->dim; cury++)
+  {
+    if (curFigure->data[curx + cury * curFigure->dim])
+    {
+      if (curFigure->col + curx + dx < 0 ||
+        curFigure->col + curx + dx >= glassWidth ||
+        curFigure->row + cury + dy < 0 ||
+        curFigure->row + cury + dy >= glassHeight)
+        return false;
+    }
+  }
+
+  for (std::list<Figure>::iterator it = glassFigures.begin();
+    it != glassFigures.end();
+    ++it)
+  {
+    if (it->col >= curFigure->col + dx + curFigure->dim)
+      continue;
+    if (it->col + it->dim <= curFigure->col + dx)
+      continue;
+    if (it->row >= curFigure->row + dy + curFigure->dim)
+      continue;
+    if (it->row + it->dim <= curFigure->row + dy)
+      continue;
+
+    for (int itx = 0; itx < it->dim; itx++)
+    for (int ity = 0; ity < it->dim; ity++)
+    {
+      if (it->data[itx + ity * it->dim])
+      {
+        for (int curx = 0; curx < curFigure->dim; curx++)
+        for (int cury = 0; cury < curFigure->dim; cury++)
+        {
+          if (curFigure->data[curx + cury * curFigure->dim])
+          {
+            if (it->col + itx == curFigure->col + curx + dx && it->row + ity == curFigure->row + cury + dy)
+              return false;
+          }
+        }
+      }
+    }
+  }
+
+  return true;
 }

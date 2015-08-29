@@ -7,27 +7,28 @@ class Figure
 {
 public:
   enum Color { clRed = 0, clOrange, clYellow, clGreen, clCyan, clBlue, clPurple };
+  enum Type { typeI = 0, typeJ, typeL, typeO, typeS, typeT, typeZ, TYPE_COUNT };
+  enum Rotation { rotRight, rotLeft, rot180, rot270};
 
 private:
-  glm::vec2 pos;
   Color color;
-  std::vector<float> figureVertexBufferData;
-  std::vector<float> figureUVBufferData;
-  std::vector<float> shadowVertexBufferData;
-  std::vector<float> shadowUVBufferData;
-  std::vector<float> glowVertexBufferData;
-  std::vector<float> glowUVBufferData;
-  std::vector<float> glowAlphaBufferData;
+  static std::vector<float> figureVertexBufferData;
+  static std::vector<float> figureUVBufferData;
+  static std::vector<float> shadowVertexBufferData;
+  static std::vector<float> shadowUVBufferData;
+  static std::vector<float> glowVertexBufferData;
+  static std::vector<float> glowAlphaBufferData;
+
   GLuint figureVertexBufferId;
   GLuint figureUVWBufferId;
   GLuint shadowVertexBufferId;
   GLuint shadowUVBufferId;
   GLuint glowVertexBufferId;
-  GLuint glowUVBufferId;
   GLuint glowAlphaBufferId;
   int figureVertCount;
   int shadowVertCount;
   int glowVertCount;
+
   static Program figureProg;
   static Shader figureVert;
   static Shader figureFrag;
@@ -35,30 +36,32 @@ private:
   static Shader glowVert;
   static Shader glowFrag;
 
-  void buildMeshes();
+  static glm::vec2 origin;
+
   void clearVertexBuffersData();
   void addFigureVertex(float sqx, float sqy, float u, float v, int blockArrayIndex);
   void addShadowVertex(float x, float y, float u, float v);
   void addGlowVertex(float x, float y, float alpha);
 
 public:
+  int col;
+  int row;
   int dim;
   std::vector<int> data;
 
-  Figure(int dim, Color color, const char * data);
+  Figure();
+  Figure(int dim, Color color, const char * cdata);
   ~Figure();
 
   static void init();
   static void setScreen(const glm::vec2 & screen);
   static void setScale(float scale);
 
-  inline void setPos(float x, float y) { this->pos = glm::vec2(x, y); }
-  inline void setPos(const glm::vec2 & pos) { this->pos = pos; }
-  inline glm::vec2 getPos() { return pos; };
+  void rotate(Rotation rot);
+  void buildMeshes();
 
-  void rotate(int halfPiAngles);
-  void drawFigure();
-  void drawShadow();
-  void drawGlow();
+  void drawFigure(float x, float y);
+  void drawShadow(float x, float y);
+  void drawGlow(float x, float y);
 };
 

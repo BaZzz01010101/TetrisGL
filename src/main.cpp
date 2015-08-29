@@ -20,7 +20,39 @@ void OnFramebufferSize(GLFWwindow * win, int width, int height)
 
 void OnKeyClick(GLFWwindow * win, int key, int scancode, int action, int mods)
 {
+  Game::KeyMask keyMask = Game::kmNone;
 
+  switch (key)
+  {
+  case GLFW_KEY_LEFT:
+    keyMask = Game::kmLeft;
+    break;
+  case GLFW_KEY_RIGHT:
+    keyMask = Game::kmRight;
+    break;
+  case GLFW_KEY_UP:
+    keyMask = Game::kmRotLeft;
+    break;
+  case GLFW_KEY_DOWN:
+    keyMask = Game::kmRotRight;
+    break;
+  case GLFW_KEY_SPACE:
+    keyMask = Game::kmDrop;
+    break;
+  }
+
+  switch (action)
+  {
+  case GLFW_REPEAT:
+    game.keyState |= keyMask;
+    break;
+  case GLFW_PRESS:
+    game.keyState |= keyMask;
+    break;
+  case GLFW_RELEASE:
+    game.keyState &= ~keyMask;
+    break;
+  }
 }
 
 void OnMouseClick(GLFWwindow * win, int button, int action, int mods)
@@ -35,6 +67,7 @@ void OnMouseMove(GLFWwindow* window, double xpos, double ypos)
 
 int main()
 {
+  srand(GetTickCount());
   int retVal = -1;
 
   if (glfwInit())

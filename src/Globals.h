@@ -18,7 +18,12 @@ public:
   static int closedBlocksTexIndex;
   static int vertBlocksTexIndex;
   static int horzBlocksTexIndex;
-
+  static int dropTrailsTexIndex;
+  static int dropSparklesTexIndex;
+  static glm::vec2 gameBkPos;
+  static glm::vec2 gameBkSize;
+  static glm::vec2 glassPos;
+  static glm::vec2 glassSize;
 };
 
 extern bool checkGlErrors();

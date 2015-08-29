@@ -5,11 +5,17 @@ std::string Globals::glErrorMessage;
 GLuint Globals::mainArrayTextureId = 0;
 int Globals::mainArrayTextureSize = 64;
 int Globals::backgroundTexIndex = 0;
-int Globals::shadowTexIndex = 36;
 int Globals::openedBlocksTexIndex = 1;
 int Globals::closedBlocksTexIndex = 8;
 int Globals::vertBlocksTexIndex = 15;
 int Globals::horzBlocksTexIndex = 22;
+int Globals::dropTrailsTexIndex = 29;
+int Globals::shadowTexIndex = 36;
+int Globals::dropSparklesTexIndex = 37;
+glm::vec2 Globals::gameBkPos(-0.7f, 1.0f);
+glm::vec2 Globals::gameBkSize(1.4f, 2.0f);
+glm::vec2 Globals::glassPos(-0.4f, 0.75f);
+glm::vec2 Globals::glassSize(0.8f, 1.6f);
 
 Globals::Globals()
 {

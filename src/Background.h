@@ -8,11 +8,14 @@ class Background
 private:
   GLuint vertexBufferId;
   GLuint uvBufferId;
-  Program prog;
-  Shader vert, frag;
+  Program gameBkProg;
+  Shader gameBkVert;
+  Shader gameBkFrag;
+  Program glassBkProg;
+  Shader glassBkVert;
+  Shader glassBkFrag;
 
 public:
-  const float aspect;
   Background();
   ~Background();
 
