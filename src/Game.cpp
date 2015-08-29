@@ -188,11 +188,6 @@ void Game::beforeStartGame()
 
 void Game::step()
 {
-  float curTime = getTime();
-
-  static float lastMoveTime = getTime();
-  const float moveTime = 0.05f;
-
   if (keyState & kmLeft)
   {
     if (checkPos(-1, 0))
@@ -241,6 +236,7 @@ void Game::step()
   }
 
   static float lastStepTime = getTime();
+  float curTime = getTime();
   const float stepTime = maxStepTime - (maxStepTime - minStepTime) * level / maxLevel;
 
   if (curTime > lastStepTime + stepTime)

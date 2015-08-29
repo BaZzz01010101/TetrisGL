@@ -144,22 +144,22 @@ void DropTrail::init()
     "{"
     "  vec2 pt = pointPos[0];"
 
-    "  gl_Position.xy = vec2(pt.x - sparkleRadius, pt.y - sparkleRadius);"
+    "  gl_Position = vec4(pt.x - sparkleRadius, pt.y - sparkleRadius, 0.0, 1.0);"
     "  vertexUV = vec2(0.0, 0.0);"
     "  vertexAlpha = pointAlpha[0];"
     "  EmitVertex();"
 
-    "  gl_Position.xy = vec2(pt.x + sparkleRadius, pt.y - sparkleRadius);"
+    "  gl_Position = vec4(pt.x + sparkleRadius, pt.y - sparkleRadius, 0.0, 1.0);"
     "  vertexUV = vec2(1.0, 0.0);"
     "  vertexAlpha = pointAlpha[0];"
     "  EmitVertex();"
 
-    "  gl_Position.xy = vec2(pt.x - sparkleRadius, pt.y + sparkleRadius);"
+    "  gl_Position = vec4(pt.x - sparkleRadius, pt.y + sparkleRadius, 0.0, 1.0);"
     "  vertexUV = vec2(0.0, 1.0);"
     "  vertexAlpha = pointAlpha[0];"
     "  EmitVertex();"
 
-    "  gl_Position.xy = vec2(pt.x + sparkleRadius, pt.y + sparkleRadius);"
+    "  gl_Position = vec4(pt.x + sparkleRadius, pt.y + sparkleRadius, 0.0, 1.0);"
     "  vertexUV = vec2(1.0, 1.0);"
     "  vertexAlpha = pointAlpha[0];"
     "  EmitVertex();"
