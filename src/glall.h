@@ -4,6 +4,7 @@
 #include "Crosy.h"
 #include <assert.h>
 #include <vector>
+#include <list>
 #include <stdio.h>
 #include <math.h>
 #include <GL/glew.h>

@@ -87,50 +87,9 @@ bool Game::init()
 
   background.init();
   Figure::init();
+  DropTrail::init();
 
   return true;
-}
-
-void Game::pulse()
-{
-  switch (gameState)
-  {
-  case gsStartGame:
-    beforeStartGame();
-    gameState = gsPlayingGame;
-    break;
-  case gsPlayingGame:
-    step();
-    draw();
-    break;
-  case gsGameOver:
-    draw();
-    break;
-  default:
-    assert(0);
-  }
-
-}
-
-float Game::getTime()
-{
-  static uint64_t freq = Crosy::getPerformanceFrequency();
-  assert(freq);
-
-  return float(Crosy::getPerformanceCounter()) / freq;
-}
-
-void Game::beforeStartGame()
-{
-  glassFallingFigures.clear();
-  glassFigures.clear();
-  nextFigures.clear();
-  nextFigures.emplace(nextFigures.end());
-  nextFigures.emplace(nextFigures.end());
-  nextFigures.emplace(nextFigures.end());
-  curFigure = &nextFigures.front();
-  curFigure->col = glassWidth / 2 - curFigure->dim / 2;
-  curFigure->row = -1;
 }
 
 void Game::draw()
@@ -177,6 +136,54 @@ void Game::draw()
 
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   assert(!checkGlErrors());
+
+  DropTrail::setScale(glassSqSize);
+
+  for (std::list<DropTrail>::iterator it = dropTrails.begin(); it != dropTrails.end(); ++it)
+    it->draw();
+
+}
+
+void Game::pulse()
+{
+  switch (gameState)
+  {
+  case gsStartGame:
+    beforeStartGame();
+    gameState = gsPlayingGame;
+    break;
+  case gsPlayingGame:
+    step();
+    draw();
+    break;
+  case gsGameOver:
+    draw();
+    break;
+  default:
+    assert(0);
+  }
+
+}
+
+float Game::getTime()
+{
+  static uint64_t freq = Crosy::getPerformanceFrequency();
+  assert(freq);
+
+  return float(Crosy::getPerformanceCounter()) / freq;
+}
+
+void Game::beforeStartGame()
+{
+  glassFallingFigures.clear();
+  glassFigures.clear();
+  nextFigures.clear();
+  nextFigures.emplace(nextFigures.end());
+  nextFigures.emplace(nextFigures.end());
+  nextFigures.emplace(nextFigures.end());
+  curFigure = &nextFigures.front();
+  curFigure->col = glassWidth / 2 - curFigure->dim / 2;
+  curFigure->row = -1;
 }
 
 void Game::step()
@@ -246,20 +253,38 @@ void Game::step()
     lastStepTime = curTime;
   }
 
+  cleanupDropTrails();
 }
 
 void Game::drop()
 {
-  int y0 = curFigure->row;
+  int row0 = curFigure->row;
 
-  do curFigure->row++;
-  while (checkPos(0, 1));
+  while (checkPos(0, 1))
+    curFigure->row++;
+
+  int row1 = curFigure->row;
+  int dim = curFigure->dim;
+
+  for (int x = 0; x < dim; x++)
+  for (int y = 0; y < dim; y++)
+  {
+    if (curFigure->data[x + y * dim])
+    {
+      dropTrails.emplace_back();
+      DropTrail & dropTrail = dropTrails.back();
+      dropTrail.height = std::fmax(float(row1 - row0), 5.0f);
+      dropTrail.pos = { Globals::glassPos.x + (curFigure->col + x) * glassSqSize, Globals::glassPos.y - (row1 + y - dropTrail.height) * glassSqSize };
+      dropTrail.color = curFigure->color;
+      break;
+    }
+  }
 }
 
 void Game::nextFigure()
 {
   glassFigures.splice(glassFigures.end(), nextFigures, nextFigures.begin());
-  nextFigures.emplace(nextFigures.end());
+  nextFigures.emplace_back();
   curFigure = &nextFigures.front();
   curFigure->col = glassWidth / 2 - curFigure->dim / 2;
 
@@ -346,4 +371,18 @@ bool Game::checkPos(int dx, int dy)
   }
 
   return true;
+}
+
+void Game::cleanupDropTrails()
+{
+  for (std::list<DropTrail>::iterator it = dropTrails.begin(); it != dropTrails.end(); ++it)
+  if (it->isExpired())
+  {
+    std::list<DropTrail>::iterator eraseIt = it++;
+    dropTrails.erase(eraseIt);
+
+    if (it == dropTrails.end())
+      break;
+  }
+
 }

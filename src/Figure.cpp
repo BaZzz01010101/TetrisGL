@@ -478,9 +478,9 @@ void Figure::buildMeshes()
       }
 
 
-      const float glowWidth = 0.5f;
+      const float glowWidth = 0.65f;
       const float glowBias = 0.0f / 64.0f;
-      const float maxAlpha = 0.2f;
+      const float maxAlpha = 0.25f;
       const float minAlpha = 0.0f;
       float dx = 0.0f;
       float dy = 0.0f;

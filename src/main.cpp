@@ -14,7 +14,7 @@ void OnFramebufferSize(GLFWwindow * win, int width, int height)
   if (float(width) / height > gameAspect)
     glViewport((width - height) / 2, 0, height, height);
   else
-    glViewport(width * (1 - 1 / gameAspect) / 2, (height - width / gameAspect) / 2, width / gameAspect, width / gameAspect);
+    glViewport(int(width * (1.0f - 1.0f / gameAspect)) / 2, (height - int(width / gameAspect)) / 2, int(width / gameAspect), int(width / gameAspect));
 }
 
 void OnKeyClick(GLFWwindow * win, int key, int scancode, int action, int mods)

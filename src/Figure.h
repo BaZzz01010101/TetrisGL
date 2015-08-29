@@ -24,7 +24,6 @@ private:
   static std::vector<float> glowVertexBufferData;
   static std::vector<float> glowAlphaBufferData;
 
-  Color color;
   GLuint figureVertexBufferId;
   GLuint figureUVWBufferId;
   GLuint shadowVertexBufferId;
@@ -44,6 +43,7 @@ public:
   int col;
   int row;
   int dim;
+  Color color;
   std::vector<int> data;
 
   Figure();
