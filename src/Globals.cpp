@@ -4,8 +4,9 @@
 std::string Globals::glErrorMessage;
 GLuint Globals::mainArrayTextureId = 0;
 int Globals::mainArrayTextureSize = 64;
+float Globals::mainArrayTexturePixelSize = 1.0f / Globals::mainArrayTextureSize;
 int Globals::backgroundTexIndex = 0;
-int Globals::openedBlocksTexIndex = 1;
+int Globals::openBlocksTexIndex = 1;
 int Globals::closedBlocksTexIndex = 8;
 int Globals::vertBlocksTexIndex = 15;
 int Globals::horzBlocksTexIndex = 22;

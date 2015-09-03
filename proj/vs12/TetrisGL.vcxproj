@@ -44,15 +44,25 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
     </ClCompile>
     <ClCompile Include="..\..\src\Background.cpp" />
+    <ClCompile Include="..\..\src\Cell.cpp" />
+    <ClCompile Include="..\..\src\Controller.cpp" />
     <ClCompile Include="..\..\src\Crosy.cpp" />
     <ClCompile Include="..\..\src\Figure.cpp" />
     <ClCompile Include="..\..\src\FpsCounter.cpp" />
-    <ClCompile Include="..\..\src\DropTrail.cpp" />
-    <ClCompile Include="..\..\src\Game.cpp" />
+    <ClCompile Include="..\..\src\DropTrail.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Game.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\Globals.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
+    <ClCompile Include="..\..\src\Model.cpp" />
     <ClCompile Include="..\..\src\Program.cpp" />
     <ClCompile Include="..\..\src\Shader.cpp" />
+    <ClCompile Include="..\..\src\View.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\3rdParty\SOIL2\etc1_utils.h" />
@@ -72,15 +82,25 @@
     <ClInclude Include="..\..\src\3rdParty\SOIL2\stb_image.h" />
     <ClInclude Include="..\..\src\3rdParty\SOIL2\stb_image_write.h" />
     <ClInclude Include="..\..\src\Background.h" />
+    <ClInclude Include="..\..\src\Cell.h" />
+    <ClInclude Include="..\..\src\Controller.h" />
     <ClInclude Include="..\..\src\Crosy.h" />
     <ClInclude Include="..\..\src\Figure.h" />
     <ClInclude Include="..\..\src\FpsCounter.h" />
-    <ClInclude Include="..\..\src\DropTrail.h" />
-    <ClInclude Include="..\..\src\Game.h" />
+    <ClInclude Include="..\..\src\DropTrail.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Game.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="..\..\src\glall.h" />
     <ClInclude Include="..\..\src\Globals.h" />
+    <ClInclude Include="..\..\src\Model.h" />
     <ClInclude Include="..\..\src\Program.h" />
     <ClInclude Include="..\..\src\Shader.h" />
+    <ClInclude Include="..\..\src\View.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E5402C0C-49F6-4C62-A7C3-F65F43545D64}</ProjectGuid>

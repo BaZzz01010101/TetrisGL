@@ -31,7 +31,7 @@ private:
   void beforeStartGame();
   void nextFigure();
   bool validateRotation();
-  bool checkPos(int dx, int dy);
+  bool checkCurrentFigurePos(int dx, int dy);
   void step();
   void drop();
   void cleanupDropTrails();

@@ -12,9 +12,10 @@ public:
   static std::string glErrorMessage;
   static GLuint mainArrayTextureId;
   static int mainArrayTextureSize;
+  static float mainArrayTexturePixelSize;
   static int backgroundTexIndex;
   static int shadowTexIndex;
-  static int openedBlocksTexIndex;
+  static int openBlocksTexIndex;
   static int closedBlocksTexIndex;
   static int vertBlocksTexIndex;
   static int horzBlocksTexIndex;

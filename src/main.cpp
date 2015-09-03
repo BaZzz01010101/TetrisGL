@@ -1,16 +1,24 @@
+#include "Crosy.h"
 #include <iostream>
-#include "glall.h"
-#include "Game.h"
+#include <GL/glew.h>
+#include <GL/glfw3.h>
+//#include "Game.h"
 #include "FpsCounter.h"
 #include "Globals.h"
+#include "Model.h"
+#include "View.h"
+#include "Controller.h"
 
-Game game;
+Model model;
+View view(model);
+Controller controller;
+//Game game;
 FpsCounter fps;
 
 void OnFramebufferSize(GLFWwindow * win, int width, int height)
 {
   const float gameAspect = Globals::gameBkSize.x / Globals::gameBkSize.y;
-
+  
   if (float(width) / height > gameAspect)
     glViewport((width - height) / 2, 0, height, height);
   else
@@ -19,39 +27,61 @@ void OnFramebufferSize(GLFWwindow * win, int width, int height)
 
 void OnKeyClick(GLFWwindow * win, int key, int scancode, int action, int mods)
 {
-  Game::KeyMask keyMask = Game::kmNone;
-
-  switch (key)
+  if (action == GLFW_REPEAT || action == GLFW_PRESS)
   {
-  case GLFW_KEY_LEFT:
-    keyMask = Game::kmLeft;
-    break;
-  case GLFW_KEY_RIGHT:
-    keyMask = Game::kmRight;
-    break;
-  case GLFW_KEY_UP:
-    keyMask = Game::kmRotLeft;
-    break;
-  case GLFW_KEY_DOWN:
-    keyMask = Game::kmRotRight;
-    break;
-  case GLFW_KEY_SPACE:
-    keyMask = Game::kmDrop;
-    break;
+    switch (key)
+    {
+    case GLFW_KEY_LEFT:
+      model.shiftCurrentFigureLeft();
+      break;
+    case GLFW_KEY_RIGHT:
+      model.shiftCurrentFigureRight();
+      break;
+    case GLFW_KEY_UP:
+      model.rotateCurrentFigureLeft();
+      break;
+    case GLFW_KEY_DOWN:
+      model.rotateCurrentFigureRight();
+      break;
+    case GLFW_KEY_SPACE:
+      model.dropCurrentFigure();
+      break;
+    }
   }
 
-  switch (action)
-  {
-  case GLFW_REPEAT:
-    game.keyState |= keyMask;
-    break;
-  case GLFW_PRESS:
-    game.keyState |= keyMask;
-    break;
-  case GLFW_RELEASE:
-    game.keyState &= ~keyMask;
-    break;
-  }
+  //Game::KeyMask keyMask = Game::kmNone;
+
+  //switch (key)
+  //{
+  //case GLFW_KEY_LEFT:
+  //  keyMask = Game::kmLeft;
+  //  break;
+  //case GLFW_KEY_RIGHT:
+  //  keyMask = Game::kmRight;
+  //  break;
+  //case GLFW_KEY_UP:
+  //  keyMask = Game::kmRotLeft;
+  //  break;
+  //case GLFW_KEY_DOWN:
+  //  keyMask = Game::kmRotRight;
+  //  break;
+  //case GLFW_KEY_SPACE:
+  //  keyMask = Game::kmDrop;
+  //  break;
+  //}
+
+  //switch (action)
+  //{
+  //case GLFW_REPEAT:
+  //  game.keyState |= keyMask;
+  //  break;
+  //case GLFW_PRESS:
+  //  game.keyState |= keyMask;
+  //  break;
+  //case GLFW_RELEASE:
+  //  game.keyState &= ~keyMask;
+  //  break;
+  //}
 }
 
 void OnMouseClick(GLFWwindow * win, int button, int action, int mods)
@@ -66,7 +96,7 @@ void OnMouseMove(GLFWwindow* window, double xpos, double ypos)
 
 int main()
 {
-  srand(GetTickCount());
+  srand((unsigned int)Crosy::getPerformanceCounter());
   int retVal = -1;
 
   if (glfwInit())
@@ -93,23 +123,22 @@ int main()
       glfwSetCursorPosCallback(win, OnMouseMove);
       glfwSwapInterval(0);
 
-      if(game.init())
+      OnFramebufferSize(win, initWinWidth, initWinHeight);
+      fps.init(win);
+      view.init();
+
+      while (!glfwWindowShouldClose(win))
       {
-        OnFramebufferSize(win, initWinWidth, initWinHeight);
-        fps.init(win);
+        model.update();
+        view.update();
+        fps.pulse();
 
-        while (!glfwWindowShouldClose(win))
-        {
-          game.pulse();
-          fps.pulse();
-
-          glfwSwapBuffers(win);
-          glfwPollEvents();
-          //Crosy::sleep(10);
-        }
-
-        retVal = 0;
+        glfwSwapBuffers(win);
+        glfwPollEvents();
+        //Crosy::sleep(10);
       }
+
+      retVal = 0;
 
     }
 
