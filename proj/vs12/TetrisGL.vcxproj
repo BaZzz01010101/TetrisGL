@@ -57,8 +57,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\..\src\GlassView.cpp" />
     <ClCompile Include="..\..\src\Globals.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
+    <ClCompile Include="..\..\src\MainMesh.cpp" />
     <ClCompile Include="..\..\src\Model.cpp" />
     <ClCompile Include="..\..\src\Program.cpp" />
     <ClCompile Include="..\..\src\Shader.cpp" />
@@ -96,7 +98,9 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="..\..\src\glall.h" />
+    <ClInclude Include="..\..\src\GlassView.h" />
     <ClInclude Include="..\..\src\Globals.h" />
+    <ClInclude Include="..\..\src\MainMesh.h" />
     <ClInclude Include="..\..\src\Model.h" />
     <ClInclude Include="..\..\src\Program.h" />
     <ClInclude Include="..\..\src\Shader.h" />

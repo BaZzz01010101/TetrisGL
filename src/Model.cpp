@@ -12,7 +12,6 @@ Model::Model() :
   gameState(gsStartGame),
   curFigure(NULL),
   glassChanged(false),
-  curFigureChanged(false),
   nextFiguresChanged(false)
 {
 }
@@ -29,6 +28,7 @@ void Model::initGame(int glassWidth, int glassHeight)
   this->glassHeight = glassHeight;
   glass.assign(glassWidth * glassHeight, Cell(0, Cell::Color::clNone));
   nextFigures.clear();
+  lastStepTime = getTime();
   
   for (int i = 0; i < nextFiguresCount; i++)
   {
@@ -38,7 +38,6 @@ void Model::initGame(int glassWidth, int glassHeight)
 
   shiftFigureConveyor();
   glassChanged = true;
-  curFigureChanged = true;
   nextFiguresChanged = true;
 }
 
@@ -62,14 +61,16 @@ void Model::update()
 
 void Model::pulse()
 {
-  static float lastStepTime = getTime();
   float curTime = getTime();
   const float stepTime = maxStepTime - (maxStepTime - minStepTime) * curLevel / maxLevel;
 
   if (curTime > lastStepTime + stepTime)
   {
     if (checkCurrentFigurePos(0, 1))
+    {
       curFigureY++;
+      glassChanged = true;
+    }
     else
       shiftFigureConveyor();
 
@@ -107,14 +108,19 @@ void Model::shiftFigureConveyor()
   curFigureY = curFigure->dim / 2;
 
   if (!checkCurrentFigurePos(0, 0))
+  {
+    curFigure = NULL;
     gameState = gsGameOver;
+  }
 
-  curFigureChanged = true;
+  glassChanged = true;
   nextFiguresChanged = true;
 }
 
 bool Model::checkCurrentFigurePos(int dx, int dy)
 {
+  assert(curFigure);
+
   for (int curx = 0; curx < curFigure->dim; curx++)
   for (int cury = 0; cury < curFigure->dim; cury++)
   {
@@ -134,6 +140,8 @@ bool Model::checkCurrentFigurePos(int dx, int dy)
 
 bool Model::tryToRelocateCurrentFigure()
 {
+  assert(curFigure);
+
   if (checkCurrentFigurePos(0, 0))
     return true;
 
@@ -159,6 +167,8 @@ bool Model::tryToRelocateCurrentFigure()
 
 void Model::dropCurrentFigure()
 {
+  assert(curFigure);
+
   int y0 = curFigureY;
 
   while (checkCurrentFigurePos(0, 1))
@@ -185,6 +195,7 @@ void Model::dropCurrentFigure()
     }
   }
 
+  lastStepTime = getTime();
   shiftFigureConveyor();
   glassChanged = true;
 }
@@ -197,7 +208,7 @@ void Model::rotateCurrentFigureLeft()
   if (!checkCurrentFigurePos(0, 0) && !tryToRelocateCurrentFigure())
     *curFigure = savedFigure;
   else
-    curFigureChanged = true;
+    glassChanged = true;
 }
 
 void Model::rotateCurrentFigureRight()
@@ -208,17 +219,23 @@ void Model::rotateCurrentFigureRight()
   if (!checkCurrentFigurePos(0, 0) && !tryToRelocateCurrentFigure())
     *curFigure = savedFigure;
   else
-    curFigureChanged = true;
+    glassChanged = true;
 }
 
 void Model::shiftCurrentFigureLeft()
 {
   if (checkCurrentFigurePos(-1, 0))
+  {
     curFigureX--;
+    glassChanged = true;
+  }
 }
 
 void Model::shiftCurrentFigureRight()
 {
   if (checkCurrentFigurePos(1, 0))
+  {
     curFigureX++;
+    glassChanged = true;
+  }
 }

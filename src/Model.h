@@ -8,12 +8,11 @@
 class Model
 {
 private:
-  enum GameState { gsStartGame, gsPlayingGame, gsGameOver };
-  GameState gameState;
   const int nextFiguresCount;
   const int maxLevel;
   const float maxStepTime;
   const float minStepTime;
+  float lastStepTime;
 
   void initGame(int glassWidth, int glassHeight);
   void pulse();
@@ -23,6 +22,8 @@ private:
   bool tryToRelocateCurrentFigure();
 
 public:
+  enum GameState { gsStartGame, gsPlayingGame, gsGameOver };
+  GameState gameState;
   std::vector<Cell> glass;
   std::list<Figure> nextFigures;
   Figure * curFigure;
@@ -32,7 +33,6 @@ public:
   int curFigureY;
   int curLevel;
   bool glassChanged;
-  bool curFigureChanged;
   bool nextFiguresChanged;
 
   Model();
@@ -45,5 +45,7 @@ public:
   void rotateCurrentFigureRight();
   void shiftCurrentFigureLeft();
   void shiftCurrentFigureRight();
+  void storeCurFigureToGlass();
+  void cleanCurFigureFromGlass();
 };
 

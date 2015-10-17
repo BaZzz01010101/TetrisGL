@@ -29,6 +29,7 @@ void OnKeyClick(GLFWwindow * win, int key, int scancode, int action, int mods)
 {
   if (action == GLFW_REPEAT || action == GLFW_PRESS)
   {
+    if (model.gameState == Model::gsPlayingGame) 
     switch (key)
     {
     case GLFW_KEY_LEFT:
