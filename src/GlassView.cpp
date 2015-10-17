@@ -14,6 +14,18 @@ GlassView::~GlassView()
 {
 }
 
+glm::vec3 GlassView::blockColors[7] = 
+{
+  { 1.00f, 0.05f, 0.05f },
+  { 1.00f, 0.35f, 0.00f },
+  { 0.85f, 0.60f, 0.00f },
+  { 0.05f, 0.55f, 0.10f },
+  { 0.05f, 0.60f, 1.00f },
+  { 0.00f, 0.20f, 0.95f },
+  { 0.40f, 0.10f, 0.80f }
+};
+
+
 void GlassView::init()
 {
   glGenBuffers(1, &vertexBufferId);
@@ -25,25 +37,30 @@ void GlassView::init()
     "#version 330 core\n"
     "layout(location = 0) in vec2 vertexPos;"
     "layout(location = 1) in vec3 vertexUVW;"
+    "layout(location = 2) in vec4 vertexRGBA;"
     "uniform float scale;"
     "uniform vec2 pos;"
     "out vec3 uvw;"
+    "out vec4 color;"
 
     "void main()"
     "{"
     "  gl_Position = vec4(vertexPos * scale + pos, 0, 1);"
     "  uvw = vertexUVW;"
+    "  color = vertexRGBA;"
     "}");
 
   figureFrag.compileFromString(
     "#version 330 core\n"
     "uniform sampler2DArray tex;"
     "in vec3 uvw;"
+    "in vec4 color;"
     "out vec4 out_color;"
 
     "void main()"
     "{"
-    "  out_color = texture(tex, uvw).rgba;"
+    "  vec4 texcol = texture(tex, uvw).rgba;"
+    "  out_color = vec4(texcol.g > 0 ? vec3(1.0f, 1.0f, 1.0f) : texcol.r + color.rgb, texcol.a * color.a);"
     "}");
 
   figureProg.attachShader(figureVert);
@@ -75,14 +92,18 @@ Cell * GlassView::getGlassCell(int x, int y)
   return cell;
 }
 
-void GlassView::addVertex(float x, float y, float u, float v, float w)
+void GlassView::addVertex(float x, float y, const glm::vec2 & uv, int texIndex, const glm::vec3 & color, float alpha)
 {
   vertexBuffer.push_back(x);
   vertexBuffer.push_back(y);
-  vertexBuffer.push_back(u);
-  vertexBuffer.push_back(v);
-  vertexBuffer.push_back(w);
-  vertexCount ++;
+  vertexBuffer.push_back(glm::clamp(uv.x, Globals::mainArrayTexturePixelSize / 2.0f, 1.0f - Globals::mainArrayTexturePixelSize / 2.0f));
+  vertexBuffer.push_back(glm::clamp(uv.y, Globals::mainArrayTexturePixelSize / 2.0f, 1.0f - Globals::mainArrayTexturePixelSize / 2.0f));
+  vertexBuffer.push_back(float(texIndex));
+  vertexBuffer.push_back(color.r);
+  vertexBuffer.push_back(color.g);
+  vertexBuffer.push_back(color.b);
+  vertexBuffer.push_back(alpha);
+  vertexCount++;
 }
 
 void GlassView::rebuildMesh()
@@ -114,48 +135,52 @@ void GlassView::rebuildMesh()
         bool haveVertAdjCell = (vertAdjCell && vertAdjCell->figureId == cellId);
         bool haveCornerAdjCell = (cornerAdjCell && cornerAdjCell->figureId == cellId);
 
-        int horzPolyTexIndexBase;
-        int vertPolyTexIndexBase;
+        const glm::vec2 segmentUvArray[3][3] =
+        {
+          { { 0.5f, 0.5f }, { 0.5f, 1.0f }, { 0.0f, 1.0f }, },
+          { { 0.5f, 0.5f }, { 0.0f, 0.5f }, { 0.0f, 0.0f }, },
+          { { 0.5f, 0.5f }, { 0.5f, 0.0f }, { 0.0f, 0.0f }, },
+        };
+
+        enum SegmentTypes {OpenSegment, PartialSegment, BorderedSegment};
+
+        SegmentTypes horzSegmentType, vertSegmentType;
 
         if (haveHorzAdjCell && haveVertAdjCell && haveCornerAdjCell)
         {
-          horzPolyTexIndexBase = Globals::openBlocksTexIndex;
-          vertPolyTexIndexBase = Globals::openBlocksTexIndex;
+          horzSegmentType = SegmentTypes::OpenSegment;
+          vertSegmentType = SegmentTypes::OpenSegment;
         }
         else
         {
           if (haveHorzAdjCell)
-            horzPolyTexIndexBase = Globals::horzBlocksTexIndex;
+            horzSegmentType = SegmentTypes::PartialSegment;
           else
-            horzPolyTexIndexBase = Globals::vertBlocksTexIndex;
+            horzSegmentType = SegmentTypes::BorderedSegment;
 
           if (haveVertAdjCell)
-            vertPolyTexIndexBase = Globals::vertBlocksTexIndex;
+            vertSegmentType = SegmentTypes::PartialSegment;
           else
-            vertPolyTexIndexBase = Globals::horzBlocksTexIndex;
+            vertSegmentType = SegmentTypes::BorderedSegment;
         }
 
-        const float horzTexLayer = float(horzPolyTexIndexBase + cell->color);
-        const float vertTexLayer = float(vertPolyTexIndexBase + cell->color);
         const float dx = float(i & 1);
         const float dy = float((i & 2) >> 1);
-        const float u = glm::clamp(dx, pixHalfSize, 1.0f - pixHalfSize);
-        const float v = glm::clamp(dy, pixHalfSize, 1.0f - pixHalfSize);
 
-        addVertex(x + 0.5f, -y - 0.5f, 0.5f, 0.5f, vertTexLayer);
-        addVertex(x + dx,   -y - dy,   u,    v,    vertTexLayer);
-        addVertex(x + 0.5f, -y - dy,   0.5f, v,    vertTexLayer);
-        addVertex(x + 0.5f, -y - 0.5f, 0.5f, 0.5f, horzTexLayer);
-        addVertex(x + dx,   -y - dy,   u,    v,    horzTexLayer);
-        addVertex(x + dx,   -y - 0.5f, u,    0.5f, horzTexLayer);
+        addVertex(x + 0.5f, -y - 0.5f, segmentUvArray[vertSegmentType][0], Globals::blockTemplateTexIndex, blockColors[cell->color], 1.0f);
+        addVertex(x + 0.5f, -y - dy,   segmentUvArray[vertSegmentType][1], Globals::blockTemplateTexIndex, blockColors[cell->color], 1.0f);
+        addVertex(x + dx,   -y - dy,   segmentUvArray[vertSegmentType][2], Globals::blockTemplateTexIndex, blockColors[cell->color], 1.0f);
+        addVertex(x + 0.5f, -y - 0.5f, segmentUvArray[horzSegmentType][0], Globals::blockTemplateTexIndex, blockColors[cell->color], 1.0f);
+        addVertex(x + dx,   -y - 0.5f, segmentUvArray[horzSegmentType][1], Globals::blockTemplateTexIndex, blockColors[cell->color], 1.0f);
+        addVertex(x + dx,   -y - dy,   segmentUvArray[horzSegmentType][2], Globals::blockTemplateTexIndex, blockColors[cell->color], 1.0f);
       }
 
     }
 
     if (cell && !cell->figureId)
     {
-      const float shadowTexLayer = float(Globals::shadowTexIndex);
       const float shadowWidth = 0.1f;
+      const glm::vec3 zeroCol(0.0f, 0.0f, 0.0f);
 
       Cell * leftCell = getGlassCell(x - 1, y);
       Cell * leftTopCell = getGlassCell(x - 1, y - 1);
@@ -180,12 +205,12 @@ void GlassView::rebuildMesh()
         else
           bottomDY = shadowWidth;
 
-        addVertex(x - pixSize, -y + pixSize, (softTop ? 1.0f - pixHalfSize : pixHalfSize), 0.5f, shadowTexLayer);
-        addVertex(x + shadowWidth - pixSize, -y - topDY + pixSize, 1.0f - pixHalfSize, 0.5f, shadowTexLayer);
-        addVertex(x - pixSize, -y - 1.0f + pixSize, pixHalfSize, 0.5f, shadowTexLayer);
-        addVertex(x + shadowWidth - pixSize, -y - topDY + pixSize, 1.0f - pixHalfSize, 0.5f, shadowTexLayer);
-        addVertex(x - pixSize, -y - 1.0f + pixSize, pixHalfSize, 0.5f, shadowTexLayer);
-        addVertex(x + shadowWidth - pixSize, -y - 1.0f - bottomDY + pixSize, 1.0f - pixHalfSize, 0.5f, shadowTexLayer);
+        addVertex(x - pixSize, -y + pixSize, glm::vec2((softTop ? 1.0f : 0.0f), 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(x + shadowWidth - pixSize, -y - topDY + pixSize, glm::vec2(1.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(x - pixSize, -y - 1.0f + pixSize, glm::vec2(0.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(x + shadowWidth - pixSize, -y - topDY + pixSize, glm::vec2(1.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(x - pixSize, -y - 1.0f + pixSize, glm::vec2(0.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(x + shadowWidth - pixSize, -y - 1.0f - bottomDY + pixSize, glm::vec2(1.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
       }
 
       if (topCell && topCell->figureId)
@@ -203,26 +228,26 @@ void GlassView::rebuildMesh()
         else
           rightDX = shadowWidth;
 
-        addVertex(x - pixSize, -y + pixSize, (softLeft ? 1.0f - pixHalfSize : pixHalfSize), 0.5f, shadowTexLayer);
-        addVertex(x + leftDX - pixSize, -y - shadowWidth + pixSize, 1.0f - pixHalfSize, 0.5f, shadowTexLayer);
-        addVertex(x + 1.0f - pixSize, -y + pixSize, pixHalfSize, 0.5f, shadowTexLayer);
-        addVertex(x + leftDX - pixSize, -y - shadowWidth + pixSize, 1.0f - pixHalfSize, 0.5f, shadowTexLayer);
-        addVertex(x + 1.0f - pixSize, -y + pixSize, pixHalfSize, 0.5f, shadowTexLayer);
-        addVertex(x + 1.0f + rightDX - pixSize, -y - shadowWidth + pixSize, 1.0f - pixHalfSize, 0.5f, shadowTexLayer);
+        addVertex(x - pixSize, -y + pixSize, glm::vec2((softLeft ? 1.0f : 0.0f), 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(x + leftDX - pixSize, -y - shadowWidth + pixSize, glm::vec2(1.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(x + 1.0f - pixSize, -y + pixSize, glm::vec2(0.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(x + leftDX - pixSize, -y - shadowWidth + pixSize, glm::vec2(1.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(x + 1.0f - pixSize, -y + pixSize, glm::vec2(0.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(x + 1.0f + rightDX - pixSize, -y - shadowWidth + pixSize, glm::vec2(1.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
       }
 
       if (leftTopCell && leftTopCell->figureId && (!topCell || !topCell->figureId) && leftCell && leftCell->figureId && leftCell->figureId != leftTopCell->figureId)
       {
-        addVertex(x - pixSize, -y + pixSize, pixHalfSize, 0.5f, shadowTexLayer);
-        addVertex(x + shadowWidth - pixSize, -y - shadowWidth + pixSize, 1.0f - pixHalfSize, 0.5f, shadowTexLayer);
-        addVertex(x - pixSize, -y - shadowWidth + pixSize, 1.0f - pixHalfSize, 0.5f, shadowTexLayer);
+        addVertex(x - pixSize, -y + pixSize, glm::vec2(0.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(x + shadowWidth - pixSize, -y - shadowWidth + pixSize, glm::vec2(1.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(x - pixSize, -y - shadowWidth + pixSize, glm::vec2(1.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
       }
 
       if (leftTopCell && leftTopCell->figureId && (!leftCell || !leftCell->figureId) && topCell && topCell->figureId && topCell->figureId != leftTopCell->figureId)
       {
-        addVertex(x - pixSize, -y + pixSize, pixHalfSize, 0.5f, shadowTexLayer);
-        addVertex(x + shadowWidth - pixSize, -y - shadowWidth + pixSize, 1.0f - pixHalfSize, 0.5f, shadowTexLayer);
-        addVertex(x + shadowWidth - pixSize, -y + pixSize, 1.0f - pixHalfSize, 0.5f, shadowTexLayer);
+        addVertex(x - pixSize, -y + pixSize, glm::vec2(0.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(x + shadowWidth - pixSize, -y - shadowWidth + pixSize, glm::vec2(1.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(x + shadowWidth - pixSize, -y + pixSize, glm::vec2(1.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
       }
     }
   }
@@ -259,12 +284,16 @@ void GlassView::draw()
   assert(!checkGlErrors());
   glEnableVertexAttribArray(1);
   assert(!checkGlErrors());
-  
+  glEnableVertexAttribArray(2);
+  assert(!checkGlErrors());
+
   glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId);
   assert(!checkGlErrors());
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)0);
   assert(!checkGlErrors());
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(2 * sizeof(float)));
+  assert(!checkGlErrors());
+  glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(5 * sizeof(float)));
   assert(!checkGlErrors());
 
   glDrawArrays(GL_TRIANGLES, 0, vertexCount);
@@ -273,5 +302,7 @@ void GlassView::draw()
   glDisableVertexAttribArray(0);
   assert(!checkGlErrors());
   glDisableVertexAttribArray(1);
+  assert(!checkGlErrors());
+  glDisableVertexAttribArray(2);
   assert(!checkGlErrors());
 }

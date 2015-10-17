@@ -13,6 +13,7 @@ int Globals::horzBlocksTexIndex = 22;
 int Globals::dropTrailsTexIndex = 29;
 int Globals::shadowTexIndex = 36;
 int Globals::dropSparklesTexIndex = 37;
+int Globals::blockTemplateTexIndex = 44;
 glm::vec2 Globals::gameBkPos(-0.7f, 1.0f);
 glm::vec2 Globals::gameBkSize(1.4f, 2.0f);
 glm::vec2 Globals::glassPos(-0.4f, 0.75f);

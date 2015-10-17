@@ -16,7 +16,8 @@ private:
   Shader figureFrag;
   int vertexCount;
   Cell * getGlassCell(int x, int y);
-  void addVertex(float x, float y, float u, float v, float w);
+  void addVertex(float x, float y, const glm::vec2 & uv, int texIndex, const glm::vec3 & color, float alpha);
+  static glm::vec3 blockColors[7];
 
 public:
   GlassView(Model & model);
