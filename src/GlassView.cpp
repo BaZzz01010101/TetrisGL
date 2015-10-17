@@ -21,7 +21,7 @@ glm::vec3 GlassView::blockColors[7] =
   { 0.85f, 0.60f, 0.00f },
   { 0.05f, 0.55f, 0.10f },
   { 0.05f, 0.60f, 1.00f },
-  { 0.00f, 0.20f, 0.95f },
+  { 0.10f, 0.20f, 0.90f },
   { 0.40f, 0.10f, 0.80f }
 };
 
@@ -205,12 +205,20 @@ void GlassView::rebuildMesh()
         else
           bottomDY = shadowWidth;
 
-        addVertex(x - pixSize, -y + pixSize, glm::vec2((softTop ? 1.0f : 0.0f), 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
-        addVertex(x + shadowWidth - pixSize, -y - topDY + pixSize, glm::vec2(1.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
-        addVertex(x - pixSize, -y - 1.0f + pixSize, glm::vec2(0.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
-        addVertex(x + shadowWidth - pixSize, -y - topDY + pixSize, glm::vec2(1.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
-        addVertex(x - pixSize, -y - 1.0f + pixSize, glm::vec2(0.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
-        addVertex(x + shadowWidth - pixSize, -y - 1.0f - bottomDY + pixSize, glm::vec2(1.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        const glm::vec2(&verts)[4] =
+        {
+          { x - pixSize, -y + pixSize },
+          { x + shadowWidth - pixSize, -y - topDY + pixSize },
+          { x - pixSize, -y - 1.0f + pixSize },
+          { x + shadowWidth - pixSize, -y - 1.0f - bottomDY + pixSize }
+        };
+
+        addVertex(verts[0].x, verts[0].y, glm::vec2((softTop ? 1.0f : 0.5f), 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(verts[1].x, verts[1].y, glm::vec2(1.0f, 1.0f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(verts[2].x, verts[2].y, glm::vec2(0.5f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(verts[1].x, verts[1].y, glm::vec2(1.0f, 1.0f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(verts[2].x, verts[2].y, glm::vec2(0.5f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(verts[3].x, verts[3].y, glm::vec2(1.0f, 1.0f), Globals::shadowTexIndex, zeroCol, 1.0f);
       }
 
       if (topCell && topCell->figureId)
@@ -228,26 +236,34 @@ void GlassView::rebuildMesh()
         else
           rightDX = shadowWidth;
 
-        addVertex(x - pixSize, -y + pixSize, glm::vec2((softLeft ? 1.0f : 0.0f), 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
-        addVertex(x + leftDX - pixSize, -y - shadowWidth + pixSize, glm::vec2(1.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
-        addVertex(x + 1.0f - pixSize, -y + pixSize, glm::vec2(0.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
-        addVertex(x + leftDX - pixSize, -y - shadowWidth + pixSize, glm::vec2(1.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
-        addVertex(x + 1.0f - pixSize, -y + pixSize, glm::vec2(0.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
-        addVertex(x + 1.0f + rightDX - pixSize, -y - shadowWidth + pixSize, glm::vec2(1.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        const glm::vec2(&verts)[4] = 
+        {
+          { x - pixSize,                  -y + pixSize },
+          { x + leftDX - pixSize,         -y - shadowWidth + pixSize },
+          { x + 1.0f - pixSize,           -y + pixSize },
+          { x + 1.0f + rightDX - pixSize, -y - shadowWidth + pixSize }
+        };
+
+        addVertex(verts[0].x, verts[0].y, glm::vec2(softLeft ? 1.0f : 0.5f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(verts[1].x, verts[1].y, glm::vec2(1.0f, 1.0f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(verts[2].x, verts[2].y, glm::vec2(0.5f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(verts[1].x, verts[1].y, glm::vec2(1.0f, 1.0f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(verts[2].x, verts[2].y, glm::vec2(0.5f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(verts[3].x, verts[3].y, glm::vec2(1.0f, 1.0f), Globals::shadowTexIndex, zeroCol, 1.0f);
       }
 
       if (leftTopCell && leftTopCell->figureId && (!topCell || !topCell->figureId) && leftCell && leftCell->figureId && leftCell->figureId != leftTopCell->figureId)
       {
-        addVertex(x - pixSize, -y + pixSize, glm::vec2(0.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
-        addVertex(x + shadowWidth - pixSize, -y - shadowWidth + pixSize, glm::vec2(1.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
-        addVertex(x - pixSize, -y - shadowWidth + pixSize, glm::vec2(1.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(x - pixSize, -y + pixSize, glm::vec2(0.5f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(x + shadowWidth - pixSize, -y - shadowWidth + pixSize, glm::vec2(1.0f, 1.0f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(x - pixSize, -y - shadowWidth + pixSize, glm::vec2(0.5f, 1.0f), Globals::shadowTexIndex, zeroCol, 1.0f);
       }
 
       if (leftTopCell && leftTopCell->figureId && (!leftCell || !leftCell->figureId) && topCell && topCell->figureId && topCell->figureId != leftTopCell->figureId)
       {
-        addVertex(x - pixSize, -y + pixSize, glm::vec2(0.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
-        addVertex(x + shadowWidth - pixSize, -y - shadowWidth + pixSize, glm::vec2(1.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
-        addVertex(x + shadowWidth - pixSize, -y + pixSize, glm::vec2(1.0f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(x - pixSize, -y + pixSize, glm::vec2(0.5f, 0.5f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(x + shadowWidth - pixSize, -y - shadowWidth + pixSize, glm::vec2(1.0f, 1.0f), Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(x + shadowWidth - pixSize, -y + pixSize, glm::vec2(0.5f, 1.0f), Globals::shadowTexIndex, zeroCol, 1.0f);
       }
     }
   }
