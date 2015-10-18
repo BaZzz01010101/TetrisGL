@@ -51,7 +51,6 @@ void View::init()
   glBindVertexArray(vaoId);
   assert(!checkGlErrors());
 
-  mainMesh.init();
   glassView.init();
 
   glGenBuffers(1, &glassFigureVertexBufferId);

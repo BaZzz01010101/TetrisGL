@@ -5,14 +5,12 @@
 #include "Program.h"
 #include "Shader.h"
 #include "GlassView.h"
-#include "MainMesh.h"
 
 class View
 {
 private:
   Model & model;
   GLuint vaoId;
-  MainMesh mainMesh;
   GlassView glassView;
 
   Program figureProg;

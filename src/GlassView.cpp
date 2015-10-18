@@ -60,7 +60,9 @@ void GlassView::init()
     "void main()"
     "{"
     "  vec4 texcol = texture(tex, uvw).rgba;"
-    "  out_color = vec4(mix(texcol.r + color.rgb, vec3(1.0f), texcol.g) * texcol.a * color.a, texcol.a * color.a);"
+    "  float alpha = texcol.a * color.a;"
+    "  vec3 rgb = mix(texcol.r + color.rgb, vec3(1.0f) * alpha, texcol.g);"
+    "  out_color = vec4(rgb, alpha);"
     "}");
 
   figureProg.attachShader(figureVert);
@@ -329,12 +331,12 @@ void GlassView::rebuildMesh()
           verts[3].y -= glowWidth;
         }
 
-        addVertex(verts[0].x, verts[0].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color], glowMaxAlpha);
-        addVertex(verts[1].x, verts[1].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color], glowMinAlpha);
-        addVertex(verts[2].x, verts[2].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color], glowMaxAlpha);
-        addVertex(verts[1].x, verts[1].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color], glowMinAlpha);
-        addVertex(verts[2].x, verts[2].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color], glowMaxAlpha);
-        addVertex(verts[3].x, verts[3].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color], glowMinAlpha);
+        addVertex(verts[0].x, verts[0].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color] * glowMaxAlpha, 0.0f);
+        addVertex(verts[1].x, verts[1].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color] * glowMinAlpha, 0.0f);
+        addVertex(verts[2].x, verts[2].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color] * glowMaxAlpha, 0.0f);
+        addVertex(verts[1].x, verts[1].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color] * glowMinAlpha, 0.0f);
+        addVertex(verts[2].x, verts[2].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color] * glowMaxAlpha, 0.0f);
+        addVertex(verts[3].x, verts[3].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color] * glowMinAlpha, 0.0f);
       }
 
       if (rightCell && rightCell->figureId != cell->figureId)
@@ -369,12 +371,12 @@ void GlassView::rebuildMesh()
           verts[3].y -= glowWidth;
         }
 
-        addVertex(verts[0].x, verts[0].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color], glowMaxAlpha);
-        addVertex(verts[1].x, verts[1].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color], glowMinAlpha);
-        addVertex(verts[2].x, verts[2].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color], glowMaxAlpha);
-        addVertex(verts[1].x, verts[1].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color], glowMinAlpha);
-        addVertex(verts[2].x, verts[2].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color], glowMaxAlpha);
-        addVertex(verts[3].x, verts[3].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color], glowMinAlpha);
+        addVertex(verts[0].x, verts[0].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color] * glowMaxAlpha, 0.0f);
+        addVertex(verts[1].x, verts[1].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color] * glowMinAlpha, 0.0f);
+        addVertex(verts[2].x, verts[2].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color] * glowMaxAlpha, 0.0f);
+        addVertex(verts[1].x, verts[1].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color] * glowMinAlpha, 0.0f);
+        addVertex(verts[2].x, verts[2].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color] * glowMaxAlpha, 0.0f);
+        addVertex(verts[3].x, verts[3].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color] * glowMinAlpha, 0.0f);
       }
 
       if (topCell && topCell->figureId != cell->figureId)
@@ -409,12 +411,12 @@ void GlassView::rebuildMesh()
           verts[3].x += glowWidth;
         }
 
-        addVertex(verts[0].x, verts[0].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color], glowMaxAlpha);
-        addVertex(verts[1].x, verts[1].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color], glowMinAlpha);
-        addVertex(verts[2].x, verts[2].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color], glowMaxAlpha);
-        addVertex(verts[1].x, verts[1].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color], glowMinAlpha);
-        addVertex(verts[2].x, verts[2].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color], glowMaxAlpha);
-        addVertex(verts[3].x, verts[3].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color], glowMinAlpha);
+        addVertex(verts[0].x, verts[0].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color] * glowMaxAlpha, 0.0f);
+        addVertex(verts[1].x, verts[1].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color] * glowMinAlpha, 0.0f);
+        addVertex(verts[2].x, verts[2].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color] * glowMaxAlpha, 0.0f);
+        addVertex(verts[1].x, verts[1].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color] * glowMinAlpha, 0.0f);
+        addVertex(verts[2].x, verts[2].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color] * glowMaxAlpha, 0.0f);
+        addVertex(verts[3].x, verts[3].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color] * glowMinAlpha, 0.0f);
       }
 
       if (bottomCell && bottomCell->figureId != cell->figureId)
@@ -449,12 +451,12 @@ void GlassView::rebuildMesh()
           verts[3].x += glowWidth;
         }
 
-        addVertex(verts[0].x, verts[0].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color], glowMaxAlpha);
-        addVertex(verts[1].x, verts[1].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color], glowMinAlpha);
-        addVertex(verts[2].x, verts[2].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color], glowMaxAlpha);
-        addVertex(verts[1].x, verts[1].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color], glowMinAlpha);
-        addVertex(verts[2].x, verts[2].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color], glowMaxAlpha);
-        addVertex(verts[3].x, verts[3].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color], glowMinAlpha);
+        addVertex(verts[0].x, verts[0].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color] * glowMaxAlpha, 0.0f);
+        addVertex(verts[1].x, verts[1].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color] * glowMinAlpha, 0.0f);
+        addVertex(verts[2].x, verts[2].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color] * glowMaxAlpha, 0.0f);
+        addVertex(verts[1].x, verts[1].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color] * glowMinAlpha, 0.0f);
+        addVertex(verts[2].x, verts[2].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color] * glowMaxAlpha, 0.0f);
+        addVertex(verts[3].x, verts[3].y, glm::vec2(0.5f), Globals::blockTemplateTexIndex, blockColors[cell->color] * glowMinAlpha, 0.0f);
       }
 
     }
