@@ -5,7 +5,7 @@
 #include "Program.h"
 #include "Shader.h"
 
-class GlassView
+class MainMesh
 {
 private:
   Model & model;
@@ -15,15 +15,22 @@ private:
   Shader figureVert;
   Shader figureFrag;
   int vertexCount;
+  glm::vec2 origin;
+  float scale;
   Cell * getGlassCell(int x, int y);
-  void addVertex(float x, float y, const glm::vec2 & uv, int texIndex, const glm::vec3 & color, float alpha);
+  void addVertex(const glm::vec2 & xy, const glm::vec2 & uv, int texIndex, const glm::vec3 & color, float alpha);
   static glm::vec3 blockColors[7];
+  void buildBackgroundMesh();
+  void buildGlassBackgroundMesh();
+  void buidGlassShadowMesh();
+  void buidGlassBlocksMesh();
+  void biuldGlassGlowMesh();
 
 public:
-  GlassView(Model & model);
-  ~GlassView();
+  MainMesh(Model & model);
+  ~MainMesh();
 
   void init();
-  void rebuildMesh();
+  void rebuild();
   void draw();
 };

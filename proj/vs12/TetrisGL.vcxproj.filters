@@ -81,7 +81,7 @@
     <ClCompile Include="..\..\src\Cell.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\GlassView.cpp">
+    <ClCompile Include="..\..\src\MainMesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -176,7 +176,7 @@
     <ClInclude Include="..\..\src\glall.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\GlassView.h">
+    <ClInclude Include="..\..\src\MainMesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

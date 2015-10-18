@@ -10,7 +10,7 @@ View::View(Model & model) :
   figureVert(GL_VERTEX_SHADER),
   figureFrag(GL_FRAGMENT_SHADER),
   model(model),
-  glassView(model)
+  mainMesh(model)
 {
 }
 
@@ -51,7 +51,7 @@ void View::init()
   glBindVertexArray(vaoId);
   assert(!checkGlErrors());
 
-  glassView.init();
+  mainMesh.init();
 
   glGenBuffers(1, &glassFigureVertexBufferId);
   assert(!checkGlErrors());
@@ -98,10 +98,13 @@ void View::update()
 {
   if (model.glassChanged)
   {
-    glassView.rebuildMesh();
+    mainMesh.rebuild();
 //    model.glassChanged = false;
   }
 
-  glassView.draw();
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  assert(!checkGlErrors());
+
+  mainMesh.draw();
 }
 

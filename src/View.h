@@ -4,14 +4,14 @@
 #include "Model.h"
 #include "Program.h"
 #include "Shader.h"
-#include "GlassView.h"
+#include "MainMesh.h"
 
 class View
 {
 private:
   Model & model;
   GLuint vaoId;
-  GlassView glassView;
+  MainMesh mainMesh;
 
   Program figureProg;
   Shader figureVert;

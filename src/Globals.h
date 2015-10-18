@@ -22,6 +22,7 @@ public:
   static int dropTrailsTexIndex;
   static int dropSparklesTexIndex;
   static int blockTemplateTexIndex;
+  static int emptyTexIndex;
   static glm::vec2 gameBkPos;
   static glm::vec2 gameBkSize;
   static glm::vec2 glassPos;
