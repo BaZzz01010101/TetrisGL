@@ -171,8 +171,6 @@ void MainMesh::addVertex(const glm::vec2 & xy, const glm::vec2 & uv, int texInde
   vertexBuffer.push_back(origin.y + xy.y * scale);
   vertexBuffer.push_back(uv.x);
   vertexBuffer.push_back(uv.y);
-  //vertexBuffer.push_back(glm::clamp(uv.x, Globals::mainArrayTexturePixelSize / 2.0f, 1.0f - Globals::mainArrayTexturePixelSize / 2.0f));
-  //vertexBuffer.push_back(glm::clamp(uv.y, Globals::mainArrayTexturePixelSize / 2.0f, 1.0f - Globals::mainArrayTexturePixelSize / 2.0f));
   vertexBuffer.push_back(float(texIndex));
   vertexBuffer.push_back(color.r);
   vertexBuffer.push_back(color.g);
@@ -197,59 +195,50 @@ void MainMesh::buildBackgroundMesh()
       { Globals::gameBkSize.x * (x + 1) / xfr, -Globals::gameBkSize.y * (y + 1) / yfr },
     };
 
-    //const glm::vec2 glassLeftTop = Globals::glassPos - Globals::gameBkPos;
-    //const glm::vec2 glassRightBottom = glm::vec2(glassLeftTop.x + Globals::glassSize.x, glassLeftTop.y - Globals::glassSize.y);
+    const float xReps = 80.0f;
+    const float yReps = xReps / Globals::gameBkSize.x * Globals::gameBkSize.y * 0.85f;
+    const float texScaleCorrection = 0.56f; // tile deformation to get power of two texture size
+    const float xVal = xReps * texScaleCorrection;
+    const float yVal = yReps;
 
-    //if (!(verts[0].x > glassLeftTop.x &&
-    //  verts[3].x < glassRightBottom.x &&
-    //  verts[0].y < glassLeftTop.y &&
-    //  verts[3].y > glassRightBottom.y))
+    glm::vec2 uv[4] =
     {
-      const float xReps = 80.0f;
-      const float yReps = xReps / Globals::gameBkSize.x * Globals::gameBkSize.y * 0.85f;
-      const float texScaleCorrection = 0.56f; // tile deformation to get power of two texture size
-      const float xVal = xReps * texScaleCorrection;
-      const float yVal = yReps;
+      { xVal * x / xfr, yVal * y / yfr },
+      { xVal * x / xfr, yVal * (y + 1) / yfr },
+      { xVal * (x + 1) / xfr, yVal * y / yfr },
+      { xVal * (x + 1) / xfr, yVal * (y + 1) / yfr },
+    };
 
-      glm::vec2 uv[4] =
-      {
-        { xVal * x / xfr, yVal * y / yfr },
-        { xVal * x / xfr, yVal * (y + 1) / yfr },
-        { xVal * (x + 1) / xfr, yVal * y / yfr },
-        { xVal * (x + 1) / xfr, yVal * (y + 1) / yfr },
-      };
+    float fx0 = float(abs(xfr - 2 * x)) / xfr;
+    float fy0 = float(y) / yfr;
+    float fx1 = float(abs(xfr - 2 * (x + 1))) / xfr;
+    float fy1 = float(y + 1) / yfr;
 
-      float fx0 = float(abs(xfr - 2 * x)) / xfr;
-      float fy0 = float(y) / yfr;
-      float fx1 = float(abs(xfr - 2 * (x + 1))) / xfr;
-      float fy1 = float(y + 1) / yfr;
+    float light[4] =
+    {
+      1.0f - sqrtf(fx0 * fx0 + fy0 * fy0) / M_SQRT2,
+      1.0f - sqrtf(fx0 * fx0 + fy1 * fy1) / M_SQRT2,
+      1.0f - sqrtf(fx1 * fx1 + fy0 * fy0) / M_SQRT2,
+      1.0f - sqrtf(fx1 * fx1 + fy1 * fy1) / M_SQRT2,
+    };
 
-      float light[4] =
-      {
-        1.0f - sqrtf(fx0 * fx0 + fy0 * fy0) / M_SQRT2,
-        1.0f - sqrtf(fx0 * fx0 + fy1 * fy1) / M_SQRT2,
-        1.0f - sqrtf(fx1 * fx1 + fy0 * fy0) / M_SQRT2,
-        1.0f - sqrtf(fx1 * fx1 + fy1 * fy1) / M_SQRT2,
-      };
+    glm::vec3 darkColor(0.05f, 0.1f, 0.2f);
+    glm::vec3 lightColor(0.3f, 0.6f, 1.0f);
 
-      glm::vec3 darkColor(0.05f, 0.1f, 0.2f);
-      glm::vec3 lightColor(0.3f, 0.6f, 1.0f);
+    glm::vec3 col[4] =
+    {
+      darkColor + (lightColor - darkColor) * light[0],
+      darkColor + (lightColor - darkColor) * light[1],
+      darkColor + (lightColor - darkColor) * light[2],
+      darkColor + (lightColor - darkColor) * light[3],
+    };
 
-      glm::vec3 col[4] =
-      {
-        darkColor + (lightColor - darkColor) * light[0],
-        darkColor + (lightColor - darkColor) * light[1],
-        darkColor + (lightColor - darkColor) * light[2],
-        darkColor + (lightColor - darkColor) * light[3],
-      };
-
-      addVertex(verts[0], uv[0], Globals::backgroundTexIndex, col[0], 1.0f);
-      addVertex(verts[1], uv[1], Globals::backgroundTexIndex, col[1], 1.0f);
-      addVertex(verts[2], uv[2], Globals::backgroundTexIndex, col[2], 1.0f);
-      addVertex(verts[1], uv[1], Globals::backgroundTexIndex, col[1], 1.0f);
-      addVertex(verts[2], uv[2], Globals::backgroundTexIndex, col[2], 1.0f);
-      addVertex(verts[3], uv[3], Globals::backgroundTexIndex, col[3], 1.0f);
-    }
+    addVertex(verts[0], uv[0], Globals::backgroundTexIndex, col[0], 1.0f);
+    addVertex(verts[1], uv[1], Globals::backgroundTexIndex, col[1], 1.0f);
+    addVertex(verts[2], uv[2], Globals::backgroundTexIndex, col[2], 1.0f);
+    addVertex(verts[1], uv[1], Globals::backgroundTexIndex, col[1], 1.0f);
+    addVertex(verts[2], uv[2], Globals::backgroundTexIndex, col[2], 1.0f);
+    addVertex(verts[3], uv[3], Globals::backgroundTexIndex, col[3], 1.0f);
   }
 }
 
@@ -282,8 +271,29 @@ void MainMesh::buildGlassBackgroundMesh()
       sqrtf(fx1 * fx1 + fy1 * fy1) / M_SQRT2,
     };
 
-    glm::vec3 darkColor(0.1f, 0.25f, 0.45f);
-    glm::vec3 lightColor(0.33f, 0.5f, 0.55f);
+    float a = 0.0f;
+    static float freq = Crosy::getPerformanceFrequency();
+    if (freq)
+      a = double(Crosy::getPerformanceCounter()) / freq / 300.0f;
+
+    const float rMin = 0.1f;
+    const float gMin = 0.1f;
+    const float bMin = 0.2f;
+    const float rMax = 0.3f;
+    const float gMax = 0.3f;
+    const float bMax = 0.5f;
+    const float darkMul = 0.25f;
+    const float darkDiff = M_PI / 20.0f;
+    const float gDiff = M_PI / 3.0f;
+    const float bDiff = 2.0f * M_PI / 3.0f;
+
+    glm::vec3 lightColor(rMin + (rMax - rMin) * abs(sin(a)),
+                         gMin + (gMax - gMin) * abs(sin(a + gDiff)),
+                         bMin + (bMax - bMin) * abs(sin(a + bDiff)));
+
+    glm::vec3 darkColor(darkMul * (rMin + (rMax - rMin) * abs(sin(a + darkDiff))),
+                        darkMul * (gMin + (gMax - gMin) * abs(sin(a + gDiff + darkDiff))),
+                        darkMul * (bMin + (bMax - bMin) * abs(sin(a + bDiff + darkDiff))));
 
     glm::vec3 col[4] =
     {
