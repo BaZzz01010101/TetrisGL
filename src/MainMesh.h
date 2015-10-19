@@ -15,8 +15,6 @@ private:
   Shader figureVert;
   Shader figureFrag;
   int vertexCount;
-  glm::vec2 origin;
-  float scale;
   Cell * getGlassCell(int x, int y);
   void addVertex(const glm::vec2 & xy, const glm::vec2 & uv, int texIndex, const glm::vec3 & color, float alpha);
   static glm::vec3 blockColors[7];
