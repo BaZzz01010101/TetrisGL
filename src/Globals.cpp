@@ -35,6 +35,11 @@ glm::vec2 Globals::glassSize(0.8f, 1.6f);
 float Globals::holdNextTitleHeight = 0.05f;
 float Globals::holdNextBkHorzGap = 0.04f;
 float Globals::holdNextBkSize = 0.2f;
+float Globals::scoreBarGap = 0.001f;
+float Globals::scoreBarHeight = 0.04f;
+float Globals::scoreBarScoreWidth = 0.35f;
+float Globals::scoreBarMenuWidth = 0.25f;
+float Globals::scoreBarValueWidth = Globals::gameBkSize.x - Globals::scoreBarScoreWidth - Globals::scoreBarMenuWidth;
 
 Globals::Globals()
 {

@@ -79,6 +79,7 @@ void MainMesh::rebuild()
   buidGlassBlocksMesh();
   biuldGlassGlowMesh();
   buildFigureBlocksMesh();
+  buildFigureGlowMesh();
 
   if (vertexCount)
   {
@@ -381,8 +382,8 @@ void MainMesh::buidGlassShadowMesh()
 
         glm::vec2 verts[4] =
         {
-          { x, -y - 1.0f + pixSize },
-          { x, -y - 1.0f - shadowWidth },
+          { x,        -y - 1.0f + pixSize },
+          { x,        -y - 1.0f - shadowWidth },
           { x + 1.0f, -y - 1.0f + pixSize },
           { x + 1.0f, -y - 1.0f - shadowWidth }
         };
@@ -426,9 +427,9 @@ void MainMesh::buidGlassShadowMesh()
 
         glm::vec2 verts[4] =
         {
-          { x + 1.0f - pixSize, -y },
+          { x + 1.0f - pixSize,     -y },
           { x + 1.0f + shadowWidth, -y },
-          { x + 1.0f - pixSize, -y - 1.0f },
+          { x + 1.0f - pixSize,     -y - 1.0f },
           { x + 1.0f + shadowWidth, -y - 1.0f }
         };
 
@@ -468,7 +469,7 @@ void MainMesh::buidGlassShadowMesh()
 
 void MainMesh::buidGlassBlocksMesh()
 {
-  const float halfPixSize = Globals::mainArrayTexturePixelSize;
+  const float pixSize = Globals::mainArrayTexturePixelSize;
   const glm::vec2 origin = Globals::glassPos;
   const float scale = Globals::glassSize.x / model.glassWidth;
 
@@ -496,9 +497,9 @@ void MainMesh::buidGlassBlocksMesh()
 
         const glm::vec2 segmentUvArray[3][3] =
         {
-          { { 0.5f, 0.5f }, { 0.5f, 1.0f - halfPixSize }, { 0.0f + halfPixSize, 1.0f - halfPixSize }, }, // openSegment
-          { { 0.5f, 0.5f }, { 0.0f + halfPixSize, 0.5f }, { 0.0f + halfPixSize, 0.0f + halfPixSize }, }, // partialSegment
-          { { 0.5f, 0.5f }, { 0.5f, 0.0f + halfPixSize }, { 0.0f + halfPixSize, 0.0f + halfPixSize }, }, // borderedSegment
+          { { 0.5f, 0.5f }, { 0.5f, 1.0f - pixSize }, { 0.0f + pixSize, 1.0f - pixSize }, }, // openSegment
+          { { 0.5f, 0.5f }, { 0.0f + pixSize, 0.5f }, { 0.0f + pixSize, 0.0f + pixSize }, }, // partialSegment
+          { { 0.5f, 0.5f }, { 0.5f, 0.0f + pixSize }, { 0.0f + pixSize, 0.0f + pixSize }, }, // borderedSegment
         };
 
         enum SegmentTypes { openSegment, partialSegment, borderedSegment };
@@ -587,9 +588,9 @@ void MainMesh::biuldGlassGlowMesh()
       {
         glm::vec2 verts[4] =
         {
-          { x + pixSize, -y },
+          { x + pixSize,   -y },
           { x - glowWidth, -y },
-          { x + pixSize, -y - 1.0f },
+          { x + pixSize,   -y - 1.0f },
           { x - glowWidth, -y - 1.0f }
         };
 
@@ -627,9 +628,9 @@ void MainMesh::biuldGlassGlowMesh()
       {
         glm::vec2 verts[4] =
         {
-          { x + 1.0f - pixSize, -y },
+          { x + 1.0f - pixSize,   -y },
           { x + 1.0f + glowWidth, -y },
-          { x + 1.0f - pixSize, -y - 1.0f },
+          { x + 1.0f - pixSize,   -y - 1.0f },
           { x + 1.0f + glowWidth, -y - 1.0f }
         };
 
@@ -667,8 +668,8 @@ void MainMesh::biuldGlassGlowMesh()
       {
         glm::vec2 verts[4] =
         {
-          { x, -y - pixSize },
-          { x, -y + glowWidth },
+          { x,        -y - pixSize },
+          { x,        -y + glowWidth },
           { x + 1.0f, -y - pixSize },
           { x + 1.0f, -y + glowWidth }
         };
@@ -707,8 +708,8 @@ void MainMesh::biuldGlassGlowMesh()
       {
         glm::vec2 verts[4] =
         {
-          { x, -y - 1.0f + pixSize },
-          { x, -y - 1.0f - glowWidth },
+          { x,        -y - 1.0f + pixSize },
+          { x,        -y - 1.0f - glowWidth },
           { x + 1.0f, -y - 1.0f + pixSize },
           { x + 1.0f, -y - 1.0f - glowWidth }
         };
@@ -748,9 +749,8 @@ void MainMesh::biuldGlassGlowMesh()
 
 void MainMesh::buildFigureBlocksMesh()
 {
-  const float halfPixSize = Globals::mainArrayTexturePixelSize;
-  const float holdNextBkClientSize = Globals::holdNextBkSize * 0.75f;
-  const float scale = holdNextBkClientSize / 4.0f;
+  const float pixSize = Globals::mainArrayTexturePixelSize;
+  const float scale = Globals::holdNextBkSize * 0.75f / 4.0f;
 
   for (int i = -1; i < Globals::nextFiguresCount; i++)
   {
@@ -842,9 +842,9 @@ void MainMesh::buildFigureBlocksMesh()
 
             const glm::vec2 segmentUvArray[3][3] =
             {
-              { { 0.5f, 0.5f }, { 0.5f, 1.0f - halfPixSize }, { 0.0f + halfPixSize, 1.0f - halfPixSize }, }, // openSegment
-              { { 0.5f, 0.5f }, { 0.0f + halfPixSize, 0.5f }, { 0.0f + halfPixSize, 0.0f + halfPixSize }, }, // partialSegment
-              { { 0.5f, 0.5f }, { 0.5f, 0.0f + halfPixSize }, { 0.0f + halfPixSize, 0.0f + halfPixSize }, }, // borderedSegment
+              { { 0.5f, 0.5f }, { 0.5f, 1.0f - pixSize }, { 0.0f + pixSize, 1.0f - pixSize }, }, // openSegment
+              { { 0.5f, 0.5f }, { 0.0f + pixSize, 0.5f }, { 0.0f + pixSize, 0.0f + pixSize }, }, // partialSegment
+              { { 0.5f, 0.5f }, { 0.5f, 0.0f + pixSize }, { 0.0f + pixSize, 0.0f + pixSize }, }, // borderedSegment
             };
 
             enum SegmentTypes { openSegment, partialSegment, borderedSegment };
@@ -897,5 +897,268 @@ void MainMesh::buildFigureBlocksMesh()
 
 void MainMesh::buildFigureGlowMesh()
 {
+  const float pixSize = Globals::mainArrayTexturePixelSize;
+  const float glowWidth = 0.3f;
+  const float glowMinAlpha = 0.01f;
+  const float glowMaxAlpha = 0.25f;
+  const float scale = Globals::holdNextBkSize * 0.75f / 4.0f;
 
+  for (int i = -1; i < Globals::nextFiguresCount; i++)
+  {
+
+    Figure * figure = NULL;
+
+    if (i < 0)
+      figure = &model.holdFigure;
+    else
+      figure = &model.nextFigures[i];
+
+    if (figure->dim)
+    {
+
+      glm::vec2 origin;
+
+      int figureLeftGap = figure->dim;
+      int figureWidth = 0;
+      int figureTopGap = figure->dim;
+      int figureHeight = 0;
+
+
+      for (int x = 0; x < figure->dim; x++)
+      {
+        bool horzEmpty = true;
+        bool vertEmpty = true;
+
+        for (int y = 0; y < figure->dim; y++)
+        {
+          if (figure->cells[y + x * figure->dim].color != Globals::Color::clNone)
+            horzEmpty = false;
+
+          if (figure->cells[x + y * figure->dim].color != Globals::Color::clNone)
+            vertEmpty = false;
+        }
+
+        if (!horzEmpty)
+        {
+          if (x < figureTopGap)
+            figureTopGap = x;
+
+          if (x > figureHeight)
+            figureHeight = x;
+        }
+
+        if (!vertEmpty)
+        {
+          if (x < figureLeftGap)
+            figureLeftGap = x;
+
+          if (x > figureWidth)
+            figureWidth = x;
+        }
+      }
+
+      figureHeight -= figureTopGap - 1;
+      figureWidth -= figureLeftGap - 1;
+
+      if (i < 0)
+      {
+        origin.x = Globals::glassPos.x - Globals::holdNextBkHorzGap - 0.5f * Globals::holdNextBkSize - scale * 0.5f * figureWidth - scale * figureLeftGap;
+        origin.y = Globals::glassPos.y - Globals::holdNextTitleHeight - 0.5f * Globals::holdNextBkSize + 0.5f * scale * figureHeight + scale * figureTopGap;
+      }
+      else
+      {
+        origin.x = Globals::glassPos.x + Globals::glassSize.x + Globals::holdNextBkHorzGap + 0.5f * Globals::holdNextBkSize - scale * 0.5f * float(figureWidth) - scale * float(figureLeftGap);
+        origin.y = Globals::glassPos.y - Globals::holdNextTitleHeight - 0.5f * Globals::holdNextBkSize + scale * 0.5f * figureHeight + scale * figureTopGap - i * Globals::holdNextBkSize;
+      }
+
+      for (int y = 0; y < figure->dim; y++)
+      for (int x = 0; x < figure->dim; x++)
+      {
+        Cell * cell = getFigureCell(*figure, x, y);
+
+        if (cell && cell->color != Globals::Color::clNone)
+        {
+          Cell * leftCell = getFigureCell(*figure, x - 1, y);
+          Cell * leftTopCell = getFigureCell(*figure, x - 1, y - 1);
+          Cell * topCell = getFigureCell(*figure, x, y - 1);
+          Cell * topRightCell = getFigureCell(*figure, x + 1, y - 1);
+          Cell * rightCell = getFigureCell(*figure, x + 1, y);
+          Cell * rightBottomCell = getFigureCell(*figure, x + 1, y + 1);
+          Cell * bottomCell = getFigureCell(*figure, x, y + 1);
+          Cell * bottomLeftCell = getFigureCell(*figure, x - 1, y + 1);
+
+          bool haveLeftCell = leftCell && leftCell->color != Globals::Color::clNone;
+          bool haveLeftTopCell = leftTopCell && leftTopCell->color != Globals::Color::clNone;
+          bool haveTopCell = topCell && topCell->color != Globals::Color::clNone;
+          bool haveTopRightCell = topRightCell && topRightCell->color != Globals::Color::clNone;
+          bool haveRightCell = rightCell && rightCell->color != Globals::Color::clNone;
+          bool haveRightBottomCell = rightBottomCell && rightBottomCell->color != Globals::Color::clNone;
+          bool haveBottomCell = bottomCell && bottomCell->color != Globals::Color::clNone;
+          bool haveBottomLeftCell = bottomLeftCell && bottomLeftCell->color != Globals::Color::clNone;
+
+          const glm::vec3 color = Globals::ColorValues[cell->color];
+
+          if (!haveLeftCell)
+          {
+            glm::vec2 verts[4] =
+            {
+              { x + pixSize,   -y },
+              { x - glowWidth, -y },
+              { x + pixSize,   -y - 1.0f },
+              { x - glowWidth, -y - 1.0f }
+            };
+
+            if (haveLeftTopCell)
+            {
+              verts[0].y += pixSize;
+              verts[1].y -= glowWidth;
+            }
+            else if (!haveTopCell)
+            {
+              verts[0].y -= pixSize;
+              verts[1].y += glowWidth;
+            }
+
+            if (haveBottomLeftCell)
+            {
+              verts[2].y -= pixSize;
+              verts[3].y += glowWidth;
+            }
+            else if (!haveBottomCell)
+            {
+              verts[2].y += pixSize;
+              verts[3].y -= glowWidth;
+            }
+
+            addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
+            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
+            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
+            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
+            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
+            addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
+          }
+
+          if (!haveRightCell)
+          {
+            glm::vec2 verts[4] =
+            {
+              { x + 1.0f - pixSize,   -y },
+              { x + 1.0f + glowWidth, -y },
+              { x + 1.0f - pixSize,   -y - 1.0f },
+              { x + 1.0f + glowWidth, -y - 1.0f }
+            };
+
+            if (haveTopRightCell)
+            {
+              verts[0].y += pixSize;
+              verts[1].y -= glowWidth;
+            }
+            else if (!haveTopCell)
+            {
+              verts[0].y -= pixSize;
+              verts[1].y += glowWidth;
+            }
+
+            if (haveRightBottomCell)
+            {
+              verts[2].y -= pixSize;
+              verts[3].y += glowWidth;
+            }
+            else if (!haveBottomCell)
+            {
+              verts[2].y += pixSize;
+              verts[3].y -= glowWidth;
+            }
+
+            addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
+            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
+            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
+            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
+            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
+            addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
+          }
+
+          if (!haveTopCell)
+          {
+            glm::vec2 verts[4] =
+            {
+              { x,        -y - pixSize },
+              { x,        -y + glowWidth },
+              { x + 1.0f, -y - pixSize },
+              { x + 1.0f, -y + glowWidth }
+            };
+
+            if (haveLeftTopCell)
+            {
+              verts[0].x -= pixSize;
+              verts[1].x += glowWidth;
+            }
+            else if (!haveLeftCell)
+            {
+              verts[0].x += pixSize;
+              verts[1].x -= glowWidth;
+            }
+
+            if (haveTopRightCell)
+            {
+              verts[2].x += pixSize;
+              verts[3].x -= glowWidth;
+            }
+            else if (!haveRightCell)
+            {
+              verts[2].x -= pixSize;
+              verts[3].x += glowWidth;
+            }
+
+            addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
+            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
+            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
+            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
+            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
+            addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
+          }
+
+          if (!haveBottomCell)
+          {
+            glm::vec2 verts[4] =
+            {
+              { x,        -y - 1.0f + pixSize },
+              { x,        -y - 1.0f - glowWidth },
+              { x + 1.0f, -y - 1.0f + pixSize },
+              { x + 1.0f, -y - 1.0f - glowWidth }
+            };
+
+            if (haveBottomLeftCell)
+            {
+              verts[0].x -= pixSize;
+              verts[1].x += glowWidth;
+            }
+            else if (!haveLeftCell)
+            {
+              verts[0].x += pixSize;
+              verts[1].x -= glowWidth;
+            }
+
+            if (haveRightBottomCell)
+            {
+              verts[2].x += pixSize;
+              verts[3].x -= glowWidth;
+            }
+            else if (!haveRightCell)
+            {
+              verts[2].x -= pixSize;
+              verts[3].x += glowWidth;
+            }
+
+            addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
+            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
+            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
+            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
+            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
+            addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
+          }
+        }
+      }
+    }
+  }
 }

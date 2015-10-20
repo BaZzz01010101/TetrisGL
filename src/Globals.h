@@ -36,7 +36,11 @@ public:
   static float holdNextTitleHeight;
   static float holdNextBkHorzGap;
   static float holdNextBkSize;
-
+  static float scoreBarGap;
+  static float scoreBarHeight;
+  static float scoreBarScoreWidth;
+  static float scoreBarValueWidth;
+  static float scoreBarMenuWidth;
 };
 
 extern bool checkGlErrors();
