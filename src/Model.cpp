@@ -99,8 +99,10 @@ void Model::storeCurFigureIntoGlass()
 
   for (int x = 0; x < dim; x++)
   for (int y = 0; y < dim; y++)
-  if (curFigure.cells[x + y * dim])
+  if (!curFigure.cells[x + y * dim].isEmpty())
     glass[curFigureX + x + (curFigureY + y) * glassWidth] = curFigure.cells[x + y * dim];
+
+  checkGlassRows();
 }
 
 void Model::shiftFigureConveyor()
@@ -133,13 +135,13 @@ bool Model::checkCurrentFigurePos(int dx, int dy)
   for (int curx = 0; curx < curFigure.dim; curx++)
   for (int cury = 0; cury < curFigure.dim; cury++)
   {
-    if (curFigure.cells[curx + cury * curFigure.dim])
+    if (!curFigure.cells[curx + cury * curFigure.dim].isEmpty())
     {
       if (curFigureX + curx + dx < 0 ||
       curFigureX + curx + dx >= glassWidth ||
       curFigureY + cury + dy < 0 ||
       curFigureY + cury + dy >= glassHeight ||
-      glass[curFigureX + curx + dx + (curFigureY + cury + dy) * glassWidth]) 
+      !glass[curFigureX + curx + dx + (curFigureY + cury + dy) * glassWidth].isEmpty()) 
         return false;
     }
   }
@@ -210,7 +212,7 @@ void Model::dropCurrentFigure()
     for (int x = 0; x < dim; x++)
     for (int y = 0; y < dim; y++)
     {
-      if (curFigure.cells[x + y * dim])
+      if (!curFigure.cells[x + y * dim].isEmpty())
       {
         //dropTrails.emplace_back();
         //DropTrail & dropTrail = dropTrails.back();
@@ -267,4 +269,32 @@ void Model::shiftCurrentFigureRight()
     curFigureX++;
     glassChanged = true;
   }
+}
+
+void Model::checkGlassRows()
+{
+  int fallHeight = 0;
+
+  for (int y = glassHeight - 1; y >= 0; y--)
+  {
+    bool fullRow = true;
+
+    for (int x = 0; x < glassWidth; x++)
+      if (glass[x + y * glassWidth].isEmpty())
+        fullRow = false;
+
+    if (fullRow)
+      fallHeight++;
+    else if (fallHeight)
+    {
+      for (int x = 0; x < glassWidth; x++)
+      {
+        glass[x + y * glassWidth].fallHeight = (float)fallHeight;
+        glass[x + (y + fallHeight) * glassWidth] = glass[x + y * glassWidth];
+      }
+    }
+  }
+
+  for (int i = 0; i < fallHeight * glassWidth; i++)
+    glass[i].clear();
 }

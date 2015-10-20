@@ -14,6 +14,7 @@ private:
 public:
   enum Type { typeNone = -1, typeI, typeJ, typeL, typeO, typeS, typeT, typeZ, TYPE_COUNT };
   enum Rotation { rotLeft, rotRight };
+  int id;
   Type type;
   int dim;
   Globals::Color color;

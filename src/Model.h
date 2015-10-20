@@ -20,6 +20,7 @@ private:
   void shiftFigureConveyor();
   bool checkCurrentFigurePos(int dx, int dy);
   bool tryToRelocateCurrentFigure();
+  void checkGlassRows();
 
 public:
   enum GameState { gsStartGame, gsPlayingGame, gsGameOver };

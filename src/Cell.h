@@ -6,10 +6,13 @@ class Cell
 public:
   int figureId;
   Globals::Color color;
+  float fallHeight;
 
   Cell();
   Cell(int figureId, Globals::Color color);
 
-  inline operator bool() { return color != Globals::Color::clNone; };
+  void clear();
+  Cell & operator = (const Cell & cell);
+  inline bool isEmpty() { return color == Globals::Color::clNone; };
 };
 

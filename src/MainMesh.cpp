@@ -780,10 +780,10 @@ void MainMesh::buildFigureBlocksMesh()
 
         for (int y = 0; y < figure->dim; y++)
         {
-          if (figure->cells[y + x * figure->dim].color != Globals::Color::clNone)
+          if (!figure->cells[y + x * figure->dim].isEmpty())
             horzEmpty = false;
 
-          if (figure->cells[x + y * figure->dim].color != Globals::Color::clNone)
+          if (!figure->cells[x + y * figure->dim].isEmpty())
             vertEmpty = false;
         }
 
@@ -825,7 +825,7 @@ void MainMesh::buildFigureBlocksMesh()
       {
         Cell * cell = getFigureCell(*figure, x, y);
 
-        if (cell && cell->color != Globals::Color::clNone)
+        if (cell && !cell->isEmpty())
         {
           for (int i = 0; i < 4; i++)
           {
@@ -836,9 +836,9 @@ void MainMesh::buildFigureBlocksMesh()
             Cell * vertAdjCell = getFigureCell(*figure, x, y + cornerDY);
             Cell * cornerAdjCell = getFigureCell(*figure, x + cornerDX, y + cornerDY);
 
-            bool haveHorzAdjCell = (horzAdjCell && horzAdjCell->color != Globals::Color::clNone);
-            bool haveVertAdjCell = (vertAdjCell && vertAdjCell->color != Globals::Color::clNone);
-            bool haveCornerAdjCell = (cornerAdjCell && cornerAdjCell->color != Globals::Color::clNone);
+            bool haveHorzAdjCell = (horzAdjCell && !horzAdjCell->isEmpty());
+            bool haveVertAdjCell = (vertAdjCell && !vertAdjCell->isEmpty());
+            bool haveCornerAdjCell = (cornerAdjCell && !cornerAdjCell->isEmpty());
 
             const glm::vec2 segmentUvArray[3][3] =
             {
@@ -931,10 +931,10 @@ void MainMesh::buildFigureGlowMesh()
 
         for (int y = 0; y < figure->dim; y++)
         {
-          if (figure->cells[y + x * figure->dim].color != Globals::Color::clNone)
+          if (!figure->cells[y + x * figure->dim].isEmpty())
             horzEmpty = false;
 
-          if (figure->cells[x + y * figure->dim].color != Globals::Color::clNone)
+          if (!figure->cells[x + y * figure->dim].isEmpty())
             vertEmpty = false;
         }
 
@@ -976,7 +976,7 @@ void MainMesh::buildFigureGlowMesh()
       {
         Cell * cell = getFigureCell(*figure, x, y);
 
-        if (cell && cell->color != Globals::Color::clNone)
+        if (cell && !cell->isEmpty())
         {
           Cell * leftCell = getFigureCell(*figure, x - 1, y);
           Cell * leftTopCell = getFigureCell(*figure, x - 1, y - 1);
@@ -987,14 +987,14 @@ void MainMesh::buildFigureGlowMesh()
           Cell * bottomCell = getFigureCell(*figure, x, y + 1);
           Cell * bottomLeftCell = getFigureCell(*figure, x - 1, y + 1);
 
-          bool haveLeftCell = leftCell && leftCell->color != Globals::Color::clNone;
-          bool haveLeftTopCell = leftTopCell && leftTopCell->color != Globals::Color::clNone;
-          bool haveTopCell = topCell && topCell->color != Globals::Color::clNone;
-          bool haveTopRightCell = topRightCell && topRightCell->color != Globals::Color::clNone;
-          bool haveRightCell = rightCell && rightCell->color != Globals::Color::clNone;
-          bool haveRightBottomCell = rightBottomCell && rightBottomCell->color != Globals::Color::clNone;
-          bool haveBottomCell = bottomCell && bottomCell->color != Globals::Color::clNone;
-          bool haveBottomLeftCell = bottomLeftCell && bottomLeftCell->color != Globals::Color::clNone;
+          bool haveLeftCell = leftCell && !leftCell->isEmpty();
+          bool haveLeftTopCell = leftTopCell && !leftTopCell->isEmpty();
+          bool haveTopCell = topCell && !topCell->isEmpty();
+          bool haveTopRightCell = topRightCell && !topRightCell->isEmpty();
+          bool haveRightCell = rightCell && !rightCell->isEmpty();
+          bool haveRightBottomCell = rightBottomCell && !rightBottomCell->isEmpty();
+          bool haveBottomCell = bottomCell && !bottomCell->isEmpty();
+          bool haveBottomLeftCell = bottomLeftCell && !bottomLeftCell->isEmpty();
 
           const glm::vec3 color = Globals::ColorValues[cell->color];
 

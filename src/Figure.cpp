@@ -7,7 +7,7 @@ Figure::Figure() :
   dim(0),
   color(Globals::Color::clNone)
 {
-
+  id = Figure::nextId++;
 }
 
 void Figure::buildRandomFigure()
