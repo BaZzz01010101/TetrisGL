@@ -190,7 +190,7 @@ void Game::step()
 {
   if (keyState & kmLeft)
   {
-    if (checkPos(-1, 0))
+    if (checkCurrentFigurePos(-1, 0))
       curFigure->col--;
 
     keyState &= ~kmLeft;
@@ -198,7 +198,7 @@ void Game::step()
 
   if (keyState & kmRight)
   {
-    if (checkPos(1, 0))
+    if (checkCurrentFigurePos(1, 0))
       curFigure->col++;
 
     keyState &= ~kmRight;
@@ -241,7 +241,7 @@ void Game::step()
 
   if (curTime > lastStepTime + stepTime)
   {
-    if (checkPos(0, 1))
+    if (checkCurrentFigurePos(0, 1))
       curFigure->row++;
     else
       nextFigure();
@@ -256,7 +256,7 @@ void Game::drop()
 {
   int row0 = curFigure->row;
 
-  while (checkPos(0, 1))
+  while (checkCurrentFigurePos(0, 1))
     curFigure->row++;
 
   int row1 = curFigure->row;
@@ -291,26 +291,26 @@ void Game::nextFigure()
     break;
   }
 
-  if (!checkPos(0, 0))
+  if (!checkCurrentFigurePos(0, 0))
     gameState = gsGameOver;
 }
 
 bool Game::validateRotation()
 {
-  if (checkPos(0, 0))
+  if (checkCurrentFigurePos(0, 0))
     return true;
 
   const int shift = curFigure->dim / 2 + (curFigure->dim & 1);
 
   for (int dx = 1; dx < shift; dx++)
   {
-    if (checkPos(dx, 0))
+    if (checkCurrentFigurePos(dx, 0))
     {
       curFigure->col += dx;
       return true;
     }
 
-    if (checkPos(-dx, 0))
+    if (checkCurrentFigurePos(-dx, 0))
     {
       curFigure->col -= dx;
       return true;
@@ -320,7 +320,7 @@ bool Game::validateRotation()
   return false;
 }
 
-bool Game::checkPos(int dx, int dy)
+bool Game::checkCurrentFigurePos(int dx, int dy)
 {
   for (int curx = 0; curx < curFigure->dim; curx++)
   for (int cury = 0; cury < curFigure->dim; cury++)

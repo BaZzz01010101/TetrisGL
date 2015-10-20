@@ -1,21 +1,40 @@
 #include "Globals.h"
 
+glm::vec3 Globals::ColorValues[7] =
+{
+  { 1.00f, 0.05f, 0.05f },
+  { 1.00f, 0.35f, 0.00f },
+  { 0.85f, 0.60f, 0.00f },
+  { 0.05f, 0.55f, 0.10f },
+  { 0.05f, 0.60f, 1.00f },
+  { 0.10f, 0.20f, 0.90f },
+  { 0.40f, 0.10f, 0.80f }
+};
 
 std::string Globals::glErrorMessage;
 GLuint Globals::mainArrayTextureId = 0;
 int Globals::mainArrayTextureSize = 64;
+float Globals::mainArrayTexturePixelSize = 1.0f / Globals::mainArrayTextureSize;
 int Globals::backgroundTexIndex = 0;
-int Globals::openedBlocksTexIndex = 1;
+int Globals::openBlocksTexIndex = 1;
 int Globals::closedBlocksTexIndex = 8;
 int Globals::vertBlocksTexIndex = 15;
 int Globals::horzBlocksTexIndex = 22;
 int Globals::dropTrailsTexIndex = 29;
 int Globals::shadowTexIndex = 36;
 int Globals::dropSparklesTexIndex = 37;
+int Globals::blockTemplateTexIndex = 1;
+int Globals::boldBlockTemplateTexIndex = 4;
+int Globals::emptyTexIndex = 44;
+int Globals::holdFigureBkTexIndex = 2;
+int Globals::nextFigureBkTexIndex = 3;
 glm::vec2 Globals::gameBkPos(-0.7f, 1.0f);
 glm::vec2 Globals::gameBkSize(1.4f, 2.0f);
 glm::vec2 Globals::glassPos(-0.4f, 0.75f);
 glm::vec2 Globals::glassSize(0.8f, 1.6f);
+float Globals::holdNextTitleHeight = 0.05f;
+float Globals::holdNextBkHorzGap = 0.04f;
+float Globals::holdNextBkSize = 0.2f;
 
 Globals::Globals()
 {
