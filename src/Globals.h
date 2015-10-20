@@ -9,6 +9,8 @@ private:
   ~Globals();
 
 public:
+  enum Color { clNone = -1, clRed, clOrange, clYellow, clGreen, clCyan, clBlue, clPurple };
+  static glm::vec3 Globals::ColorValues[7];
   static std::string glErrorMessage;
   static GLuint mainArrayTextureId;
   static int mainArrayTextureSize;
@@ -22,11 +24,19 @@ public:
   static int dropTrailsTexIndex;
   static int dropSparklesTexIndex;
   static int blockTemplateTexIndex;
+  static int boldBlockTemplateTexIndex;
   static int emptyTexIndex;
+  static int holdFigureBkTexIndex;
+  static int nextFigureBkTexIndex;
+  static const int nextFiguresCount = 3;
   static glm::vec2 gameBkPos;
   static glm::vec2 gameBkSize;
   static glm::vec2 glassPos;
   static glm::vec2 glassSize;
+  static float holdNextTitleHeight;
+  static float holdNextBkHorzGap;
+  static float holdNextBkSize;
+
 };
 
 extern bool checkGlErrors();

@@ -2,12 +2,12 @@
 
 Cell::Cell() :
   figureId(0),
-  color(clNone)
+  color(Globals::Color::clNone)
 {
 
 }
 
-Cell::Cell(int figureId, Color color) : 
+Cell::Cell(int figureId, Globals::Color color) :
   figureId(figureId),
   color(color)
 {

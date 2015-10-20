@@ -16,18 +16,6 @@ MainMesh::~MainMesh()
 {
 }
 
-glm::vec3 MainMesh::blockColors[7] = 
-{
-  { 1.00f, 0.05f, 0.05f },
-  { 1.00f, 0.35f, 0.00f },
-  { 0.85f, 0.60f, 0.00f },
-  { 0.05f, 0.55f, 0.10f },
-  { 0.05f, 0.60f, 1.00f },
-  { 0.10f, 0.20f, 0.90f },
-  { 0.40f, 0.10f, 0.80f }
-};
-
-
 void MainMesh::init()
 {
   glGenBuffers(1, &vertexBufferId);
@@ -69,9 +57,9 @@ void MainMesh::init()
     "void main()"
     "{"
     "  vec4 texcol = texture(tex, uvw).rgba;"
-    "  float alpha = texcol.a * color.a;"
+    "  float alpha = (1.0f - texcol.b) * color.a;"
     "  vec3 rgb = mix(texcol.r * color.rgb, texcol.rrr, texcol.g);"
-    "  out_color = vec4(rgb + (2.0f - rand(pixPos)) / 150, alpha);"
+    "  out_color = vec4(rgb + (2.0f - rand(pixPos)) / 150.0f * alpha, alpha);"
     "}");
 
   figureProg.attachShader(figureVert);
@@ -87,10 +75,10 @@ void MainMesh::rebuild()
   vertexBuffer.clear();
 
   buildBackgroundMesh();
-  buildGlassBackgroundMesh();
   buidGlassShadowMesh();
   buidGlassBlocksMesh();
   biuldGlassGlowMesh();
+  buildFigureBlocksMesh();
 
   if (vertexCount)
   {
@@ -142,18 +130,27 @@ Cell * MainMesh::getGlassCell(int x, int y)
 
   Cell * cell = model.glass.data() + x + y * model.glassWidth;
 
-  if (!cell->figureId && model.curFigure)
+  if (!cell->figureId)
   {
     bool isInCurFigure =
       x >= model.curFigureX &&
-      x < model.curFigureX + model.curFigure->dim &&
+      x < model.curFigureX + model.curFigure.dim &&
       y >= model.curFigureY &&
-      y < model.curFigureY + model.curFigure->dim;
+      y < model.curFigureY + model.curFigure.dim;
 
     if (isInCurFigure)
-      cell = model.curFigure->cells.data() + x - model.curFigureX + (y - model.curFigureY) * model.curFigure->dim;
+      cell = model.curFigure.cells.data() + x - model.curFigureX + (y - model.curFigureY) * model.curFigure.dim;
   }
 
+  return cell;
+}
+
+Cell * MainMesh::getFigureCell(Figure & figure, int x, int y)
+{
+  if (x < 0 || y < 0 || x >= figure.dim || y >= figure.dim)
+    return NULL;
+
+  Cell * cell = figure.cells.data() + x + y * figure.dim;
   return cell;
 }
 
@@ -173,7 +170,9 @@ void MainMesh::addVertex(const glm::vec2 & xy, const glm::vec2 & uv, int texInde
 
 void MainMesh::buildBackgroundMesh()
 {
-  const glm::vec2 origin = Globals::gameBkPos;
+  // add game base background to mesh
+
+  glm::vec2 origin = Globals::gameBkPos;
 
   for (int y = 0, height = 6; y < height; y++)
   for (int x = 0, width = 6; x < width; x++)
@@ -207,10 +206,10 @@ void MainMesh::buildBackgroundMesh()
 
     float light[4] =
     {
-      1.0f - sqrtf(fx0 * fx0 + fy0 * fy0) / M_SQRT2,
-      1.0f - sqrtf(fx0 * fx0 + fy1 * fy1) / M_SQRT2,
-      1.0f - sqrtf(fx1 * fx1 + fy0 * fy0) / M_SQRT2,
-      1.0f - sqrtf(fx1 * fx1 + fy1 * fy1) / M_SQRT2,
+      1.0f - sqrtf(fx0 * fx0 + fy0 * fy0) / float(M_SQRT2),
+      1.0f - sqrtf(fx0 * fx0 + fy1 * fy1) / float(M_SQRT2),
+      1.0f - sqrtf(fx1 * fx1 + fy0 * fy0) / float(M_SQRT2),
+      1.0f - sqrtf(fx1 * fx1 + fy1 * fy1) / float(M_SQRT2),
     };
 
     glm::vec3 darkColor(0.05f, 0.1f, 0.2f);
@@ -231,11 +230,10 @@ void MainMesh::buildBackgroundMesh()
     addVertex(origin + verts[2], uv[2], Globals::backgroundTexIndex, col[2], 1.0f);
     addVertex(origin + verts[3], uv[3], Globals::backgroundTexIndex, col[3], 1.0f);
   }
-}
 
-void MainMesh::buildGlassBackgroundMesh()
-{
-  const glm::vec2 origin = Globals::glassPos;
+  // add glass background to mesh
+
+  origin = Globals::glassPos;
 
   for (int y = 0, height = 6; y < height; y++)
   for (int x = 0, width = 6; x < width; x++)
@@ -255,14 +253,14 @@ void MainMesh::buildGlassBackgroundMesh()
 
     float light[4] =
     {
-      sqrtf(fx0 * fx0 + fy0 * fy0) / M_SQRT2,
-      sqrtf(fx0 * fx0 + fy1 * fy1) / M_SQRT2,
-      sqrtf(fx1 * fx1 + fy0 * fy0) / M_SQRT2,
-      sqrtf(fx1 * fx1 + fy1 * fy1) / M_SQRT2,
+      sqrtf(fx0 * fx0 + fy0 * fy0) / float(M_SQRT2),
+      sqrtf(fx0 * fx0 + fy1 * fy1) / float(M_SQRT2),
+      sqrtf(fx1 * fx1 + fy0 * fy0) / float(M_SQRT2),
+      sqrtf(fx1 * fx1 + fy1 * fy1) / float(M_SQRT2),
     };
 
-    float a = 0.0f;
-    static float freq = Crosy::getPerformanceFrequency();
+    double a = 0.0f;
+    static double freq = (double)Crosy::getPerformanceFrequency();
     if (freq)
       a = double(Crosy::getPerformanceCounter()) / freq / 300.0f;
 
@@ -273,9 +271,9 @@ void MainMesh::buildGlassBackgroundMesh()
     const float gMax = 0.3f;
     const float bMax = 0.5f;
     const float darkMul = 0.25f;
-    const float darkDiff = M_PI / 20.0f;
-    const float gDiff = M_PI / 3.0f;
-    const float bDiff = 2.0f * M_PI / 3.0f;
+    const float darkDiff = (float)M_PI / 20.0f;
+    const float gDiff = (float)M_PI / 3.0f;
+    const float bDiff = 2.0f * (float)M_PI / 3.0f;
 
     glm::vec3 lightColor(rMin + (rMax - rMin) * abs(sin(a)),
                          gMin + (gMax - gMin) * abs(sin(a + gDiff)),
@@ -302,6 +300,58 @@ void MainMesh::buildGlassBackgroundMesh()
     addVertex(origin + verts[2], uv, Globals::emptyTexIndex, col[2], 1.0f);
     addVertex(origin + verts[3], uv, Globals::emptyTexIndex, col[3], 1.0f);
   }
+
+  // add hold figure and next figure backgrounds to mesh
+
+  const float pixSize = Globals::mainArrayTexturePixelSize;
+
+  origin =
+  { 
+    Globals::glassPos.x - Globals::holdNextBkHorzGap - Globals::holdNextBkSize,
+    Globals::glassPos.y - Globals::holdNextTitleHeight 
+  };
+  
+  glm::vec2 verts[4] =
+  {
+    { 0.0f,                     0.0f },
+    { 0.0f,                     -Globals::holdNextBkSize },
+    { Globals::holdNextBkSize,  0.0f },
+    { Globals::holdNextBkSize,  -Globals::holdNextBkSize },
+  };
+
+  glm::vec2 uv[4] =
+  {
+    { pixSize,        pixSize },
+    { pixSize,        1.0f - pixSize },
+    { 1.0f - pixSize, pixSize },
+    { 1.0f - pixSize, 1.0f - pixSize }
+  };
+
+  glm::vec3 color(0.5f);
+
+  if (model.holdFigure.color != Globals::Color::clNone)
+    color = Globals::ColorValues[model.holdFigure.color];
+
+  addVertex(origin + verts[0], uv[0], Globals::holdFigureBkTexIndex, color, 1.0f);
+  addVertex(origin + verts[1], uv[1], Globals::holdFigureBkTexIndex, color, 1.0f);
+  addVertex(origin + verts[2], uv[2], Globals::holdFigureBkTexIndex, color, 1.0f);
+  addVertex(origin + verts[1], uv[1], Globals::holdFigureBkTexIndex, color, 1.0f);
+  addVertex(origin + verts[2], uv[2], Globals::holdFigureBkTexIndex, color, 1.0f);
+  addVertex(origin + verts[3], uv[3], Globals::holdFigureBkTexIndex, color, 1.0f);
+
+  origin.x += Globals::holdNextBkSize + Globals::glassSize.x + 2.0f * Globals::holdNextBkHorzGap;
+
+  if (model.nextFigures[0].color != Globals::Color::clNone)
+    color = Globals::ColorValues[model.nextFigures[0].color];
+
+  addVertex(origin + verts[0], uv[0], Globals::nextFigureBkTexIndex, color, 1.0f);
+  addVertex(origin + verts[1], uv[1], Globals::nextFigureBkTexIndex, color, 1.0f);
+  addVertex(origin + verts[2], uv[2], Globals::nextFigureBkTexIndex, color, 1.0f);
+  addVertex(origin + verts[1], uv[1], Globals::nextFigureBkTexIndex, color, 1.0f);
+  addVertex(origin + verts[2], uv[2], Globals::nextFigureBkTexIndex, color, 1.0f);
+  addVertex(origin + verts[3], uv[3], Globals::nextFigureBkTexIndex, color, 1.0f);
+
+
 }
 
 void MainMesh::buidGlassShadowMesh()
@@ -484,12 +534,14 @@ void MainMesh::buidGlassBlocksMesh()
           { x + dx, -y - 0.5f },
         };
 
-        addVertex(origin + scale * verts[0], segmentUvArray[vertSegmentType][0], Globals::blockTemplateTexIndex, blockColors[cell->color], 1.0f);
-        addVertex(origin + scale * verts[1], segmentUvArray[vertSegmentType][1], Globals::blockTemplateTexIndex, blockColors[cell->color], 1.0f);
-        addVertex(origin + scale * verts[2], segmentUvArray[vertSegmentType][2], Globals::blockTemplateTexIndex, blockColors[cell->color], 1.0f);
-        addVertex(origin + scale * verts[0], segmentUvArray[horzSegmentType][0], Globals::blockTemplateTexIndex, blockColors[cell->color], 1.0f);
-        addVertex(origin + scale * verts[3], segmentUvArray[horzSegmentType][1], Globals::blockTemplateTexIndex, blockColors[cell->color], 1.0f);
-        addVertex(origin + scale * verts[2], segmentUvArray[horzSegmentType][2], Globals::blockTemplateTexIndex, blockColors[cell->color], 1.0f);
+        const glm::vec3 color = Globals::ColorValues[cell->color];
+
+        addVertex(origin + scale * verts[0], segmentUvArray[vertSegmentType][0], Globals::blockTemplateTexIndex, color, 1.0f);
+        addVertex(origin + scale * verts[1], segmentUvArray[vertSegmentType][1], Globals::blockTemplateTexIndex, color, 1.0f);
+        addVertex(origin + scale * verts[2], segmentUvArray[vertSegmentType][2], Globals::blockTemplateTexIndex, color, 1.0f);
+        addVertex(origin + scale * verts[0], segmentUvArray[horzSegmentType][0], Globals::blockTemplateTexIndex, color, 1.0f);
+        addVertex(origin + scale * verts[3], segmentUvArray[horzSegmentType][1], Globals::blockTemplateTexIndex, color, 1.0f);
+        addVertex(origin + scale * verts[2], segmentUvArray[horzSegmentType][2], Globals::blockTemplateTexIndex, color, 1.0f);
       }
     }
   }
@@ -529,6 +581,8 @@ void MainMesh::biuldGlassGlowMesh()
       bool haveBottomCell = bottomCell && bottomCell->figureId == cell->figureId;
       bool haveBottomLeftCell = bottomLeftCell && bottomLeftCell->figureId == cell->figureId;
 
+      const glm::vec3 color = Globals::ColorValues[cell->color];
+
       if (leftCell && leftCell->figureId != cell->figureId)
       {
         glm::vec2 verts[4] =
@@ -561,12 +615,12 @@ void MainMesh::biuldGlassGlowMesh()
           verts[3].y -= glowWidth;
         }
 
-        addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, blockColors[cell->color] * glowMaxAlpha, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, blockColors[cell->color] * glowMinAlpha, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, blockColors[cell->color] * glowMaxAlpha, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, blockColors[cell->color] * glowMinAlpha, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, blockColors[cell->color] * glowMaxAlpha, 0.0f);
-        addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, blockColors[cell->color] * glowMinAlpha, 0.0f);
+        addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
+        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
+        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
+        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
+        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
+        addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
       }
 
       if (rightCell && rightCell->figureId != cell->figureId)
@@ -601,12 +655,12 @@ void MainMesh::biuldGlassGlowMesh()
           verts[3].y -= glowWidth;
         }
 
-        addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, blockColors[cell->color] * glowMaxAlpha, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, blockColors[cell->color] * glowMinAlpha, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, blockColors[cell->color] * glowMaxAlpha, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, blockColors[cell->color] * glowMinAlpha, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, blockColors[cell->color] * glowMaxAlpha, 0.0f);
-        addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, blockColors[cell->color] * glowMinAlpha, 0.0f);
+        addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
+        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
+        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
+        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
+        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
+        addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
       }
 
       if (topCell && topCell->figureId != cell->figureId)
@@ -641,12 +695,12 @@ void MainMesh::biuldGlassGlowMesh()
           verts[3].x += glowWidth;
         }
 
-        addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, blockColors[cell->color] * glowMaxAlpha, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, blockColors[cell->color] * glowMinAlpha, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, blockColors[cell->color] * glowMaxAlpha, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, blockColors[cell->color] * glowMinAlpha, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, blockColors[cell->color] * glowMaxAlpha, 0.0f);
-        addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, blockColors[cell->color] * glowMinAlpha, 0.0f);
+        addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
+        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
+        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
+        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
+        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
+        addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
       }
 
       if (bottomCell && bottomCell->figureId != cell->figureId)
@@ -681,13 +735,167 @@ void MainMesh::biuldGlassGlowMesh()
           verts[3].x += glowWidth;
         }
 
-        addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, blockColors[cell->color] * glowMaxAlpha, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, blockColors[cell->color] * glowMinAlpha, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, blockColors[cell->color] * glowMaxAlpha, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, blockColors[cell->color] * glowMinAlpha, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, blockColors[cell->color] * glowMaxAlpha, 0.0f);
-        addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, blockColors[cell->color] * glowMinAlpha, 0.0f);
+        addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
+        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
+        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
+        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
+        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
+        addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
       }
     }
   }
+}
+
+void MainMesh::buildFigureBlocksMesh()
+{
+  const float halfPixSize = Globals::mainArrayTexturePixelSize;
+  const float holdNextBkClientSize = Globals::holdNextBkSize * 0.75f;
+  const float scale = holdNextBkClientSize / 4.0f;
+
+  for (int i = -1; i < Globals::nextFiguresCount; i++)
+  {
+
+    Figure * figure = NULL;
+
+    if (i < 0)
+      figure = &model.holdFigure;
+    else
+      figure = &model.nextFigures[i];
+
+    if (figure->dim)
+    {
+
+      glm::vec2 origin;
+
+      int figureLeftGap = figure->dim;
+      int figureWidth = 0;
+      int figureTopGap = figure->dim;
+      int figureHeight = 0;
+
+
+      for (int x = 0; x < figure->dim; x++)
+      {
+        bool horzEmpty = true;
+        bool vertEmpty = true;
+
+        for (int y = 0; y < figure->dim; y++)
+        {
+          if (figure->cells[y + x * figure->dim].color != Globals::Color::clNone)
+            horzEmpty = false;
+
+          if (figure->cells[x + y * figure->dim].color != Globals::Color::clNone)
+            vertEmpty = false;
+        }
+
+        if (!horzEmpty)
+        {
+          if(x < figureTopGap)
+            figureTopGap = x;
+
+          if (x > figureHeight)
+            figureHeight = x;
+        }
+
+        if (!vertEmpty)
+        {
+          if(x < figureLeftGap)
+            figureLeftGap = x;
+
+          if (x > figureWidth)
+            figureWidth = x;
+        }
+      }
+
+      figureHeight -= figureTopGap - 1;
+      figureWidth -= figureLeftGap - 1;
+
+      if (i < 0)
+      {
+        origin.x = Globals::glassPos.x - Globals::holdNextBkHorzGap - 0.5f * Globals::holdNextBkSize - scale * 0.5f * figureWidth - scale * figureLeftGap;
+        origin.y = Globals::glassPos.y - Globals::holdNextTitleHeight - 0.5f * Globals::holdNextBkSize + 0.5f * scale * figureHeight + scale * figureTopGap;
+      }
+      else
+      {
+        origin.x = Globals::glassPos.x + Globals::glassSize.x + Globals::holdNextBkHorzGap + 0.5f * Globals::holdNextBkSize - scale * 0.5f * float(figureWidth) - scale * float(figureLeftGap);
+        origin.y = Globals::glassPos.y - Globals::holdNextTitleHeight - 0.5f * Globals::holdNextBkSize + scale * 0.5f * figureHeight + scale * figureTopGap - i * Globals::holdNextBkSize;
+      }
+
+      for (int y = 0; y < figure->dim; y++)
+      for (int x = 0; x < figure->dim; x++)
+      {
+        Cell * cell = getFigureCell(*figure, x, y);
+
+        if (cell && cell->color != Globals::Color::clNone)
+        {
+          for (int i = 0; i < 4; i++)
+          {
+            int cornerDX = (i & 1) * 2 - 1;
+            int cornerDY = (i & 2) - 1;
+
+            Cell * horzAdjCell = getFigureCell(*figure, x + cornerDX, y);
+            Cell * vertAdjCell = getFigureCell(*figure, x, y + cornerDY);
+            Cell * cornerAdjCell = getFigureCell(*figure, x + cornerDX, y + cornerDY);
+
+            bool haveHorzAdjCell = (horzAdjCell && horzAdjCell->color != Globals::Color::clNone);
+            bool haveVertAdjCell = (vertAdjCell && vertAdjCell->color != Globals::Color::clNone);
+            bool haveCornerAdjCell = (cornerAdjCell && cornerAdjCell->color != Globals::Color::clNone);
+
+            const glm::vec2 segmentUvArray[3][3] =
+            {
+              { { 0.5f, 0.5f }, { 0.5f, 1.0f - halfPixSize }, { 0.0f + halfPixSize, 1.0f - halfPixSize }, }, // openSegment
+              { { 0.5f, 0.5f }, { 0.0f + halfPixSize, 0.5f }, { 0.0f + halfPixSize, 0.0f + halfPixSize }, }, // partialSegment
+              { { 0.5f, 0.5f }, { 0.5f, 0.0f + halfPixSize }, { 0.0f + halfPixSize, 0.0f + halfPixSize }, }, // borderedSegment
+            };
+
+            enum SegmentTypes { openSegment, partialSegment, borderedSegment };
+
+            SegmentTypes horzSegmentType, vertSegmentType;
+
+            if (haveHorzAdjCell && haveVertAdjCell && haveCornerAdjCell)
+            {
+              horzSegmentType = SegmentTypes::openSegment;
+              vertSegmentType = SegmentTypes::openSegment;
+            }
+            else
+            {
+              if (haveHorzAdjCell)
+                horzSegmentType = SegmentTypes::partialSegment;
+              else
+                horzSegmentType = SegmentTypes::borderedSegment;
+
+              if (haveVertAdjCell)
+                vertSegmentType = SegmentTypes::partialSegment;
+              else
+                vertSegmentType = SegmentTypes::borderedSegment;
+            }
+
+            const float dx = float(i & 1);
+            const float dy = float((i & 2) >> 1);
+
+            glm::vec2 verts[4] =
+            {
+              { x + 0.5f, -y - 0.5f },
+              { x + 0.5f, -y - dy },
+              { x + dx, -y - dy },
+              { x + dx, -y - 0.5f },
+            };
+
+            const glm::vec3 color = Globals::ColorValues[cell->color];
+
+            addVertex(origin + scale * verts[0], segmentUvArray[vertSegmentType][0], Globals::boldBlockTemplateTexIndex, color, 1.0f);
+            addVertex(origin + scale * verts[1], segmentUvArray[vertSegmentType][1], Globals::boldBlockTemplateTexIndex, color, 1.0f);
+            addVertex(origin + scale * verts[2], segmentUvArray[vertSegmentType][2], Globals::boldBlockTemplateTexIndex, color, 1.0f);
+            addVertex(origin + scale * verts[0], segmentUvArray[horzSegmentType][0], Globals::boldBlockTemplateTexIndex, color, 1.0f);
+            addVertex(origin + scale * verts[3], segmentUvArray[horzSegmentType][1], Globals::boldBlockTemplateTexIndex, color, 1.0f);
+            addVertex(origin + scale * verts[2], segmentUvArray[horzSegmentType][2], Globals::boldBlockTemplateTexIndex, color, 1.0f);
+          }
+        }
+      }
+    }
+  }
+}
+
+void MainMesh::buildFigureGlowMesh()
+{
+
 }

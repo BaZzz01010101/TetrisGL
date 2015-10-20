@@ -3,14 +3,14 @@
 #include "Model.h"
 #include "Crosy.h"
 
-
 Model::Model() :
-  nextFiguresCount(3),
   maxLevel(100),
   maxStepTime(1.0f),
   minStepTime(0.05f),
   gameState(gsStartGame),
-  curFigure(NULL),
+  forceDown(false),
+  haveHold(false),
+  justHolded(false),
   glassChanged(false),
   nextFiguresChanged(false)
 {
@@ -26,15 +26,11 @@ void Model::initGame(int glassWidth, int glassHeight)
   curLevel = 1;
   this->glassWidth = glassWidth;
   this->glassHeight = glassHeight;
-  glass.assign(glassWidth * glassHeight, Cell(0, Cell::Color::clNone));
-  nextFigures.clear();
+  glass.assign(glassWidth * glassHeight, Cell(0, Globals::Color::clNone));
   lastStepTime = getTime();
   
-  for (int i = 0; i < nextFiguresCount; i++)
-  {
-    nextFigures.emplace_back();
-    nextFigures.back().buildRandomFigure();
-  }
+  for (int i = 0; i < Globals::nextFiguresCount; i++)
+    nextFigures[i].buildRandomFigure();
 
   shiftFigureConveyor();
   glassChanged = true;
@@ -62,7 +58,8 @@ void Model::update()
 void Model::pulse()
 {
   float curTime = getTime();
-  const float stepTime = maxStepTime - (maxStepTime - minStepTime) * curLevel / maxLevel;
+  const float forceDownStepTime = 0.025f;
+  const float stepTime = forceDown ? forceDownStepTime : getStepTime();
 
   if (curTime > lastStepTime + stepTime)
   {
@@ -72,7 +69,10 @@ void Model::pulse()
       glassChanged = true;
     }
     else
+    {
+      storeCurFigureIntoGlass();
       shiftFigureConveyor();
+    }
 
     lastStepTime = curTime;
   }
@@ -88,28 +88,39 @@ float Model::getTime()
   return float(Crosy::getPerformanceCounter()) / freq;
 }
 
+float Model::getStepTime()
+{
+  return maxStepTime - (maxStepTime - minStepTime) * curLevel / maxLevel;
+}
+
+void Model::storeCurFigureIntoGlass()
+{
+  int dim = curFigure.dim;
+
+  for (int x = 0; x < dim; x++)
+  for (int y = 0; y < dim; y++)
+  if (curFigure.cells[x + y * dim])
+    glass[curFigureX + x + (curFigureY + y) * glassWidth] = curFigure.cells[x + y * dim];
+}
+
 void Model::shiftFigureConveyor()
 {
-  if (curFigure)
-  {
-    int dim = curFigure->dim;
+  forceDown = false;
+  justHolded = false;
 
-    for (int x = 0; x < dim; x++)
-    for (int y = 0; y < dim; y++)
-    if (curFigure->cells[x + y * dim])
-      glass[curFigureX + x + (curFigureY + y) * glassWidth] = curFigure->cells[x + y * dim];
-  }
+  Figure::swap(curFigure, nextFigures[0]);
 
-  nextFigures.erase(nextFigures.begin());
-  nextFigures.emplace_back();
-  nextFigures.back().buildRandomFigure();
-  curFigure = &nextFigures.front();
-  curFigureX = (glassWidth - curFigure->dim) / 2;
-  curFigureY = curFigure->dim / 2;
+  for (int i = 1; i < Globals::nextFiguresCount; i++)
+    Figure::swap(nextFigures[i - 1], nextFigures[i]);
+
+  nextFigures[Globals::nextFiguresCount - 1].buildRandomFigure();
+
+  curFigureX = (glassWidth - curFigure.dim) / 2;
+  curFigureY = curFigure.dim / 2;
 
   if (!checkCurrentFigurePos(0, 0))
   {
-    curFigure = NULL;
+    curFigure.clear();
     gameState = gsGameOver;
   }
 
@@ -119,12 +130,10 @@ void Model::shiftFigureConveyor()
 
 bool Model::checkCurrentFigurePos(int dx, int dy)
 {
-  assert(curFigure);
-
-  for (int curx = 0; curx < curFigure->dim; curx++)
-  for (int cury = 0; cury < curFigure->dim; cury++)
+  for (int curx = 0; curx < curFigure.dim; curx++)
+  for (int cury = 0; cury < curFigure.dim; cury++)
   {
-    if (curFigure->cells[curx + cury * curFigure->dim])
+    if (curFigure.cells[curx + cury * curFigure.dim])
     {
       if (curFigureX + curx + dx < 0 ||
       curFigureX + curx + dx >= glassWidth ||
@@ -140,12 +149,10 @@ bool Model::checkCurrentFigurePos(int dx, int dy)
 
 bool Model::tryToRelocateCurrentFigure()
 {
-  assert(curFigure);
-
   if (checkCurrentFigurePos(0, 0))
     return true;
 
-  const int shift = curFigure->dim / 2 + (curFigure->dim & 1);
+  const int shift = curFigure.dim / 2 + (curFigure.dim & 1);
 
   for (int dx = 1; dx < shift; dx++)
   {
@@ -165,24 +172,45 @@ bool Model::tryToRelocateCurrentFigure()
   return false;
 }
 
+void Model::holdCurrentFigure()
+{
+  if (!justHolded)
+  {
+    if (haveHold)
+    {
+      Figure::Type type = curFigure.type;
+      curFigure = holdFigure;
+      holdFigure.buildFigure(type);
+    }
+    else
+    {
+      holdFigure = curFigure;
+      shiftFigureConveyor();
+      haveHold = true;
+    }
+
+    curFigureY = curFigure.dim / 2;
+    lastStepTime = getTime();
+    justHolded = true;
+  }
+}
+
 void Model::dropCurrentFigure()
 {
-  assert(curFigure);
-
   int y0 = curFigureY;
 
   while (checkCurrentFigurePos(0, 1))
     curFigureY++;
 
   int y1 = curFigureY;
-  int dim = curFigure->dim;
+  int dim = curFigure.dim;
 
   if (y1 - y0 > 0)
   {
     for (int x = 0; x < dim; x++)
     for (int y = 0; y < dim; y++)
     {
-      if (curFigure->cells[x + y * dim])
+      if (curFigure.cells[x + y * dim])
       {
         //dropTrails.emplace_back();
         //DropTrail & dropTrail = dropTrails.back();
@@ -196,28 +224,29 @@ void Model::dropCurrentFigure()
   }
 
   lastStepTime = getTime();
+  storeCurFigureIntoGlass();
   shiftFigureConveyor();
   glassChanged = true;
 }
 
 void Model::rotateCurrentFigureLeft()
 {
-  Figure savedFigure = *curFigure;
-  curFigure->rotate(Figure::rotLeft);
+  Figure savedFigure = curFigure;
+  curFigure.rotate(Figure::rotLeft);
 
   if (!checkCurrentFigurePos(0, 0) && !tryToRelocateCurrentFigure())
-    *curFigure = savedFigure;
+    curFigure = savedFigure;
   else
     glassChanged = true;
 }
 
 void Model::rotateCurrentFigureRight()
 {
-  Figure savedFigure = *curFigure;
-  curFigure->rotate(Figure::rotRight);
+  Figure savedFigure = curFigure;
+  curFigure.rotate(Figure::rotRight);
 
   if (!checkCurrentFigurePos(0, 0) && !tryToRelocateCurrentFigure())
-    *curFigure = savedFigure;
+    curFigure = savedFigure;
   else
     glassChanged = true;
 }

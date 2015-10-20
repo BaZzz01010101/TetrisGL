@@ -47,9 +47,25 @@ void OnKeyClick(GLFWwindow * win, int key, int scancode, int action, int mods)
     case GLFW_KEY_SPACE:
       model.dropCurrentFigure();
       break;
+    case GLFW_KEY_RIGHT_CONTROL:
+    case GLFW_KEY_LEFT_CONTROL:
+      model.holdCurrentFigure();
+      break;
+    case GLFW_KEY_ENTER:
+      if(action != GLFW_REPEAT)
+        model.forceDown = true;
     }
   }
 
+  if (action == GLFW_RELEASE)
+  {
+    if (model.gameState == Model::gsPlayingGame)
+      switch (key)
+    {
+      case GLFW_KEY_ENTER:
+        model.forceDown = false;
+    }
+  }
   //Game::KeyMask keyMask = Game::kmNone;
 
   //switch (key)

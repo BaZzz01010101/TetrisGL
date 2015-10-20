@@ -1,15 +1,15 @@
 #pragma once
+#include "Globals.h"
 
 class Cell
 {
 public:
-  enum Color { clNone = -1, clRed, clOrange, clYellow, clGreen, clCyan, clBlue, clPurple };
   int figureId;
-  Color color;
+  Globals::Color color;
 
   Cell();
-  Cell(int figureId, Color color);
+  Cell(int figureId, Globals::Color color);
 
-  inline operator bool() { return color != clNone; };
+  inline operator bool() { return color != Globals::Color::clNone; };
 };
 
