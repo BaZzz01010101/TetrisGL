@@ -15,19 +15,16 @@ public:
   static GLuint mainArrayTextureId;
   static int mainArrayTextureSize;
   static float mainArrayTexturePixelSize;
+
+  static int emptyTexIndex;
   static int backgroundTexIndex;
-  static int shadowTexIndex;
-  static int openBlocksTexIndex;
-  static int closedBlocksTexIndex;
-  static int vertBlocksTexIndex;
-  static int horzBlocksTexIndex;
-  static int dropTrailsTexIndex;
-  static int dropSparklesTexIndex;
   static int blockTemplateTexIndex;
   static int boldBlockTemplateTexIndex;
-  static int emptyTexIndex;
+  static int shadowTexIndex;
   static int holdFigureBkTexIndex;
   static int nextFigureBkTexIndex;
+  static int dropTrailsTexIndex;
+  static int dropSparkleTexIndex;
   static const int nextFiguresCount = 3;
   static glm::vec2 gameBkPos;
   static glm::vec2 gameBkSize;

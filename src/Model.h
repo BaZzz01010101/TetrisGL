@@ -19,7 +19,7 @@ private:
   float getStepTime();
   void shiftFigureConveyor();
   bool checkCurrentFigurePos(int dx, int dy);
-  bool tryToRelocateCurrentFigure();
+  bool tryToPlaceCurrentFigure();
   void checkGlassRows();
 
 public:

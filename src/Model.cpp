@@ -149,7 +149,7 @@ bool Model::checkCurrentFigurePos(int dx, int dy)
   return true;
 }
 
-bool Model::tryToRelocateCurrentFigure()
+bool Model::tryToPlaceCurrentFigure()
 {
   if (checkCurrentFigurePos(0, 0))
     return true;
@@ -178,22 +178,52 @@ void Model::holdCurrentFigure()
 {
   if (!justHolded)
   {
+    Figure savedCurFigure = curFigure;
+    int saveCurFigureX = curFigureX;
+    int saveCurFigureY = curFigureY;
+
     if (haveHold)
     {
       Figure::Type type = curFigure.type;
       curFigure = holdFigure;
-      holdFigure.buildFigure(type);
+      curFigureX = (glassWidth - curFigure.dim) / 2;
+      curFigureY = curFigure.dim / 2;
+
+      if (tryToPlaceCurrentFigure())
+      {
+        holdFigure.buildFigure(type);
+        lastStepTime = getTime();
+        justHolded = true;
+      }
+      else
+      {
+        curFigure = savedCurFigure;
+        curFigureX = saveCurFigureX;
+        curFigureY = saveCurFigureY;
+      }
     }
     else
     {
       holdFigure = curFigure;
-      shiftFigureConveyor();
-      haveHold = true;
-    }
+      curFigure = nextFigures[0];
+      curFigureX = (glassWidth - curFigure.dim) / 2;
+      curFigureY = curFigure.dim / 2;
 
-    curFigureY = curFigure.dim / 2;
-    lastStepTime = getTime();
-    justHolded = true;
+      if (tryToPlaceCurrentFigure())
+      {
+        shiftFigureConveyor();
+        haveHold = true;
+        lastStepTime = getTime();
+        justHolded = true;
+      }
+      else
+      {
+        holdFigure.clear();
+        curFigure = savedCurFigure;
+        curFigureX = saveCurFigureX;
+        curFigureY = saveCurFigureY;
+      }
+    }
   }
 }
 
@@ -236,7 +266,7 @@ void Model::rotateCurrentFigureLeft()
   Figure savedFigure = curFigure;
   curFigure.rotate(Figure::rotLeft);
 
-  if (!checkCurrentFigurePos(0, 0) && !tryToRelocateCurrentFigure())
+  if (!checkCurrentFigurePos(0, 0) && !tryToPlaceCurrentFigure())
     curFigure = savedFigure;
   else
     glassChanged = true;
@@ -247,7 +277,7 @@ void Model::rotateCurrentFigureRight()
   Figure savedFigure = curFigure;
   curFigure.rotate(Figure::rotRight);
 
-  if (!checkCurrentFigurePos(0, 0) && !tryToRelocateCurrentFigure())
+  if (!checkCurrentFigurePos(0, 0) && !tryToPlaceCurrentFigure())
     curFigure = savedFigure;
   else
     glassChanged = true;
