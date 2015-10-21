@@ -131,7 +131,7 @@ Cell * MainMesh::getGlassCell(int x, int y)
 
   Cell * cell = model.glass.data() + x + y * model.glassWidth;
 
-  if (!cell->figureId)
+  if (!cell->figureId && model.startFallTimer < 0.0)
   {
     bool isInCurFigure =
       x >= model.curFigureX &&
@@ -360,13 +360,16 @@ void MainMesh::buidGlassShadowMesh()
   const float pixSize = Globals::mainArrayTexturePixelSize;
   const float shadowWidth = 0.15f;
   const glm::vec3 zeroCol(0.0f, 0.0f, 0.0f);
-  const glm::vec2 origin = Globals::glassPos;
   const float scale = Globals::glassSize.x / model.glassWidth;
 
   for (int y = 0; y < model.glassHeight; y++)
   for (int x = 0; x < model.glassWidth; x++)
   {
     Cell * cell = getGlassCell(x, y);
+    glm::vec2 origin = Globals::glassPos;
+
+    if (cell->elevation)
+      origin.y += glm::max<float>(scale * model.getCellCurrentElevation(*cell), 0.0f);
 
     if (cell->figureId)
     {
@@ -470,13 +473,16 @@ void MainMesh::buidGlassShadowMesh()
 void MainMesh::buidGlassBlocksMesh()
 {
   const float pixSize = Globals::mainArrayTexturePixelSize;
-  const glm::vec2 origin = Globals::glassPos;
   const float scale = Globals::glassSize.x / model.glassWidth;
 
   for (int y = 0; y < model.glassHeight; y++)
   for (int x = 0; x < model.glassWidth; x++)
   {
     Cell * cell = getGlassCell(x, y);
+    glm::vec2 origin = Globals::glassPos;
+
+    if (cell->elevation)
+      origin.y += glm::max<float>(scale * model.getCellCurrentElevation(*cell), 0.0f);
 
     if (cell && cell->figureId)
     {
@@ -554,13 +560,16 @@ void MainMesh::biuldGlassGlowMesh()
   const float glowWidth = 0.5f;
   const float glowMinAlpha = 0.01f;
   const float glowMaxAlpha = 0.25f;
-  const glm::vec2 origin = Globals::glassPos;
   const float scale = Globals::glassSize.x / model.glassWidth;
 
   for (int y = 0; y < model.glassHeight; y++)
   for (int x = 0; x < model.glassWidth; x++)
   {
     Cell * cell = getGlassCell(x, y);
+    glm::vec2 origin = Globals::glassPos;
+
+    if (cell->elevation)
+      origin.y += glm::max<float>(scale * model.getCellCurrentElevation(*cell), 0.0f);
 
     if (cell->figureId)
     {

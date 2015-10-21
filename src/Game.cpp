@@ -167,10 +167,10 @@ void Game::pulse()
 
 float Game::getTime()
 {
-  static uint64_t freq = Crosy::getPerformanceFrequency();
+  static double freq = Crosy::getPerformanceFrequency();
   assert(freq);
 
-  return float(Crosy::getPerformanceCounter()) / freq;
+  return float(double(Crosy::getPerformanceCounter()) / freq);
 }
 
 void Game::beforeStartGame()

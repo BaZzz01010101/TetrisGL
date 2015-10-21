@@ -26,7 +26,7 @@ DropTrail::DropTrail() :
   createCounter(Crosy::getPerformanceCounter()),
   height(0.0f),
   pos(glm::vec2(0.0f, 0.0f)),
-  color(Figure::Color::clRed)
+  color(Globals::Color::clRed)
 {
 }
 
@@ -236,12 +236,12 @@ void DropTrail::setScale(float scale)
 
 bool DropTrail::isExpired()
 {
-  return float(Crosy::getPerformanceCounter() - createCounter) / freq > glm::max<float>(trailEffectTime , sparklesEffectTime);
+  return float(double(Crosy::getPerformanceCounter() - createCounter) / double(freq)) > glm::max<float>(trailEffectTime , sparklesEffectTime);
 }
 
 void DropTrail::draw()
 {
-  float timePassed = float(Crosy::getPerformanceCounter() - createCounter) / freq;
+  float timePassed = float(double(Crosy::getPerformanceCounter() - createCounter) / double(freq));
 
   if (timePassed < trailEffectTime)
   {

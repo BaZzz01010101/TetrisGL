@@ -11,16 +11,17 @@ private:
   const int maxLevel;
   const float maxStepTime;
   const float minStepTime;
-  float lastStepTime;
+  double lastStepTimer;
 
   void initGame(int glassWidth, int glassHeight);
   void pulse();
-  float getTime();
   float getStepTime();
   void shiftFigureConveyor();
   bool checkCurrentFigurePos(int dx, int dy);
   bool tryToPlaceCurrentFigure();
   void checkGlassRows();
+  void proceedFallingRows();
+  double getTimer();
 
 public:
   enum GameState { gsStartGame, gsPlayingGame, gsGameOver };
@@ -39,12 +40,14 @@ public:
   bool justHolded;
   bool glassChanged;
   bool nextFiguresChanged;
+  double startFallTimer;
 
   Model();
   ~Model();
 
   void update();
 
+  float getCellCurrentElevation(const Cell & cell);
   void holdCurrentFigure();
   void dropCurrentFigure();
   void rotateCurrentFigureLeft();

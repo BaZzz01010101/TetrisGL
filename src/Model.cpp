@@ -12,7 +12,8 @@ Model::Model() :
   haveHold(false),
   justHolded(false),
   glassChanged(false),
-  nextFiguresChanged(false)
+  nextFiguresChanged(false),
+  startFallTimer(-1.0)
 {
 }
 
@@ -27,7 +28,7 @@ void Model::initGame(int glassWidth, int glassHeight)
   this->glassWidth = glassWidth;
   this->glassHeight = glassHeight;
   glass.assign(glassWidth * glassHeight, Cell(0, Globals::Color::clNone));
-  lastStepTime = getTime();
+  lastStepTimer = getTimer();
   
   for (int i = 0; i < Globals::nextFiguresCount; i++)
     nextFigures[i].buildRandomFigure();
@@ -57,11 +58,13 @@ void Model::update()
 
 void Model::pulse()
 {
-  float curTime = getTime();
+  double curTime = getTimer();
   const float forceDownStepTime = 0.025f;
   const float stepTime = forceDown ? forceDownStepTime : getStepTime();
 
-  if (curTime > lastStepTime + stepTime)
+  if (startFallTimer > 0.0)
+    lastStepTimer = getTimer();
+  else if (curTime > lastStepTimer + stepTime)
   {
     if (checkCurrentFigurePos(0, 1))
     {
@@ -74,18 +77,21 @@ void Model::pulse()
       shiftFigureConveyor();
     }
 
-    lastStepTime = curTime;
+    lastStepTimer = curTime;
   }
+
+  if (startFallTimer > 0.0)
+    proceedFallingRows();
 
 //  cleanupDropTrails();
 }
 
-float Model::getTime()
+double Model::getTimer()
 {
-  static uint64_t freq = Crosy::getPerformanceFrequency();
+  static double freq = Crosy::getPerformanceFrequency();
   assert(freq);
 
-  return float(Crosy::getPerformanceCounter()) / freq;
+  return double(Crosy::getPerformanceCounter()) / freq;
 }
 
 float Model::getStepTime()
@@ -192,7 +198,7 @@ void Model::holdCurrentFigure()
       if (tryToPlaceCurrentFigure())
       {
         holdFigure.buildFigure(type);
-        lastStepTime = getTime();
+        lastStepTimer = getTimer();
         justHolded = true;
       }
       else
@@ -213,7 +219,7 @@ void Model::holdCurrentFigure()
       {
         shiftFigureConveyor();
         haveHold = true;
-        lastStepTime = getTime();
+        lastStepTimer = getTimer();
         justHolded = true;
       }
       else
@@ -255,7 +261,7 @@ void Model::dropCurrentFigure()
     }
   }
 
-  lastStepTime = getTime();
+  lastStepTimer = getTimer();
   storeCurFigureIntoGlass();
   shiftFigureConveyor();
   glassChanged = true;
@@ -303,7 +309,7 @@ void Model::shiftCurrentFigureRight()
 
 void Model::checkGlassRows()
 {
-  int fallHeight = 0;
+  int elevation = 0;
 
   for (int y = glassHeight - 1; y >= 0; y--)
   {
@@ -314,17 +320,52 @@ void Model::checkGlassRows()
         fullRow = false;
 
     if (fullRow)
-      fallHeight++;
-    else if (fallHeight)
+      elevation++;
+    else if (elevation)
     {
       for (int x = 0; x < glassWidth; x++)
       {
-        glass[x + y * glassWidth].fallHeight = (float)fallHeight;
-        glass[x + (y + fallHeight) * glassWidth] = glass[x + y * glassWidth];
+        glass[x + y * glassWidth].elevation = elevation;
+        glass[x + (y + elevation) * glassWidth] = glass[x + y * glassWidth];
       }
     }
   }
 
-  for (int i = 0; i < fallHeight * glassWidth; i++)
+  for (int i = 0; i < elevation * glassWidth; i++)
     glass[i].clear();
+
+  if (elevation)
+    startFallTimer = getTimer();
+}
+
+void Model::proceedFallingRows()
+{
+  bool stillFalling = false;
+
+  if (startFallTimer > 0.0)
+  {
+    for (int y = 0; y < glassHeight; y++)
+    for (int x = 0; x < glassWidth; x++)
+    if (glass[x + y * glassWidth].elevation)
+    {
+      if (getCellCurrentElevation(glass[x + y * glassWidth]) < 0.0f)
+        glass[x + y * glassWidth].elevation = 0;
+      else
+        stillFalling = true;
+    }
+
+    if (!stillFalling)
+      startFallTimer = -1.0f;
+  }
+}
+
+float Model::getCellCurrentElevation(const Cell & cell)
+{
+  if (startFallTimer < 0.0f)
+    return 0.0f;
+
+  const float acceleration = 50.0f;
+  float timePassed = float(getTimer() - startFallTimer);
+
+  return float(cell.elevation) - 0.5f * acceleration * timePassed * timePassed * timePassed;
 }

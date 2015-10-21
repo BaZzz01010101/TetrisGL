@@ -24,7 +24,7 @@ void FpsCounter::pulse()
 
   if (freq)
   {
-    float timePass = float(Crosy::getPerformanceCounter() - ticks) / freq;
+    float timePass = float(double(Crosy::getPerformanceCounter() - ticks) / double(freq));
 
     if (timePass > 1)
     {
