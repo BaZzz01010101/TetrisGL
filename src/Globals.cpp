@@ -90,3 +90,11 @@ bool checkGlErrors()
 
   return errCode != 0;
 }
+
+double getTimer()
+{
+  static double freq = (double)Crosy::getPerformanceFrequency();
+  assert(freq);
+
+  return double(Crosy::getPerformanceCounter()) / freq;
+}

@@ -47,12 +47,9 @@
     <ClCompile Include="..\..\src\Cell.cpp" />
     <ClCompile Include="..\..\src\Controller.cpp" />
     <ClCompile Include="..\..\src\Crosy.cpp" />
+    <ClCompile Include="..\..\src\DropTrail.cpp" />
     <ClCompile Include="..\..\src\Figure.cpp" />
     <ClCompile Include="..\..\src\FpsCounter.cpp" />
-    <ClCompile Include="..\..\src\DropTrail.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="..\..\src\Game.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -63,6 +60,7 @@
     <ClCompile Include="..\..\src\Model.cpp" />
     <ClCompile Include="..\..\src\Program.cpp" />
     <ClCompile Include="..\..\src\Shader.cpp" />
+    <ClCompile Include="..\..\src\DropSparkle.cpp" />
     <ClCompile Include="..\..\src\View.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -86,12 +84,9 @@
     <ClInclude Include="..\..\src\Cell.h" />
     <ClInclude Include="..\..\src\Controller.h" />
     <ClInclude Include="..\..\src\Crosy.h" />
+    <ClInclude Include="..\..\src\DropTrail.h" />
     <ClInclude Include="..\..\src\Figure.h" />
     <ClInclude Include="..\..\src\FpsCounter.h" />
-    <ClInclude Include="..\..\src\DropTrail.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="..\..\src\Game.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -102,6 +97,7 @@
     <ClInclude Include="..\..\src\Model.h" />
     <ClInclude Include="..\..\src\Program.h" />
     <ClInclude Include="..\..\src\Shader.h" />
+    <ClInclude Include="..\..\src\DropSparkle.h" />
     <ClInclude Include="..\..\src\View.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

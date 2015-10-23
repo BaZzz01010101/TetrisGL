@@ -15,6 +15,7 @@ private:
   Shader figureVert;
   Shader figureFrag;
   int vertexCount;
+
   Cell * getGlassCell(int x, int y);
   Cell * getFigureCell(Figure & figure, int x, int y);
   void addVertex(const glm::vec2 & xy, const glm::vec2 & uv, int texIndex, const glm::vec3 & color, float alpha);
@@ -25,6 +26,7 @@ private:
   void biuldGlassGlowMesh();
   void buildFigureBlocksMesh();
   void buildFigureGlowMesh();
+  void buildDropTrailsMesh();
 
 public:
   MainMesh(Model & model);

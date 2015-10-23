@@ -6,8 +6,6 @@ class Cell
 public:
   int figureId;
   Globals::Color color;
-  int elevation;
-  float fall;
 
   Cell();
   Cell(int figureId, Globals::Color color);

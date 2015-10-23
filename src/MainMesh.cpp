@@ -2,7 +2,8 @@
 #include <math.h>
 #include "MainMesh.h"
 #include "Globals.h"
-
+#include "DropSparkle.h"
+#include "DropTrail.h"
 
 MainMesh::MainMesh(Model & model) :
   figureVert(GL_VERTEX_SHADER),
@@ -10,7 +11,6 @@ MainMesh::MainMesh(Model & model) :
   model(model)
 {
 }
-
 
 MainMesh::~MainMesh()
 {
@@ -80,6 +80,7 @@ void MainMesh::rebuild()
   biuldGlassGlowMesh();
   buildFigureBlocksMesh();
   buildFigureGlowMesh();
+  buildDropTrailsMesh();
 
   if (vertexCount)
   {
@@ -368,8 +369,8 @@ void MainMesh::buidGlassShadowMesh()
     Cell * cell = getGlassCell(x, y);
     glm::vec2 origin = Globals::glassPos;
 
-    if (cell->elevation)
-      origin.y += glm::max<float>(scale * model.getCellCurrentElevation(*cell), 0.0f);
+    if (model.rowElevation[y])
+      origin.y += glm::max<float>(scale * model.getRowCurrentElevation(y), 0.0f);
 
     if (cell->figureId)
     {
@@ -481,8 +482,8 @@ void MainMesh::buidGlassBlocksMesh()
     Cell * cell = getGlassCell(x, y);
     glm::vec2 origin = Globals::glassPos;
 
-    if (cell->elevation)
-      origin.y += glm::max<float>(scale * model.getCellCurrentElevation(*cell), 0.0f);
+    if (model.rowElevation[y])
+      origin.y += glm::max<float>(scale * model.getRowCurrentElevation(y), 0.0f);
 
     if (cell && cell->figureId)
     {
@@ -568,8 +569,8 @@ void MainMesh::biuldGlassGlowMesh()
     Cell * cell = getGlassCell(x, y);
     glm::vec2 origin = Globals::glassPos;
 
-    if (cell->elevation)
-      origin.y += glm::max<float>(scale * model.getCellCurrentElevation(*cell), 0.0f);
+    if (model.rowElevation[y])
+      origin.y += glm::max<float>(scale * model.getRowCurrentElevation(y), 0.0f);
 
     if (cell->figureId)
     {
@@ -1167,6 +1168,72 @@ void MainMesh::buildFigureGlowMesh()
             addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
           }
         }
+      }
+    }
+  }
+}
+
+void MainMesh::buildDropTrailsMesh()
+{
+  const glm::vec2 origin = Globals::glassPos;
+  const float scale = Globals::glassSize.x / model.glassWidth;
+  const float pixSize = Globals::mainArrayTexturePixelSize;
+
+  for (std::list<DropTrail>::iterator it = model.dropTrails.begin(); it != model.dropTrails.end(); ++it)
+  {
+    float currentTrailAlpha = 1.0f - it->getTrailProgress();
+    float currentTrailHeight = float(it->height) * currentTrailAlpha;
+    float trailWidth = scale * 1.25f;
+    const float dx = 0.22f;
+    const float dy = 0.1f * currentTrailHeight;
+
+    glm::vec2 verts[4] =
+    {
+      { glm::max<float>(it->x - dx, 0.0f),                                  -glm::max<float>(it->y - currentTrailHeight, 0.0f)  },
+      { glm::min<float>(it->x + 1.0f + 2.0f * dx, (float)model.glassWidth), -glm::max<float>(it->y - currentTrailHeight, 0.0f) },
+      { glm::max<float>(it->x - dx, 0.0f),                                  -glm::min<float>(it->y + dy, (float)model.glassHeight) },
+      { glm::min<float>(it->x + 1.0f + 2.0f * dx, (float)model.glassWidth), -glm::min<float>(it->y + dy, (float)model.glassHeight) },
+    };
+
+    glm::vec2 uv[4] =
+    {
+      { pixSize,        pixSize },
+      { 1.0f - pixSize, pixSize },
+      { pixSize,        1.0f - pixSize },
+      { 1.0f - pixSize, 1.0f - pixSize },
+    };
+
+    glm::vec3 color = Globals::ColorValues[it->color] * currentTrailAlpha;
+
+    addVertex(origin + scale * verts[0], uv[0], Globals::dropTrailsTexIndex, color, 0.0f);
+    addVertex(origin + scale * verts[1], uv[1], Globals::dropTrailsTexIndex, color, 0.0f);
+    addVertex(origin + scale * verts[2], uv[2], Globals::dropTrailsTexIndex, color, 0.0f);
+    addVertex(origin + scale * verts[1], uv[1], Globals::dropTrailsTexIndex, color, 0.0f);
+    addVertex(origin + scale * verts[2], uv[2], Globals::dropTrailsTexIndex, color, 0.0f);
+    addVertex(origin + scale * verts[3], uv[3], Globals::dropTrailsTexIndex, color, 0.0f);
+
+    for (int i = 0; i < DropTrail::sparkleQty; i++)
+    {
+      float sparkleX = it->x + it->sparkles[i].relX;
+      float sparkleY = it->y - it->sparkles[i].relY * float(it->height) - it->sparkles[i].speed * it->getTrailProgress();
+      const float sparkleSize = 0.1f;
+
+      if (sparkleX < model.glassWidth - sparkleSize && sparkleY > 0.0f)
+      {
+        glm::vec2 verts[4] =
+        {
+          { sparkleX,               -sparkleY },
+          { sparkleX + sparkleSize, -sparkleY },
+          { sparkleX,               -sparkleY - sparkleSize },
+          { sparkleX + sparkleSize, -sparkleY - sparkleSize },
+        };
+
+        addVertex(origin + scale * verts[0], uv[0], Globals::dropSparkleTexIndex, color, 0.0f);
+        addVertex(origin + scale * verts[1], uv[1], Globals::dropSparkleTexIndex, color, 0.0f);
+        addVertex(origin + scale * verts[2], uv[2], Globals::dropSparkleTexIndex, color, 0.0f);
+        addVertex(origin + scale * verts[1], uv[1], Globals::dropSparkleTexIndex, color, 0.0f);
+        addVertex(origin + scale * verts[2], uv[2], Globals::dropSparkleTexIndex, color, 0.0f);
+        addVertex(origin + scale * verts[3], uv[3], Globals::dropSparkleTexIndex, color, 0.0f);
       }
     }
   }

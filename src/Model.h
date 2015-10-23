@@ -4,6 +4,8 @@
 
 #include "Cell.h"
 #include "Figure.h"
+#include "DropSparkle.h"
+#include "DropTrail.h"
 
 class Model
 {
@@ -13,15 +15,16 @@ private:
   const float minStepTime;
   double lastStepTimer;
 
-  void initGame(int glassWidth, int glassHeight);
-  void pulse();
+  void initGameProceed(int glassWidth, int glassHeight);
+  void playingGameProceed();
   float getStepTime();
   void shiftFigureConveyor();
   bool checkCurrentFigurePos(int dx, int dy);
   bool tryToPlaceCurrentFigure();
   void checkGlassRows();
   void proceedFallingRows();
-  double getTimer();
+  void createDropTrail(int x, int y, int height, Globals::Color color);
+  void deleteObsoleteDropTrails();
 
 public:
   enum GameState { gsStartGame, gsPlayingGame, gsGameOver };
@@ -30,8 +33,8 @@ public:
   Figure nextFigures[Globals::nextFiguresCount];
   Figure holdFigure;
   Figure curFigure;
-  int glassWidth;
-  int glassHeight;
+  int glassWidth = 10;
+  int glassHeight = 20;
   int curFigureX;
   int curFigureY;
   int curLevel;
@@ -41,13 +44,15 @@ public:
   bool glassChanged;
   bool nextFiguresChanged;
   double startFallTimer;
+  std::vector<int> rowElevation;
+  std::list<DropTrail> dropTrails;
 
   Model();
   ~Model();
 
   void update();
 
-  float getCellCurrentElevation(const Cell & cell);
+  float getRowCurrentElevation(int row);
   void holdCurrentFigure();
   void dropCurrentFigure();
   void rotateCurrentFigureLeft();
@@ -56,4 +61,3 @@ public:
   void shiftCurrentFigureRight();
   void storeCurFigureIntoGlass();
 };
-

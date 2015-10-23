@@ -22,11 +22,12 @@ Model::~Model()
 {
 }
 
-void Model::initGame(int glassWidth, int glassHeight)
+void Model::initGameProceed(int glassWidth, int glassHeight)
 {
   curLevel = 1;
   this->glassWidth = glassWidth;
   this->glassHeight = glassHeight;
+  rowElevation.resize(glassHeight);
   glass.assign(glassWidth * glassHeight, Cell(0, Globals::Color::clNone));
   lastStepTimer = getTimer();
   
@@ -43,11 +44,11 @@ void Model::update()
   switch (gameState)
   {
   case gsStartGame:
-    initGame(10, 20);
+    initGameProceed(10, 20);
     gameState = gsPlayingGame;
     break;
   case gsPlayingGame:
-    pulse();
+    playingGameProceed();
     break;
   case gsGameOver:
     break;
@@ -56,7 +57,7 @@ void Model::update()
   }
 }
 
-void Model::pulse()
+void Model::playingGameProceed()
 {
   double curTime = getTimer();
   const float forceDownStepTime = 0.025f;
@@ -83,15 +84,7 @@ void Model::pulse()
   if (startFallTimer > 0.0)
     proceedFallingRows();
 
-//  cleanupDropTrails();
-}
-
-double Model::getTimer()
-{
-  static double freq = Crosy::getPerformanceFrequency();
-  assert(freq);
-
-  return double(Crosy::getPerformanceCounter()) / freq;
+  deleteObsoleteDropTrails();
 }
 
 float Model::getStepTime()
@@ -250,12 +243,7 @@ void Model::dropCurrentFigure()
     {
       if (!curFigure.cells[x + y * dim].isEmpty())
       {
-        //dropTrails.emplace_back();
-        //DropTrail & dropTrail = dropTrails.back();
-        //dropTrail.height = std::fmax(float(y1 - y0), 5.0f);
-        //dropTrail.pos = { Globals::glassPos.x + (curFigureX + x) * glassSqSize, Globals::glassPos.y - (y1 + y - dropTrail.height) * glassSqSize };
-        //dropTrail.color = curFigureXor;
-
+        createDropTrail(curFigureX + x, curFigureY + y, y1 - y0, curFigure.color);
         break;
       }
     }
@@ -325,8 +313,8 @@ void Model::checkGlassRows()
     {
       for (int x = 0; x < glassWidth; x++)
       {
-        glass[x + y * glassWidth].elevation = elevation;
         glass[x + (y + elevation) * glassWidth] = glass[x + y * glassWidth];
+        rowElevation[y + elevation] = elevation;
       }
     }
   }
@@ -346,10 +334,10 @@ void Model::proceedFallingRows()
   {
     for (int y = 0; y < glassHeight; y++)
     for (int x = 0; x < glassWidth; x++)
-    if (glass[x + y * glassWidth].elevation)
+    if (rowElevation[y])
     {
-      if (getCellCurrentElevation(glass[x + y * glassWidth]) < 0.0f)
-        glass[x + y * glassWidth].elevation = 0;
+      if (getRowCurrentElevation(y) < 0.0f)
+        rowElevation[y] = 0;
       else
         stillFalling = true;
     }
@@ -359,7 +347,7 @@ void Model::proceedFallingRows()
   }
 }
 
-float Model::getCellCurrentElevation(const Cell & cell)
+float Model::getRowCurrentElevation(int row)
 {
   if (startFallTimer < 0.0f)
     return 0.0f;
@@ -367,5 +355,30 @@ float Model::getCellCurrentElevation(const Cell & cell)
   const float acceleration = 50.0f;
   float timePassed = float(getTimer() - startFallTimer);
 
-  return float(cell.elevation) - 0.5f * acceleration * timePassed * timePassed * timePassed;
+  return float(rowElevation[row]) - 0.5f * acceleration * timePassed * timePassed * timePassed;
+}
+
+void Model::createDropTrail(int x, int y, int height, Globals::Color color)
+{
+  dropTrails.emplace_back();
+  DropTrail & dropTrail = dropTrails.back();
+  dropTrail.x = x;
+  dropTrail.y = y;
+  dropTrail.color = color;
+  dropTrail.height = height;
+}
+
+void Model::deleteObsoleteDropTrails()
+{
+  std::list<DropTrail>::iterator it = dropTrails.begin();
+
+  while (it != dropTrails.end())
+  {
+    if (it->getTrailProgress() > 0.999f)
+    {
+      std::list<DropTrail>::iterator delIt = it++;
+      dropTrails.erase(delIt);
+    }
+    else ++it;
+  }
 }

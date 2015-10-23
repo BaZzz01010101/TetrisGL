@@ -41,4 +41,13 @@ public:
 };
 
 extern bool checkGlErrors();
+extern double getTimer();
+
+static int g_seed = rand();
+static const int FAST_RAND_MAX = 0x7FFF;
+inline int fastrand()
+{
+  g_seed = (214013 * g_seed + 2531011);
+  return (g_seed >> 16) & FAST_RAND_MAX;
+}
 
