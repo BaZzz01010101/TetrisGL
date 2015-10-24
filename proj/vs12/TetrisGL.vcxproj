@@ -59,6 +59,7 @@
     <ClCompile Include="..\..\src\MainMesh.cpp" />
     <ClCompile Include="..\..\src\Model.cpp" />
     <ClCompile Include="..\..\src\Program.cpp" />
+    <ClCompile Include="..\..\src\RowFlash.cpp" />
     <ClCompile Include="..\..\src\Shader.cpp" />
     <ClCompile Include="..\..\src\DropSparkle.cpp" />
     <ClCompile Include="..\..\src\View.cpp" />
@@ -96,6 +97,7 @@
     <ClInclude Include="..\..\src\MainMesh.h" />
     <ClInclude Include="..\..\src\Model.h" />
     <ClInclude Include="..\..\src\Program.h" />
+    <ClInclude Include="..\..\src\RowFlash.h" />
     <ClInclude Include="..\..\src\Shader.h" />
     <ClInclude Include="..\..\src\DropSparkle.h" />
     <ClInclude Include="..\..\src\View.h" />

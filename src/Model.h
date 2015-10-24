@@ -6,6 +6,7 @@
 #include "Figure.h"
 #include "DropSparkle.h"
 #include "DropTrail.h"
+#include "RowFlash.h"
 
 class Model
 {
@@ -24,7 +25,8 @@ private:
   void checkGlassRows();
   void proceedFallingRows();
   void createDropTrail(int x, int y, int height, Globals::Color color);
-  void deleteObsoleteDropTrails();
+  void createRowFlash(int y);
+  void deleteObsoleteEffects();
 
 public:
   enum GameState { gsStartGame, gsPlayingGame, gsGameOver };
@@ -46,6 +48,7 @@ public:
   double startFallTimer;
   std::vector<int> rowElevation;
   std::list<DropTrail> dropTrails;
+  std::list<RowFlash> rowFlashes;
 
   Model();
   ~Model();

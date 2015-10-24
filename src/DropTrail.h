@@ -8,7 +8,7 @@ private:
   double dropTimer;
 
 public:
-  static const int sparkleQty = 100;
+  static const int sparkleQty = 200;
   static const float trailEffectTime;
   static const float sparklesEffectTime;
   int x;

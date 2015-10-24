@@ -84,7 +84,7 @@ void Model::playingGameProceed()
   if (startFallTimer > 0.0)
     proceedFallingRows();
 
-  deleteObsoleteDropTrails();
+  deleteObsoleteEffects();
 }
 
 float Model::getStepTime()
@@ -307,8 +307,11 @@ void Model::checkGlassRows()
       if (glass[x + y * glassWidth].isEmpty())
         fullRow = false;
 
-    if (fullRow)
-      elevation++;
+      if (fullRow)
+      {
+        elevation++;
+        createRowFlash(y);
+      }
     else if (elevation)
     {
       for (int x = 0; x < glassWidth; x++)
@@ -368,17 +371,36 @@ void Model::createDropTrail(int x, int y, int height, Globals::Color color)
   dropTrail.height = height;
 }
 
-void Model::deleteObsoleteDropTrails()
+void Model::createRowFlash(int y)
 {
-  std::list<DropTrail>::iterator it = dropTrails.begin();
+  rowFlashes.emplace_back();
+  RowFlash & rowFlash = rowFlashes.back();
+  rowFlash.y = y;
+}
 
-  while (it != dropTrails.end())
+void Model::deleteObsoleteEffects()
+{
+  std::list<DropTrail>::iterator dropTrail = dropTrails.begin();
+
+  while (dropTrail != dropTrails.end())
   {
-    if (it->getTrailProgress() > 0.999f)
+    if (dropTrail->getTrailProgress() > 0.999f)
     {
-      std::list<DropTrail>::iterator delIt = it++;
+      std::list<DropTrail>::iterator delIt = dropTrail++;
       dropTrails.erase(delIt);
     }
-    else ++it;
+    else ++dropTrail;
+  }
+
+  std::list<RowFlash>::iterator rowFlash = rowFlashes.begin();
+
+  while (rowFlash != rowFlashes.end())
+  {
+    if (rowFlash->getProgress() > 0.999f)
+    {
+      std::list<RowFlash>::iterator delIt = rowFlash++;
+      rowFlashes.erase(delIt);
+    }
+    else ++rowFlash;
   }
 }

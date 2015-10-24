@@ -1,8 +1,8 @@
 #include <glm/glm.hpp>
 #include "DropTrail.h"
 
-const float DropTrail::trailEffectTime = 0.5f;
-const float DropTrail::sparklesEffectTime = 1.0f;
+const float DropTrail::trailEffectTime = 0.6f;
+const float DropTrail::sparklesEffectTime = 1.1f;
 
 DropTrail::DropTrail()
 {

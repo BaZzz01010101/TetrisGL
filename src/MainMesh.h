@@ -27,6 +27,7 @@ private:
   void buildFigureBlocksMesh();
   void buildFigureGlowMesh();
   void buildDropTrailsMesh();
+  void buildRowFlashesMesh();
 
 public:
   MainMesh(Model & model);

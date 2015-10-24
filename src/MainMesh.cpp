@@ -81,6 +81,7 @@ void MainMesh::rebuild()
   buildFigureBlocksMesh();
   buildFigureGlowMesh();
   buildDropTrailsMesh();
+  buildRowFlashesMesh();
 
   if (vertexCount)
   {
@@ -1205,12 +1206,12 @@ void MainMesh::buildDropTrailsMesh()
 
     glm::vec3 color = Globals::ColorValues[it->color] * currentTrailAlpha;
 
-    addVertex(origin + scale * verts[0], uv[0], Globals::dropTrailsTexIndex, color, 0.0f);
-    addVertex(origin + scale * verts[1], uv[1], Globals::dropTrailsTexIndex, color, 0.0f);
-    addVertex(origin + scale * verts[2], uv[2], Globals::dropTrailsTexIndex, color, 0.0f);
-    addVertex(origin + scale * verts[1], uv[1], Globals::dropTrailsTexIndex, color, 0.0f);
-    addVertex(origin + scale * verts[2], uv[2], Globals::dropTrailsTexIndex, color, 0.0f);
-    addVertex(origin + scale * verts[3], uv[3], Globals::dropTrailsTexIndex, color, 0.0f);
+    addVertex(origin + scale * verts[0], uv[0], Globals::dropTrailTexIndex, color, 0.0f);
+    addVertex(origin + scale * verts[1], uv[1], Globals::dropTrailTexIndex, color, 0.0f);
+    addVertex(origin + scale * verts[2], uv[2], Globals::dropTrailTexIndex, color, 0.0f);
+    addVertex(origin + scale * verts[1], uv[1], Globals::dropTrailTexIndex, color, 0.0f);
+    addVertex(origin + scale * verts[2], uv[2], Globals::dropTrailTexIndex, color, 0.0f);
+    addVertex(origin + scale * verts[3], uv[3], Globals::dropTrailTexIndex, color, 0.0f);
 
     for (int i = 0; i < DropTrail::sparkleQty; i++)
     {
@@ -1236,5 +1237,46 @@ void MainMesh::buildDropTrailsMesh()
         addVertex(origin + scale * verts[3], uv[3], Globals::dropSparkleTexIndex, color, 0.0f);
       }
     }
+  }
+}
+
+void MainMesh::buildRowFlashesMesh()
+{
+  const glm::vec2 origin = Globals::glassPos;
+  const float scale = Globals::glassSize.x / model.glassWidth;
+  const float pixSize = Globals::mainArrayTexturePixelSize;
+
+  for (std::list<RowFlash>::iterator it = model.rowFlashes.begin(); it != model.rowFlashes.end(); ++it)
+  {
+    float prg = it->getProgress();
+    float mul = 1.0f - cos((prg - 0.5f) * (prg < 0.5f ? 0.5f : 2.0f) * (float)M_PI_2);
+    float currentTrailAlpha = 1.25f - mul;
+    float dx = 1.0f - mul * 3.0f;
+    float dy = 0.4f - 0.9 * mul;
+
+    glm::vec2 verts[4] =
+    {
+      { 0.0f - dx, -it->y + dy },
+      { model.glassWidth + dx, -it->y + dy },
+      { 0.0f - dx, -it->y - 1.0f - dy },
+      { model.glassWidth + dx, -it->y - 1.0f - dy },
+    };
+
+    glm::vec2 uv[4] =
+    {
+      { pixSize, pixSize },
+      { 1.0f - pixSize, pixSize },
+      { pixSize, 1.0f - pixSize },
+      { 1.0f - pixSize, 1.0f - pixSize },
+    };
+
+    glm::vec3 color(currentTrailAlpha);
+
+    addVertex(origin + scale * verts[0], uv[0], Globals::rowFlashTexIndex, color, 0.0f);
+    addVertex(origin + scale * verts[1], uv[1], Globals::rowFlashTexIndex, color, 0.0f);
+    addVertex(origin + scale * verts[2], uv[2], Globals::rowFlashTexIndex, color, 0.0f);
+    addVertex(origin + scale * verts[1], uv[1], Globals::rowFlashTexIndex, color, 0.0f);
+    addVertex(origin + scale * verts[2], uv[2], Globals::rowFlashTexIndex, color, 0.0f);
+    addVertex(origin + scale * verts[3], uv[3], Globals::rowFlashTexIndex, color, 0.0f);
   }
 }
