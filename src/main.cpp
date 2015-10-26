@@ -16,6 +16,7 @@ Controller controller;
 FpsCounter fps;
 int winWidth;
 int winHeight;
+bool vSync = true;
 
 void OnFramebufferSize(GLFWwindow * win, int width, int height)
 {
@@ -57,6 +58,9 @@ void OnKeyClick(GLFWwindow * win, int key, int scancode, int action, int mods)
     case GLFW_KEY_LEFT_ALT:
     case GLFW_KEY_RIGHT_ALT:
       model.showWireframe = true;
+      break;
+    case GLFW_KEY_F11:
+      vSync = !vSync;
       break;
     }
   }
@@ -158,13 +162,13 @@ int main()
       glfwSetKeyCallback(win, OnKeyClick);
       glfwSetMouseButtonCallback(win, OnMouseClick);
       glfwSetCursorPosCallback(win, OnMouseMove);
-      glfwSwapInterval(0);
 
       fps.init(win);
       view.init(initWinWidth, initWinHeight);
 
       while (!glfwWindowShouldClose(win))
       {
+        glfwSwapInterval((int)vSync);
         model.update();
         view.update();
         fps.pulse();

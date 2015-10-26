@@ -1338,12 +1338,8 @@ void MainMesh::buildRowFlashes()
       float relDX = glm::clamp(fabs(ltDX / model.glassWidth), 0.0f, 1.0f);
       float alphaMul = 1.0f - 2.0f * fabs(0.5f - glm::clamp(relDX * relDX, 0.1f, 1.0f));
 
-      glm::vec3 colors[3] =
-      {
-        glm::vec3(alphaMul),
-        glm::vec3(0.0f),
-        glm::vec3(0.0f),
-      };
+      glm::vec3 colors0(alphaMul);
+      glm::vec3 colors1(0.0f);
 
       glm::vec2 verts[3] =
       {
@@ -1352,32 +1348,37 @@ void MainMesh::buildRowFlashes()
         { origin.x + scale * (gapX + rayEndDX), origin.y - scale * (gapY2 + rayEndDY2) },
       };
 
-    //  for (int i = 1; i < 3; i++)
-    //  {
-    //    float mulX = 1.0f;
-    //    float mulY = 1.0f;
-
-    //    if (verts[i].x > Globals::gameBkPos.x + Globals::gameBkSize.x && verts[i].x - verts[0].x > VERY_SMALL_NUMBER)
-    //    {
-    //      mulY = (Globals::gameBkPos.x + Globals::gameBkSize.x - verts[0].x) / (verts[i].x - verts[0].x);
-    //      verts[i].x = Globals::gameBkPos.x + Globals::gameBkSize.x;
-    //      verts[i].y = verts[0].y + (verts[i].y - verts[0].y) * mulY;
-    //    }
-
-    //    if (verts[i].y < Globals::gameBkPos.y - Globals::gameBkSize.y && verts[i].y - verts[0].y > VERY_SMALL_NUMBER)
-    //    {
-    //      mulX = (Globals::gameBkPos.y - Globals::gameBkSize.y - verts[0].y) / (verts[i].y - verts[0].y);
-    //      verts[i].y = Globals::gameBkPos.y - Globals::gameBkSize.y;
-    //      verts[i].y = verts[0].x + (verts[i].x - verts[0].x) * mulX;
-    //    }
-
-    //    colors[i] = glm::vec3(alphaMul * (1.0f - mulX * mulY));
-    //  }
-      addVertex(verts[0], uv[0], Globals::rowShineRayTexIndex, colors[0], 0.0f);
-      addVertex(verts[1], uv[1], Globals::rowShineRayTexIndex, colors[1], 0.0f);
-      addVertex(verts[2], uv[2], Globals::rowShineRayTexIndex, colors[2], 0.0f);
+      addVertex(verts[0], uv[0], Globals::rowShineRayTexIndex, colors0, 0.0f);
+      addVertex(verts[1], uv[1], Globals::rowShineRayTexIndex, colors1, 0.0f);
+      addVertex(verts[2], uv[2], Globals::rowShineRayTexIndex, colors1, 0.0f);
     }
 
+    const float radius = 20.0f;
+
+    glm::vec2 verts[4] =
+    {
+      { origin.x + scale * (ltX - radius), origin.y - scale * (ltY - radius) },
+      { origin.x + scale * (ltX + radius), origin.y - scale * (ltY - radius) },
+      { origin.x + scale * (ltX - radius), origin.y - scale * (ltY + radius) },
+      { origin.x + scale * (ltX + radius), origin.y - scale * (ltY + radius) },
+    };
+
+    glm::vec2 uv[4] =
+    {
+      { pixSize, pixSize },
+      { 1.0f - pixSize, pixSize },
+      { pixSize, 1.0f - pixSize },
+      { 1.0f - pixSize, 1.0f - pixSize },
+    };
+
+    glm::vec3 colors(0.3f * sin(shineProgress * (float)M_PI));
+
+    addVertex(verts[0], uv[0], Globals::rowShineLightTexIndex, colors, 0.0f);
+    addVertex(verts[1], uv[1], Globals::rowShineLightTexIndex, colors, 0.0f);
+    addVertex(verts[2], uv[2], Globals::rowShineLightTexIndex, colors, 0.0f);
+    addVertex(verts[1], uv[1], Globals::rowShineLightTexIndex, colors, 0.0f);
+    addVertex(verts[2], uv[2], Globals::rowShineLightTexIndex, colors, 0.0f);
+    addVertex(verts[3], uv[3], Globals::rowShineLightTexIndex, colors, 0.0f);
     //for (std::set<Model::CellCoord>::iterator vertGapsIt = model.deletedRowHorzGaps.begin();
     //  vertGapsIt != model.deletedRowHorzGaps.end();
     //  ++vertGapsIt)

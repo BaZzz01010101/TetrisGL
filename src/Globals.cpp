@@ -26,6 +26,7 @@ int Globals::dropTrailTexIndex = 7;
 int Globals::dropSparkleTexIndex = 8;
 int Globals::rowFlashTexIndex = 9;
 int Globals::rowShineRayTexIndex = 10;
+int Globals::rowShineLightTexIndex = 11;
 glm::vec2 Globals::gameBkPos(-0.7f, 1.0f);
 glm::vec2 Globals::gameBkSize(1.4f, 2.0f);
 glm::vec2 Globals::glassPos(-0.4f, 0.75f);
