@@ -19,7 +19,7 @@ View::~View()
 {
 }
 
-void View::init()
+void View::init(int winWidth, int winHeight)
 {
   glewExperimental = GL_TRUE;
 
@@ -51,8 +51,6 @@ void View::init()
   glBindVertexArray(vaoId);
   assert(!checkGlErrors());
 
-  mainMesh.init();
-
   glGenBuffers(1, &glassFigureVertexBufferId);
   assert(!checkGlErrors());
 
@@ -60,30 +58,6 @@ void View::init()
   assert(!checkGlErrors());
 
   glGenBuffers(1, &glassFigureVertexBufferId);
-  assert(!checkGlErrors());
-
-  //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-  //assert(!checkGlErrors());
-
-  glDisable(GL_DEPTH_TEST);
-  assert(!checkGlErrors());
-
-  glDepthFunc(GL_LEQUAL);
-  assert(!checkGlErrors());
-
-  glEnable(GL_BLEND);
-  assert(!checkGlErrors());
-
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  assert(!checkGlErrors());
-
-  glDisable(GL_CULL_FACE);
-  assert(!checkGlErrors());
-
-  glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
-  assert(!checkGlErrors());
-
-  glClearDepth(1.0f);
   assert(!checkGlErrors());
 
   glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -94,6 +68,34 @@ void View::init()
 
   glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_LOD_BIAS, -1);
   assert(!checkGlErrors());
+
+  glDisable(GL_CULL_FACE);
+  assert(!checkGlErrors());
+
+  glEnable(GL_DEPTH_TEST);
+  assert(!checkGlErrors());
+
+  glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+  assert(!checkGlErrors());
+
+  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+  assert(!checkGlErrors());
+
+  mainMesh.init();
+
+  resize(winWidth, winHeight);
+}
+
+void View::resize(int width, int height)
+{
+  const float gameAspect = Globals::gameBkSize.x / Globals::gameBkSize.y;
+
+  if (float(width) / height > gameAspect)
+    glViewport((width - height) / 2, 0, height, height);
+  else
+    glViewport(int(width * (1.0f - 1.0f / gameAspect)) / 2, (height - int(width / gameAspect)) / 2, int(width / gameAspect), int(width / gameAspect));
+
+  mainMesh.fillDepthBuffer();
 }
 
 void View::update()
@@ -119,7 +121,7 @@ void View::update()
 //    model.glassChanged = false;
   }
 
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT);
   assert(!checkGlErrors());
 
   mainMesh.draw();

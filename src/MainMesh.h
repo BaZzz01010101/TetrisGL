@@ -19,21 +19,24 @@ private:
   Cell * getGlassCell(int x, int y);
   Cell * getFigureCell(Figure & figure, int x, int y);
   void addVertex(const glm::vec2 & xy, const glm::vec2 & uv, int texIndex, const glm::vec3 & color, float alpha);
-  void buildBackgroundMesh();
+  void clear();
+  void sendToDevice();
+  void buildBackground();
   void buildFigureBackgroundsMesh();
-  void buidGlassShadowMesh();
-  void buidGlassBlocksMesh();
-  void biuldGlassGlowMesh();
-  void buildFigureBlocksMesh();
-  void buildFigureGlowMesh();
-  void buildDropTrailsMesh();
-  void buildRowFlashesMesh();
+  void buidGlassShadow();
+  void buidGlassBlocks();
+  void biuldGlassGlow();
+  void buildFigureBlocks();
+  void buildFigureGlow();
+  void buildDropTrails();
+  void buildRowFlashes();
 
 public:
   MainMesh(Model & model);
   ~MainMesh();
 
   void init();
+  void fillDepthBuffer();
   void rebuild();
   void draw();
 };

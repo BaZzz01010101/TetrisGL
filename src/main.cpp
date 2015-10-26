@@ -21,12 +21,7 @@ void OnFramebufferSize(GLFWwindow * win, int width, int height)
 {
   winWidth = width;
   winHeight = height;
-  const float gameAspect = Globals::gameBkSize.x / Globals::gameBkSize.y;
-  
-  if (float(width) / height > gameAspect)
-    glViewport((width - height) / 2, 0, height, height);
-  else
-    glViewport(int(width * (1.0f - 1.0f / gameAspect)) / 2, (height - int(width / gameAspect)) / 2, int(width / gameAspect), int(width / gameAspect));
+  view.resize(width, height);
 }
 
 void OnKeyClick(GLFWwindow * win, int key, int scancode, int action, int mods)
@@ -163,11 +158,10 @@ int main()
       glfwSetKeyCallback(win, OnKeyClick);
       glfwSetMouseButtonCallback(win, OnMouseClick);
       glfwSetCursorPosCallback(win, OnMouseMove);
-      glfwSwapInterval(1);
+      glfwSwapInterval(0);
 
-      OnFramebufferSize(win, initWinWidth, initWinHeight);
       fps.init(win);
-      view.init();
+      view.init(initWinWidth, initWinHeight);
 
       while (!glfwWindowShouldClose(win))
       {

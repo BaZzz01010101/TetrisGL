@@ -71,33 +71,22 @@ void MainMesh::init()
 
 void MainMesh::rebuild()
 {
-  vertexCount = 0;
-  vertexBuffer.clear();
+  clear();
 
-  buildBackgroundMesh();
-  buidGlassShadowMesh();
-  buidGlassBlocksMesh();
-  biuldGlassGlowMesh();
-  buildFigureBlocksMesh();
-  buildFigureGlowMesh();
-  buildDropTrailsMesh();
-  buildRowFlashesMesh();
+  buildBackground();
+  buidGlassShadow();
+  buidGlassBlocks();
+  biuldGlassGlow();
+  buildFigureBlocks();
+  buildFigureGlow();
+  buildDropTrails();
+  buildRowFlashes();
 
-  if (vertexCount)
-  {
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId);
-    assert(!checkGlErrors());
-
-    glBufferData(GL_ARRAY_BUFFER, vertexBuffer.size() * sizeof(float), vertexBuffer.data(), GL_STATIC_DRAW);
-    assert(!checkGlErrors());
-  }
+  sendToDevice();
 }
 
 void MainMesh::draw()
 {
-  glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-  assert(!checkGlErrors());
-
   figureProg.use();
   glEnableVertexAttribArray(0);
   assert(!checkGlErrors());
@@ -123,6 +112,26 @@ void MainMesh::draw()
   glDisableVertexAttribArray(1);
   assert(!checkGlErrors());
   glDisableVertexAttribArray(2);
+  assert(!checkGlErrors());
+}
+
+void MainMesh::fillDepthBuffer()
+{
+  glClearDepth(-1.0f);
+  assert(!checkGlErrors());
+
+  glClear(GL_DEPTH_BUFFER_BIT);
+  assert(!checkGlErrors());
+
+  glDepthFunc(GL_ALWAYS);
+  assert(!checkGlErrors());
+
+  clear();
+  buildBackground();
+  sendToDevice();
+  draw();
+
+  glDepthFunc(GL_LEQUAL);
   assert(!checkGlErrors());
 }
 
@@ -171,7 +180,25 @@ void MainMesh::addVertex(const glm::vec2 & xy, const glm::vec2 & uv, int texInde
   vertexCount++;
 }
 
-void MainMesh::buildBackgroundMesh()
+void MainMesh::clear()
+{
+  vertexCount = 0;
+  vertexBuffer.clear();
+}
+
+void MainMesh::sendToDevice()
+{
+  if (vertexCount)
+  {
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId);
+    assert(!checkGlErrors());
+
+    glBufferData(GL_ARRAY_BUFFER, vertexBuffer.size() * sizeof(float), vertexBuffer.data(), GL_STATIC_DRAW);
+    assert(!checkGlErrors());
+  }
+}
+
+void MainMesh::buildBackground()
 {
   // add game base background to mesh
 
@@ -357,7 +384,7 @@ void MainMesh::buildBackgroundMesh()
 
 }
 
-void MainMesh::buidGlassShadowMesh()
+void MainMesh::buidGlassShadow()
 {
   const float pixSize = Globals::mainArrayTexturePixelSize;
   const float shadowWidth = 0.15f;
@@ -472,7 +499,7 @@ void MainMesh::buidGlassShadowMesh()
   }
 }
 
-void MainMesh::buidGlassBlocksMesh()
+void MainMesh::buidGlassBlocks()
 {
   const float pixSize = Globals::mainArrayTexturePixelSize;
   const float scale = Globals::glassSize.x / model.glassWidth;
@@ -556,7 +583,7 @@ void MainMesh::buidGlassBlocksMesh()
   }
 }
 
-void MainMesh::biuldGlassGlowMesh()
+void MainMesh::biuldGlassGlow()
 {
   const float pixSize = Globals::mainArrayTexturePixelSize;
   const float glowWidth = 0.5f;
@@ -758,7 +785,7 @@ void MainMesh::biuldGlassGlowMesh()
   }
 }
 
-void MainMesh::buildFigureBlocksMesh()
+void MainMesh::buildFigureBlocks()
 {
   const float pixSize = Globals::mainArrayTexturePixelSize;
   const float scale = Globals::holdNextBkSize * 0.75f / 4.0f;
@@ -906,7 +933,7 @@ void MainMesh::buildFigureBlocksMesh()
   }
 }
 
-void MainMesh::buildFigureGlowMesh()
+void MainMesh::buildFigureGlow()
 {
   const float pixSize = Globals::mainArrayTexturePixelSize;
   const float glowWidth = 0.3f;
@@ -1174,7 +1201,7 @@ void MainMesh::buildFigureGlowMesh()
   }
 }
 
-void MainMesh::buildDropTrailsMesh()
+void MainMesh::buildDropTrails()
 {
   const glm::vec2 origin = Globals::glassPos;
   const float scale = Globals::glassSize.x / model.glassWidth;
@@ -1240,7 +1267,7 @@ void MainMesh::buildDropTrailsMesh()
   }
 }
 
-void MainMesh::buildRowFlashesMesh()
+void MainMesh::buildRowFlashes()
 {
   const glm::vec2 origin = Globals::glassPos;
   const float scale = Globals::glassSize.x / model.glassWidth;

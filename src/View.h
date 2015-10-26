@@ -44,7 +44,8 @@ public:
   View(Model & model);
   ~View();
 
-  void init();
+  void init(int winWidth, int winHeight);
+  void resize(int width, int height);
   void update();
 };
 
