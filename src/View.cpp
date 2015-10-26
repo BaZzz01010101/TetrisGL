@@ -68,6 +68,9 @@ void View::init()
   glDisable(GL_DEPTH_TEST);
   assert(!checkGlErrors());
 
+  glDepthFunc(GL_LEQUAL);
+  assert(!checkGlErrors());
+
   glEnable(GL_BLEND);
   assert(!checkGlErrors());
 
@@ -87,7 +90,6 @@ void View::init()
   assert(!checkGlErrors());
 
   glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-  //glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   assert(!checkGlErrors());
 
   glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_LOD_BIAS, -1);
@@ -96,6 +98,21 @@ void View::init()
 
 void View::update()
 {
+  if (model.showWireframe)
+  {
+    glDisable(GL_BLEND);
+    assert(!checkGlErrors());
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    assert(!checkGlErrors());
+  }
+  else
+  {
+    glEnable(GL_BLEND);
+    assert(!checkGlErrors());
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    assert(!checkGlErrors());
+  }
+
   if (model.glassChanged)
   {
     mainMesh.rebuild();

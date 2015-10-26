@@ -133,7 +133,7 @@ Cell * MainMesh::getGlassCell(int x, int y)
 
   Cell * cell = model.glass.data() + x + y * model.glassWidth;
 
-  if (!cell->figureId && model.startFallTimer < 0.0)
+  if (!cell->figureId && !model.haveFallingRows)
   {
     bool isInCurFigure =
       x >= model.curFigureX &&
@@ -369,9 +369,9 @@ void MainMesh::buidGlassShadowMesh()
   {
     Cell * cell = getGlassCell(x, y);
     glm::vec2 origin = Globals::glassPos;
-
+    
     if (model.rowElevation[y])
-      origin.y += glm::max<float>(scale * model.getRowCurrentElevation(y), 0.0f);
+      origin.y += scale * model.rowCurrentElevation[y];
 
     if (cell->figureId)
     {
@@ -482,9 +482,9 @@ void MainMesh::buidGlassBlocksMesh()
   {
     Cell * cell = getGlassCell(x, y);
     glm::vec2 origin = Globals::glassPos;
-
+    
     if (model.rowElevation[y])
-      origin.y += glm::max<float>(scale * model.getRowCurrentElevation(y), 0.0f);
+      origin.y += scale * model.rowCurrentElevation[y];
 
     if (cell && cell->figureId)
     {
@@ -571,7 +571,7 @@ void MainMesh::biuldGlassGlowMesh()
     glm::vec2 origin = Globals::glassPos;
 
     if (model.rowElevation[y])
-      origin.y += glm::max<float>(scale * model.getRowCurrentElevation(y), 0.0f);
+      origin.y += scale * model.rowCurrentElevation[y];
 
     if (cell->figureId)
     {
@@ -1246,20 +1246,20 @@ void MainMesh::buildRowFlashesMesh()
   const float scale = Globals::glassSize.x / model.glassWidth;
   const float pixSize = Globals::mainArrayTexturePixelSize;
 
-  for (std::list<RowFlash>::iterator it = model.rowFlashes.begin(); it != model.rowFlashes.end(); ++it)
-  {
-    float prg = it->getProgress();
-    float mul = 1.0f - cos((prg - 0.5f) * (prg < 0.5f ? 0.5f : 2.0f) * (float)M_PI_2);
-    float currentTrailAlpha = 1.25f - mul;
-    float dx = 1.0f - mul * 3.0f;
-    float dy = 0.4f - 0.9 * mul;
+  float overallProgress = glm::clamp(float(getTimer() - model.rowsDeleteTimer) / model.rowsDeletionEffectTime, 0.0f, 1.0f);
+  float mul = 1.0f - cos((overallProgress - 0.5f) * (overallProgress < 0.5f ? 0.5f : 2.0f) * (float)M_PI_2);
+  float currentTrailAlpha = 1.25f - mul;
+  float dx = 1.0f - mul * 3.0f;
+  float dy = 0.4f - 0.9f * mul;
 
+  for (std::vector<int>::iterator it = model.deletedRows.begin(); it != model.deletedRows.end(); ++it)
+  {
     glm::vec2 verts[4] =
     {
-      { 0.0f - dx, -it->y + dy },
-      { model.glassWidth + dx, -it->y + dy },
-      { 0.0f - dx, -it->y - 1.0f - dy },
-      { model.glassWidth + dx, -it->y - 1.0f - dy },
+      { 0.0f - dx, -*it + dy },
+      { model.glassWidth + dx, -*it + dy },
+      { 0.0f - dx, -*it - 1.0f - dy },
+      { model.glassWidth + dx, -*it - 1.0f - dy },
     };
 
     glm::vec2 uv[4] =
@@ -1279,4 +1279,121 @@ void MainMesh::buildRowFlashesMesh()
     addVertex(origin + scale * verts[2], uv[2], Globals::rowFlashTexIndex, color, 0.0f);
     addVertex(origin + scale * verts[3], uv[3], Globals::rowFlashTexIndex, color, 0.0f);
   }
+
+  if (!model.deletedRows.empty())
+  {
+    float shineProgress = glm::clamp(overallProgress / 0.75f, 0.0f, 1.0f);
+    float ltX = (3.0f * shineProgress - 1.0f) * model.glassWidth;
+    float ltY = 0.5f * (model.deletedRows.front() + model.deletedRows.back() + 1.0f);
+
+    for (std::set<Model::CellCoord>::iterator vertGapsIt = model.deletedRowVertGaps.begin();
+      vertGapsIt != model.deletedRowVertGaps.end();
+      ++vertGapsIt)
+    {
+      float gapX = float(vertGapsIt->x);
+      float gapY1 = float(vertGapsIt->y);
+      float gapY2 = float(vertGapsIt->y + 1);
+      float ltDX = gapX - ltX;
+      float ltDY1 = gapY1 - ltY;
+      float ltDY2 = gapY2 - ltY;
+      const float leverRatio = 8.0f;
+      float rayEndDX = ltDX * leverRatio;
+      float rayEndDY1 = ltDY1 * leverRatio;
+      float rayEndDY2 = ltDY2 * leverRatio;
+
+      glm::vec2 uv[4] =
+      {
+        { 0.5f, pixSize },
+        { pixSize, 1.0f - pixSize },
+        { 1.0f - pixSize, 1.0f - pixSize },
+      };
+
+      float relDX = glm::clamp(fabs(ltDX / model.glassWidth), 0.0f, 1.0f);
+      float alphaMul = 1.0f - 2.0f * fabs(0.5f - glm::clamp(relDX * relDX, 0.1f, 1.0f));
+
+      glm::vec3 colors[3] =
+      {
+        glm::vec3(alphaMul),
+        glm::vec3(0.0f),
+        glm::vec3(0.0f),
+      };
+
+      glm::vec2 verts[3] =
+      {
+        { origin.x + scale * ltX, origin.y - scale * ltY },
+        { origin.x + scale * (gapX + rayEndDX), origin.y - scale * (gapY1 + rayEndDY1) },
+        { origin.x + scale * (gapX + rayEndDX), origin.y - scale * (gapY2 + rayEndDY2) },
+      };
+
+    //  for (int i = 1; i < 3; i++)
+    //  {
+    //    float mulX = 1.0f;
+    //    float mulY = 1.0f;
+
+    //    if (verts[i].x > Globals::gameBkPos.x + Globals::gameBkSize.x && verts[i].x - verts[0].x > VERY_SMALL_NUMBER)
+    //    {
+    //      mulY = (Globals::gameBkPos.x + Globals::gameBkSize.x - verts[0].x) / (verts[i].x - verts[0].x);
+    //      verts[i].x = Globals::gameBkPos.x + Globals::gameBkSize.x;
+    //      verts[i].y = verts[0].y + (verts[i].y - verts[0].y) * mulY;
+    //    }
+
+    //    if (verts[i].y < Globals::gameBkPos.y - Globals::gameBkSize.y && verts[i].y - verts[0].y > VERY_SMALL_NUMBER)
+    //    {
+    //      mulX = (Globals::gameBkPos.y - Globals::gameBkSize.y - verts[0].y) / (verts[i].y - verts[0].y);
+    //      verts[i].y = Globals::gameBkPos.y - Globals::gameBkSize.y;
+    //      verts[i].y = verts[0].x + (verts[i].x - verts[0].x) * mulX;
+    //    }
+
+    //    colors[i] = glm::vec3(alphaMul * (1.0f - mulX * mulY));
+    //  }
+      addVertex(verts[0], uv[0], Globals::rowShineRayTexIndex, colors[0], 0.0f);
+      addVertex(verts[1], uv[1], Globals::rowShineRayTexIndex, colors[1], 0.0f);
+      addVertex(verts[2], uv[2], Globals::rowShineRayTexIndex, colors[2], 0.0f);
+    }
+
+    //for (std::set<Model::CellCoord>::iterator vertGapsIt = model.deletedRowHorzGaps.begin();
+    //  vertGapsIt != model.deletedRowHorzGaps.end();
+    //  ++vertGapsIt)
+    //{
+    //  float gapX = (float)vertGapsIt->x;
+    //  float gapY = -(float)vertGapsIt->y;
+    //  float ltSourceDX1 = ltX - gapX;
+    //  float ltSourceDX2 = ltX - gapX - 1.0f;
+    //  float ltSourceDY = (ltY - gapY);
+    //  float ltSourceMidDX = ltX - (gapX - 0.5f);
+    //  const float leverRatio = 11.0f;
+    //  float ltDestDX1 = -ltSourceDX1 * leverRatio;
+    //  float ltDestDX2 = -ltSourceDX2 * leverRatio;
+    //  float ltDestDY = -ltSourceDY * leverRatio;
+
+    //  glm::vec2 uv[4] =
+    //  {
+    //    { 0.5f, pixSize },
+    //    { pixSize, 1.0f - pixSize },
+    //    { 1.0f - pixSize, 1.0f - pixSize },
+    //  };
+
+    //  float relDX = glm::clamp(fabs(ltSourceMidDX / model.glassWidth), 0.0f, 1.0f);
+    //  float alphaMul = 1.0f - 2.0f * fabs(0.5f - glm::clamp(relDX * relDX, 0.1f, 1.0f));
+
+    //  glm::vec3 color[3] =
+    //  {
+    //    glm::vec3(alphaMul),
+    //    glm::vec3(0.0f),
+    //    glm::vec3(0.0f),
+    //  };
+
+    //  glm::vec2 verts[3] =
+    //  {
+    //    { gapX + 0.5f + ltSourceMidDX, gapY + ltSourceDY },
+    //    { gapX + 0.5f + ltDestDX1, gapY + ltDestDY },
+    //    { gapX + 0.5f + ltDestDX2, gapY + ltDestDY },
+    //  };
+
+      //addVertex(origin + scale * verts[0], uv[0], Globals::rowShineRayTexIndex, color1, 0.0f);
+      //addVertex(origin + scale * verts[1], uv[1], Globals::rowShineRayTexIndex, color2, 0.0f);
+      //addVertex(origin + scale * verts[2], uv[2], Globals::rowShineRayTexIndex, color2, 0.0f);
+    //}
+  }
 }
+

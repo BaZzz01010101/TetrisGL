@@ -26,6 +26,7 @@ public:
   static int dropTrailTexIndex;
   static int dropSparkleTexIndex;
   static int rowFlashTexIndex;
+  static int rowShineRayTexIndex;
   static const int nextFiguresCount = 3;
   static glm::vec2 gameBkPos;
   static glm::vec2 gameBkSize;

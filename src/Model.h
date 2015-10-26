@@ -1,12 +1,12 @@
 #pragma once
 #include <vector>
 #include <list>
+#include <set>
 
 #include "Cell.h"
 #include "Figure.h"
 #include "DropSparkle.h"
 #include "DropTrail.h"
-#include "RowFlash.h"
 
 class Model
 {
@@ -25,7 +25,6 @@ private:
   void checkGlassRows();
   void proceedFallingRows();
   void createDropTrail(int x, int y, int height, Globals::Color color);
-  void createRowFlash(int y);
   void deleteObsoleteEffects();
 
 public:
@@ -45,17 +44,30 @@ public:
   bool justHolded;
   bool glassChanged;
   bool nextFiguresChanged;
-  double startFallTimer;
+  bool haveFallingRows;
+  double rowsDeleteTimer;
   std::vector<int> rowElevation;
+  std::vector<float> rowCurrentElevation;
   std::list<DropTrail> dropTrails;
-  std::list<RowFlash> rowFlashes;
+  const float rowsDeletionEffectTime;
+  std::vector<int> deletedRows;
+  struct CellCoord
+  { 
+    int x, y; 
+    inline CellCoord(int x, int y) : x(x), y(y) {}
+    inline bool operator < (const CellCoord & left) const { return left.x < x || (left.x == x && left.y < y); }
+  };
+  std::set<CellCoord> deletedRowHorzGaps;
+  std::set<CellCoord> deletedRowVertGaps;
+  double mouseX;
+  double mouseY;
+  bool showWireframe;
 
   Model();
   ~Model();
 
   void update();
 
-  float getRowCurrentElevation(int row);
   void holdCurrentFigure();
   void dropCurrentFigure();
   void rotateCurrentFigureLeft();

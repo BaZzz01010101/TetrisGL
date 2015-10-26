@@ -12,8 +12,11 @@ Model::Model() :
   haveHold(false),
   justHolded(false),
   glassChanged(false),
+  haveFallingRows(false),
   nextFiguresChanged(false),
-  startFallTimer(-1.0)
+  showWireframe(false),
+  rowsDeleteTimer(-1.0),
+  rowsDeletionEffectTime(1.0f)
 {
 }
 
@@ -27,7 +30,8 @@ void Model::initGameProceed(int glassWidth, int glassHeight)
   curLevel = 1;
   this->glassWidth = glassWidth;
   this->glassHeight = glassHeight;
-  rowElevation.resize(glassHeight);
+  rowElevation.assign(glassHeight, 0);
+  rowCurrentElevation.assign(glassHeight, 0.0f);
   glass.assign(glassWidth * glassHeight, Cell(0, Globals::Color::clNone));
   lastStepTimer = getTimer();
   
@@ -60,10 +64,10 @@ void Model::update()
 void Model::playingGameProceed()
 {
   double curTime = getTimer();
-  const float forceDownStepTime = 0.025f;
+  const float forceDownStepTime = 0.04f;
   const float stepTime = forceDown ? forceDownStepTime : getStepTime();
 
-  if (startFallTimer > 0.0)
+  if (haveFallingRows)
     lastStepTimer = getTimer();
   else if (curTime > lastStepTimer + stepTime)
   {
@@ -81,8 +85,7 @@ void Model::playingGameProceed()
     lastStepTimer = curTime;
   }
 
-  if (startFallTimer > 0.0)
-    proceedFallingRows();
+  proceedFallingRows();
 
   deleteObsoleteEffects();
 }
@@ -307,17 +310,33 @@ void Model::checkGlassRows()
       if (glass[x + y * glassWidth].isEmpty())
         fullRow = false;
 
-      if (fullRow)
+    if (fullRow)
+    {
+      elevation++;
+      deletedRows.push_back(y);
+
+      for (int x = 0; x <= glassWidth; x++)
       {
-        elevation++;
-        createRowFlash(y);
+        if (!x || x == glassWidth || glass[x + y * glassWidth].figureId != glass[x - 1 + y * glassWidth].figureId)
+          deletedRowVertGaps.insert(CellCoord(x, y));
+
+        if (x < glassWidth)
+        {
+          if (!y || glass[x + y * glassWidth].figureId != glass[x + (y - 1) * glassWidth].figureId)
+            deletedRowHorzGaps.insert(CellCoord(x, y));
+
+          if (y == glassHeight - 1 || glass[x + y * glassWidth].figureId != glass[x + (y + 1) * glassWidth].figureId)
+            deletedRowHorzGaps.insert(CellCoord(x, y + 1));
+        }
       }
+    }
     else if (elevation)
     {
       for (int x = 0; x < glassWidth; x++)
       {
         glass[x + (y + elevation) * glassWidth] = glass[x + y * glassWidth];
         rowElevation[y + elevation] = elevation;
+        rowCurrentElevation[y + elevation] = (float)elevation;
       }
     }
   }
@@ -326,39 +345,31 @@ void Model::checkGlassRows()
     glass[i].clear();
 
   if (elevation)
-    startFallTimer = getTimer();
+  {
+    haveFallingRows = true;
+    rowsDeleteTimer = getTimer();
+  }
 }
 
 void Model::proceedFallingRows()
 {
-  bool stillFalling = false;
-
-  if (startFallTimer > 0.0)
+  if (haveFallingRows)
   {
+    haveFallingRows = false;
+    float timePassed = float(getTimer() - rowsDeleteTimer);
+
     for (int y = 0; y < glassHeight; y++)
     for (int x = 0; x < glassWidth; x++)
-    if (rowElevation[y])
+    if (rowElevation[y] > 0)
     {
-      if (getRowCurrentElevation(y) < 0.0f)
-        rowElevation[y] = 0;
+      rowCurrentElevation[y] = glm::max(float(rowElevation[y]) - 25.0f * timePassed * timePassed * timePassed, 0.0f);
+
+      if (rowCurrentElevation[y] > 0.0f)
+        haveFallingRows = true;
       else
-        stillFalling = true;
+        rowElevation[y] = 0;
     }
-
-    if (!stillFalling)
-      startFallTimer = -1.0f;
   }
-}
-
-float Model::getRowCurrentElevation(int row)
-{
-  if (startFallTimer < 0.0f)
-    return 0.0f;
-
-  const float acceleration = 50.0f;
-  float timePassed = float(getTimer() - startFallTimer);
-
-  return float(rowElevation[row]) - 0.5f * acceleration * timePassed * timePassed * timePassed;
 }
 
 void Model::createDropTrail(int x, int y, int height, Globals::Color color)
@@ -369,13 +380,6 @@ void Model::createDropTrail(int x, int y, int height, Globals::Color color)
   dropTrail.y = y;
   dropTrail.color = color;
   dropTrail.height = height;
-}
-
-void Model::createRowFlash(int y)
-{
-  rowFlashes.emplace_back();
-  RowFlash & rowFlash = rowFlashes.back();
-  rowFlash.y = y;
 }
 
 void Model::deleteObsoleteEffects()
@@ -392,15 +396,10 @@ void Model::deleteObsoleteEffects()
     else ++dropTrail;
   }
 
-  std::list<RowFlash>::iterator rowFlash = rowFlashes.begin();
-
-  while (rowFlash != rowFlashes.end())
+  if (!deletedRows.empty() && getTimer() - rowsDeleteTimer > rowsDeletionEffectTime)
   {
-    if (rowFlash->getProgress() > 0.999f)
-    {
-      std::list<RowFlash>::iterator delIt = rowFlash++;
-      rowFlashes.erase(delIt);
-    }
-    else ++rowFlash;
+    deletedRows.clear();
+    deletedRowHorzGaps.clear();
+    deletedRowVertGaps.clear();
   }
 }

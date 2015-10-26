@@ -14,9 +14,13 @@ View view(model);
 Controller controller;
 //Game game;
 FpsCounter fps;
+int winWidth;
+int winHeight;
 
 void OnFramebufferSize(GLFWwindow * win, int width, int height)
 {
+  winWidth = width;
+  winHeight = height;
   const float gameAspect = Globals::gameBkSize.x / Globals::gameBkSize.y;
   
   if (float(width) / height > gameAspect)
@@ -54,6 +58,11 @@ void OnKeyClick(GLFWwindow * win, int key, int scancode, int action, int mods)
     case GLFW_KEY_ENTER:
       if(action != GLFW_REPEAT)
         model.forceDown = true;
+      break;
+    case GLFW_KEY_LEFT_ALT:
+    case GLFW_KEY_RIGHT_ALT:
+      model.showWireframe = true;
+      break;
     }
   }
 
@@ -64,6 +73,11 @@ void OnKeyClick(GLFWwindow * win, int key, int scancode, int action, int mods)
     {
       case GLFW_KEY_ENTER:
         model.forceDown = false;
+        break;
+      case GLFW_KEY_LEFT_ALT:
+      case GLFW_KEY_RIGHT_ALT:
+        model.showWireframe = false;
+        break;
     }
   }
   //Game::KeyMask keyMask = Game::kmNone;
@@ -108,7 +122,18 @@ void OnMouseClick(GLFWwindow * win, int button, int action, int mods)
 
 void OnMouseMove(GLFWwindow* window, double xpos, double ypos)
 {
+  const float gameAspect = Globals::gameBkSize.x / Globals::gameBkSize.y;
 
+  if (float(winWidth) / winHeight > gameAspect)
+  {
+    model.mouseX = (xpos - (winWidth - winHeight) / 2) / winHeight * 2.0f - 1.0f;
+    model.mouseY = 1.0f - ypos / winHeight * 2.0f;
+  }
+  else
+  {
+    model.mouseX = xpos * gameAspect / winWidth * 2.0f - 1.0f;
+    model.mouseY = 1.0f - (ypos - (winHeight - winWidth / gameAspect) / 2.0f) / (winWidth / gameAspect) * 2.0f;
+  }
 }
 
 int main()
@@ -138,7 +163,7 @@ int main()
       glfwSetKeyCallback(win, OnKeyClick);
       glfwSetMouseButtonCallback(win, OnMouseClick);
       glfwSetCursorPosCallback(win, OnMouseMove);
-      glfwSwapInterval(0);
+      glfwSwapInterval(1);
 
       OnFramebufferSize(win, initWinWidth, initWinHeight);
       fps.init(win);
@@ -152,7 +177,7 @@ int main()
 
         glfwSwapBuffers(win);
         glfwPollEvents();
-        //Crosy::sleep(10);
+        //Crosy::sleep(5);
       }
 
       retVal = 0;
