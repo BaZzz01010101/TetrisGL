@@ -1,3 +1,5 @@
+#include "static_headers.h"
+
 #include "DropSparkle.h"
 #include "Globals.h"
 

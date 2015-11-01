@@ -1,4 +1,7 @@
+#include "static_headers.h"
+
 #include "FpsCounter.h"
+#include "Crosy.h"
 
 
 FpsCounter::FpsCounter()

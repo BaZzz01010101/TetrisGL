@@ -1,5 +1,4 @@
 #pragma once
-#include "glall.h"
 
 class Shader
 {
@@ -14,6 +13,5 @@ public:
 
   inline GLuint getId() const { return id; }
   void compileFromString(const char * source);
-  void compileFromFile(const char * filename);
 };
 

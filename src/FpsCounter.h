@@ -1,5 +1,4 @@
 #pragma once
-#include "glall.h"
 
 class FpsCounter
 {

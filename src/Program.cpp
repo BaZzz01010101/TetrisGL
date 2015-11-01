@@ -1,3 +1,5 @@
+#include "static_headers.h"
+
 #include "Program.h"
 #include "Globals.h"
 

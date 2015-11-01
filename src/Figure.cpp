@@ -1,3 +1,5 @@
+#include "static_headers.h"
+
 #include "Figure.h"
 
 int Figure::nextId = 1;
@@ -63,7 +65,7 @@ void Figure::buildFigure(Type type)
     assert(0);
   }
 
-  assert(strlen(cdata) == dim * dim);
+  assert((int)strlen(cdata) == dim * dim);
 
   cells.clear();
 

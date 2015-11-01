@@ -1,4 +1,7 @@
+#include "static_headers.h"
+
 #include "Globals.h"
+#include "Crosy.h"
 
 glm::vec3 Globals::ColorValues[7] =
 {
@@ -27,18 +30,25 @@ int Globals::dropSparkleTexIndex = 8;
 int Globals::rowFlashTexIndex = 9;
 int Globals::rowShineRayTexIndex = 10;
 int Globals::rowShineLightTexIndex = 11;
-glm::vec2 Globals::gameBkPos(-0.7f, 1.0f);
-glm::vec2 Globals::gameBkSize(1.4f, 2.0f);
-glm::vec2 Globals::glassPos(-0.4f, 0.75f);
-glm::vec2 Globals::glassSize(0.8f, 1.6f);
-float Globals::holdNextTitleHeight = 0.05f;
+int Globals::sidePanelGlowingBorderTexIndex = 12;
+int Globals::sidePanelInnerGlowTexIndex = 13;
+int Globals::levelGoalBkTexIndex = 14;
+int Globals::fontFirstTexIndex = 15;
+glm::vec2 Globals::gameBkPos(-0.75f, 1.0f);
+glm::vec2 Globals::gameBkSize(1.5f, 2.0f);
+glm::vec2 Globals::glassPos(-0.45f, 0.85f);
+glm::vec2 Globals::glassSize(0.9f, 1.8f);
+float Globals::dafaultCaptionHeight = 0.05f;
 float Globals::holdNextBkHorzGap = 0.04f;
 float Globals::holdNextBkSize = 0.2f;
-float Globals::scoreBarGap = 0.001f;
-float Globals::scoreBarHeight = 0.04f;
-float Globals::scoreBarScoreWidth = 0.35f;
+float Globals::scoreBarGaps = 0.01f;
+float Globals::scoreBarHeight = 0.1f;
+float Globals::scoreBarCaptionWidth = 0.45f;
 float Globals::scoreBarMenuWidth = 0.25f;
-float Globals::scoreBarValueWidth = Globals::gameBkSize.x - Globals::scoreBarScoreWidth - Globals::scoreBarMenuWidth;
+float Globals::scoreBarValueWidth = Globals::gameBkSize.x - Globals::scoreBarCaptionWidth - Globals::scoreBarMenuWidth;
+int Globals::smallFontSize = 24;
+int Globals::midFontSize = 32;
+int Globals::bigFontSize = 48;
 
 Globals::Globals()
 {
@@ -99,5 +109,8 @@ double getTimer()
   static double freq = (double)Crosy::getPerformanceFrequency();
   assert(freq);
 
-  return double(Crosy::getPerformanceCounter()) / freq;
+  if (freq > VERY_SMALL_NUMBER)
+    return double(Crosy::getPerformanceCounter()) / freq;
+  else
+    return 0.0;
 }

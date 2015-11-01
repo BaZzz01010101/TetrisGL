@@ -1,13 +1,13 @@
+#include "static_headers.h"
+
 #include "Crosy.h"
-#include <iostream>
-#include <GL/glew.h>
-#include <GL/glfw3.h>
-//#include "Game.h"
 #include "FpsCounter.h"
 #include "Globals.h"
 #include "Model.h"
 #include "View.h"
 #include "Controller.h"
+
+#pragma warning(disable : 4100)
 
 Model model;
 View view(model);
@@ -121,17 +121,20 @@ void OnMouseClick(GLFWwindow * win, int button, int action, int mods)
 
 void OnMouseMove(GLFWwindow* window, double xpos, double ypos)
 {
-  const float gameAspect = Globals::gameBkSize.x / Globals::gameBkSize.y;
+  if (winWidth && winHeight)
+  {
+    const float gameAspect = Globals::gameBkSize.x / Globals::gameBkSize.y;
 
-  if (float(winWidth) / winHeight > gameAspect)
-  {
-    model.mouseX = (xpos - (winWidth - winHeight) / 2) / winHeight * 2.0f - 1.0f;
-    model.mouseY = 1.0f - ypos / winHeight * 2.0f;
-  }
-  else
-  {
-    model.mouseX = xpos * gameAspect / winWidth * 2.0f - 1.0f;
-    model.mouseY = 1.0f - (ypos - (winHeight - winWidth / gameAspect) / 2.0f) / (winWidth / gameAspect) * 2.0f;
+    if (float(winWidth) / winHeight > gameAspect)
+    {
+      model.mouseX = (xpos - (winWidth - winHeight) / 2) / winHeight * 2.0f - 1.0f;
+      model.mouseY = 1.0f - ypos / winHeight * 2.0f;
+    }
+    else
+    {
+      model.mouseX = xpos * gameAspect / winWidth * 2.0f - 1.0f;
+      model.mouseY = 1.0f - (ypos - (winHeight - winWidth / gameAspect) / 2.0f) / (winWidth / gameAspect) * 2.0f;
+    }
   }
 }
 

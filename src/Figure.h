@@ -1,10 +1,5 @@
 #pragma once
-#include <assert.h>
-#include <vector>
-
 #include "Cell.h"
-//#include "Program.h"
-//#include "Shader.h"
 
 class Figure
 {

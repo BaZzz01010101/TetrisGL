@@ -1,12 +1,10 @@
-#include <assert.h>
+#include "static_headers.h"
 
 #include "Model.h"
 #include "Crosy.h"
 
 Model::Model() :
-  maxLevel(100),
-  maxStepTime(1.0f),
-  minStepTime(0.05f),
+  maxLevel(20),
   gameState(gsStartGame),
   forceDown(false),
   haveHold(false),
@@ -16,7 +14,7 @@ Model::Model() :
   nextFiguresChanged(false),
   showWireframe(false),
   rowsDeleteTimer(-1.0),
-  rowsDeletionEffectTime(1.0f)
+  rowsDeletionEffectTime(0.8f)
 {
 }
 
@@ -28,6 +26,8 @@ Model::~Model()
 void Model::initGameProceed(int glassWidth, int glassHeight)
 {
   curLevel = 1;
+  curScore = 0;
+  curGoal = 5;
   this->glassWidth = glassWidth;
   this->glassHeight = glassHeight;
   rowElevation.assign(glassHeight, 0);
@@ -92,7 +92,12 @@ void Model::playingGameProceed()
 
 float Model::getStepTime()
 {
-  return maxStepTime - (maxStepTime - minStepTime) * curLevel / maxLevel;
+  const float maxStepTime = 1.0f;
+  const float minStepTime = 0.0f;
+  float opRelLevel = 1.0f - float(curLevel) / maxLevel;
+  float k = 1.0f - opRelLevel * opRelLevel;
+
+  return maxStepTime - (maxStepTime - minStepTime) * k;
 }
 
 void Model::storeCurFigureIntoGlass()
@@ -241,6 +246,8 @@ void Model::dropCurrentFigure()
 
   if (y1 - y0 > 0)
   {
+    curScore += (y1 - y0) / 2;
+
     for (int x = 0; x < dim; x++)
     for (int y = 0; y < dim; y++)
     {
@@ -318,16 +325,7 @@ void Model::checkGlassRows()
       for (int x = 0; x <= glassWidth; x++)
       {
         if (!x || x == glassWidth || glass[x + y * glassWidth].figureId != glass[x - 1 + y * glassWidth].figureId)
-          deletedRowVertGaps.insert(CellCoord(x, y));
-
-        if (x < glassWidth)
-        {
-          if (!y || glass[x + y * glassWidth].figureId != glass[x + (y - 1) * glassWidth].figureId)
-            deletedRowHorzGaps.insert(CellCoord(x, y));
-
-          if (y == glassHeight - 1 || glass[x + y * glassWidth].figureId != glass[x + (y + 1) * glassWidth].figureId)
-            deletedRowHorzGaps.insert(CellCoord(x, y + 1));
-        }
+          deletedRowGaps.insert(CellCoord(x, y));
       }
     }
     else if (elevation)
@@ -348,6 +346,16 @@ void Model::checkGlassRows()
   {
     haveFallingRows = true;
     rowsDeleteTimer = getTimer();
+    curScore += elevation * elevation * 10;
+    curGoal -= (int)pow(elevation, 1.5f);
+
+    if (curGoal <= 0)
+    {
+      curLevel++;
+      curGoal = curLevel * 5;
+    }
+//    curLevel = 0.5f * (sqrt(1 + 8 * curScore / 100) - 1) + 1;
+//    curGoal = curLevel * 10;
   }
 }
 
@@ -399,7 +407,6 @@ void Model::deleteObsoleteEffects()
   if (!deletedRows.empty() && getTimer() - rowsDeleteTimer > rowsDeletionEffectTime)
   {
     deletedRows.clear();
-    deletedRowHorzGaps.clear();
-    deletedRowVertGaps.clear();
+    deletedRowGaps.clear();
   }
 }

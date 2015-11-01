@@ -1,9 +1,10 @@
-#define _USE_MATH_DEFINES
-#include <math.h>
+#include "static_headers.h"
+
 #include "MainMesh.h"
 #include "Globals.h"
 #include "DropSparkle.h"
 #include "DropTrail.h"
+#include "Crosy.h"
 
 MainMesh::MainMesh(Model & model) :
   figureVert(GL_VERTEX_SHADER),
@@ -59,7 +60,7 @@ void MainMesh::init()
     "  vec4 texcol = texture(tex, uvw).rgba;"
     "  float alpha = (1.0f - texcol.b) * color.a;"
     "  vec3 rgb = mix(texcol.r * color.rgb, texcol.rrr, texcol.g);"
-    "  out_color = vec4(rgb + (2.0f - rand(pixPos)) / 150.0f * alpha, alpha);"
+    "  out_color = vec4(rgb * (1.0f + (rand(pixPos) - 0.5f) / 30.0f * alpha), alpha);"
     "}");
 
   figureProg.attachShader(figureVert);
@@ -67,6 +68,76 @@ void MainMesh::init()
   figureProg.link();
   figureProg.use();
   figureProg.setUniform("tex", 0);
+
+  std::string backPath = Crosy::getExePath() + "\\textures\\blocks.png";
+  int width, height, channels;
+  unsigned char * img = SOIL_load_image(backPath.c_str(), &width, &height, &channels, SOIL_LOAD_RGBA);
+  assert(width == Globals::mainArrayTextureSize);
+  assert(!(height % Globals::mainArrayTextureSize));
+
+  glGenTextures(1, &Globals::mainArrayTextureId);
+  assert(!checkGlErrors());
+  glBindTexture(GL_TEXTURE_2D_ARRAY, Globals::mainArrayTextureId);
+  assert(!checkGlErrors());
+  const int glyphsQty = 37 * 3;
+  const int textureQty = height / Globals::mainArrayTextureSize;
+  glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, Globals::mainArrayTextureSize, Globals::mainArrayTextureSize, textureQty + glyphsQty, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+  assert(!checkGlErrors());
+  glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, Globals::mainArrayTextureSize, Globals::mainArrayTextureSize, textureQty, GL_RGBA, GL_UNSIGNED_BYTE, img);
+  assert(!checkGlErrors());
+  SOIL_free_image_data(img);
+
+  FT_Error err;
+  err = FT_Init_FreeType(&ftLibrary);
+  assert(!err);
+  //err = FT_New_Face(ftLibrary, (Crosy::getExePath() + "/fonts/Montserrat-Regular.ttf").c_str(), 0, &ftFace);
+  err = FT_New_Face(ftLibrary, (Crosy::getExePath() + "/fonts/Montserrat-Bold.otf").c_str(), 0, &ftFace);
+  assert(!err);
+  err = FT_Set_Char_Size(ftFace, Globals::smallFontSize * 64, Globals::smallFontSize * 64, 64, 64);
+  assert(!err);
+
+  for (char ch = '0'; ch <= '9'; ch++)
+    loadGlyph(ch, Globals::smallFontSize);
+
+  for (char ch = 'A'; ch <= 'Z'; ch++)
+    loadGlyph(ch, Globals::smallFontSize);
+
+  loadGlyph(' ', Globals::smallFontSize);
+
+  err = FT_Set_Char_Size(ftFace, Globals::midFontSize * 64, Globals::midFontSize * 64, 64, 64);
+  assert(!err);
+
+  for (char ch = '0'; ch <= '9'; ch++)
+    loadGlyph(ch, Globals::midFontSize);
+
+  for (char ch = 'A'; ch <= 'Z'; ch++)
+    loadGlyph(ch, Globals::midFontSize);
+
+  loadGlyph(' ', Globals::midFontSize);
+
+  err = FT_Set_Char_Size(ftFace, Globals::bigFontSize * 64, Globals::bigFontSize * 64, 64, 64);
+  assert(!err);
+
+  for (char ch = '0'; ch <= '9'; ch++)
+    loadGlyph(ch, Globals::bigFontSize);
+
+  for (char ch = 'A'; ch <= 'Z'; ch++)
+    loadGlyph(ch, Globals::bigFontSize);
+
+  loadGlyph(' ', Globals::midFontSize);
+
+  glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
+  assert(!checkGlErrors());
+
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  assert(!checkGlErrors());
+
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR); //GL_LINEAR_MIPMAP_LINEAR);
+  assert(!checkGlErrors());
+
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_LOD_BIAS, -1);
+  assert(!checkGlErrors());
+
 }
 
 void MainMesh::rebuild()
@@ -200,19 +271,23 @@ void MainMesh::sendToDevice()
 
 void MainMesh::buildBackground()
 {
-  // add game base background to mesh
+  const float pixSize = Globals::mainArrayTexturePixelSize;
+
+  // add game base background to the mesh
 
   glm::vec2 origin = Globals::gameBkPos;
+  const int xTess = 6;
+  const int yTess = 6;
 
-  for (int y = 0, height = 6; y < height; y++)
-  for (int x = 0, width = 6; x < width; x++)
+  for (int y = 0; y < yTess; y++)
+  for (int x = 0; x < xTess; x++)
   {
     glm::vec2 verts[4] =
     {
-      { Globals::gameBkSize.x * x / width,       -Globals::gameBkSize.y * y / height },
-      { Globals::gameBkSize.x * x / width,       -Globals::gameBkSize.y * (y + 1) / height },
-      { Globals::gameBkSize.x * (x + 1) / width, -Globals::gameBkSize.y * y / height },
-      { Globals::gameBkSize.x * (x + 1) / width, -Globals::gameBkSize.y * (y + 1) / height },
+      { Globals::gameBkSize.x * x / xTess,       -Globals::gameBkSize.y * y / yTess },
+      { Globals::gameBkSize.x * x / xTess,       -Globals::gameBkSize.y * (y + 1) / yTess },
+      { Globals::gameBkSize.x * (x + 1) / xTess, -Globals::gameBkSize.y * y / yTess },
+      { Globals::gameBkSize.x * (x + 1) / xTess, -Globals::gameBkSize.y * (y + 1) / yTess },
     };
 
     const float xReps = 80.0f;
@@ -223,23 +298,23 @@ void MainMesh::buildBackground()
 
     glm::vec2 uv[4] =
     {
-      { xVal * x / width, yVal * y / height },
-      { xVal * x / width, yVal * (y + 1) / height },
-      { xVal * (x + 1) / width, yVal * y / height },
-      { xVal * (x + 1) / width, yVal * (y + 1) / height },
+      { xVal * x / xTess, yVal * y / yTess },
+      { xVal * x / xTess, yVal * (y + 1) / yTess },
+      { xVal * (x + 1) / xTess, yVal * y / yTess },
+      { xVal * (x + 1) / xTess, yVal * (y + 1) / yTess },
     };
 
-    float fx0 = float(abs(width - 2 * x)) / width;
-    float fy0 = float(y) / height;
-    float fx1 = float(abs(width - 2 * (x + 1))) / width;
-    float fy1 = float(y + 1) / height;
+    float fx0 = float(abs(xTess - 2 * x)) / xTess;
+    float fy0 = float(y) / yTess;
+    float fx1 = float(abs(xTess - 2 * (x + 1))) / xTess;
+    float fy1 = float(y + 1) / yTess;
 
     float light[4] =
     {
-      1.0f - sqrtf(fx0 * fx0 + fy0 * fy0) / float(M_SQRT2),
-      1.0f - sqrtf(fx0 * fx0 + fy1 * fy1) / float(M_SQRT2),
-      1.0f - sqrtf(fx1 * fx1 + fy0 * fy0) / float(M_SQRT2),
-      1.0f - sqrtf(fx1 * fx1 + fy1 * fy1) / float(M_SQRT2),
+      1.0f - sqrtf(fx0 * fx0 + fy0 * fy0) / M_SQRT2,
+      1.0f - sqrtf(fx0 * fx0 + fy1 * fy1) / M_SQRT2,
+      1.0f - sqrtf(fx1 * fx1 + fy0 * fy0) / M_SQRT2,
+      1.0f - sqrtf(fx1 * fx1 + fy1 * fy1) / M_SQRT2,
     };
 
     glm::vec3 darkColor(0.05f, 0.1f, 0.2f);
@@ -261,36 +336,37 @@ void MainMesh::buildBackground()
     addVertex(origin + verts[3], uv[3], Globals::backgroundTexIndex, col[3], 1.0f);
   }
 
-  // add glass background to mesh
+  // add glass background to the mesh
 
   origin = Globals::glassPos;
 
-  for (int y = 0, height = 6; y < height; y++)
-  for (int x = 0, width = 6; x < width; x++)
+  for (int y = 0, yTess = 6; y < yTess; y++)
+  for (int x = 0, xTess = 6; x < xTess; x++)
   {
     glm::vec2 verts[4] =
     {
-      { Globals::glassSize.x * x / width, -Globals::glassSize.y * y / height },
-      { Globals::glassSize.x * x / width, -Globals::glassSize.y * (y + 1) / height },
-      { Globals::glassSize.x * (x + 1) / width, -Globals::glassSize.y * y / height },
-      { Globals::glassSize.x * (x + 1) / width, -Globals::glassSize.y * (y + 1) / height },
+      { Globals::glassSize.x * x / xTess, -Globals::glassSize.y * y / yTess },
+      { Globals::glassSize.x * x / xTess, -Globals::glassSize.y * (y + 1) / yTess },
+      { Globals::glassSize.x * (x + 1) / xTess, -Globals::glassSize.y * y / yTess },
+      { Globals::glassSize.x * (x + 1) / xTess, -Globals::glassSize.y * (y + 1) / yTess },
     };
 
-    float fx0 = float(abs(width - 2 * x)) / width;
-    float fy0 = float(abs(width / 4 - y)) / height;
-    float fx1 = float(abs(width - 2 * (x + 1))) / width;
-    float fy1 = float(abs(width / 4 - (y + 1))) / height;
+    float fx0 = float(abs(xTess - 2 * x)) / xTess;
+    float fy0 = float(abs(xTess / 4 - y)) / yTess;
+    float fx1 = float(abs(xTess - 2 * (x + 1))) / xTess;
+    float fy1 = float(abs(xTess / 4 - (y + 1))) / yTess;
 
     float light[4] =
     {
-      sqrtf(fx0 * fx0 + fy0 * fy0) / float(M_SQRT2),
-      sqrtf(fx0 * fx0 + fy1 * fy1) / float(M_SQRT2),
-      sqrtf(fx1 * fx1 + fy0 * fy0) / float(M_SQRT2),
-      sqrtf(fx1 * fx1 + fy1 * fy1) / float(M_SQRT2),
+      sqrtf(fx0 * fx0 + fy0 * fy0) / M_SQRT2,
+      sqrtf(fx0 * fx0 + fy1 * fy1) / M_SQRT2,
+      sqrtf(fx1 * fx1 + fy0 * fy0) / M_SQRT2,
+      sqrtf(fx1 * fx1 + fy1 * fy1) / M_SQRT2,
     };
 
     double a = 0.0f;
     static double freq = (double)Crosy::getPerformanceFrequency();
+
     if (freq)
       a = double(Crosy::getPerformanceCounter()) / freq / 300.0f;
 
@@ -331,56 +407,210 @@ void MainMesh::buildBackground()
     addVertex(origin + verts[3], uv, Globals::emptyTexIndex, col[3], 1.0f);
   }
 
+  // add score to the mesh
+
+  {
+    origin = Globals::gameBkPos + glm::vec2(Globals::scoreBarGaps, -Globals::scoreBarGaps);
+    const float height = Globals::scoreBarHeight - 2.0f * Globals::scoreBarGaps;
+    const float width1 = Globals::scoreBarCaptionWidth - 2.0f * Globals::scoreBarGaps;
+    const float width2 = Globals::scoreBarValueWidth - Globals::scoreBarGaps;
+
+    const glm::vec2 verts[8] =
+    {
+      { 0.0f, 0.0f },
+      { 0.0f, -height },
+      { width1, 0.0f },
+      { width1, -height },
+      { 0.0f, 0.0f },
+      { 0.0f, -height },
+      { width2, 0.0f },
+      { width2, -height },
+    };
+
+    const glm::vec2 uv(0.5f);
+
+    glm::vec3 color(0.0f);
+    const float alpha = 0.6f;
+
+    addVertex(origin + verts[0], uv, Globals::emptyTexIndex, color, alpha);
+    addVertex(origin + verts[1], uv, Globals::emptyTexIndex, color, alpha);
+    addVertex(origin + verts[2], uv, Globals::emptyTexIndex, color, alpha);
+    addVertex(origin + verts[1], uv, Globals::emptyTexIndex, color, alpha);
+    addVertex(origin + verts[2], uv, Globals::emptyTexIndex, color, alpha);
+    addVertex(origin + verts[3], uv, Globals::emptyTexIndex, color, alpha);
+
+    buildTextMesh("SCORE", Globals::midFontSize, 0.08f, glm::vec3(1.0f), origin.x + 0.5f * Globals::scoreBarCaptionWidth, origin.y - 0.8f * height, otCenter);
+    origin.x += Globals::scoreBarCaptionWidth;
+
+    addVertex(origin + verts[4], uv, Globals::emptyTexIndex, color, alpha);
+    addVertex(origin + verts[5], uv, Globals::emptyTexIndex, color, alpha);
+    addVertex(origin + verts[6], uv, Globals::emptyTexIndex, color, alpha);
+    addVertex(origin + verts[5], uv, Globals::emptyTexIndex, color, alpha);
+    addVertex(origin + verts[6], uv, Globals::emptyTexIndex, color, alpha);
+    addVertex(origin + verts[7], uv, Globals::emptyTexIndex, color, alpha);
+
+    std::string str = std::to_string(model.curScore);
+    buildTextMesh(str.c_str() , Globals::bigFontSize, 0.095f, glm::vec3(1.0f), origin.x + 0.5f * Globals::scoreBarValueWidth, origin.y - 0.86f * height, otCenter);
+  }
+
+  // add MENU button to mesh
+
+  {
+    glm::vec2 origin = Globals::gameBkPos;
+    origin.x += Globals::scoreBarCaptionWidth + Globals::scoreBarValueWidth;
+
+    const glm::vec2 verts[6] =
+    {
+      { 0.0f, 0.0f },
+      { 0.5f * Globals::scoreBarHeight, -0.5f * Globals::scoreBarHeight },
+      { 0.0f, -Globals::scoreBarHeight },
+      { Globals::scoreBarMenuWidth, 0.0f },
+      { Globals::scoreBarMenuWidth - 0.5f * Globals::scoreBarHeight, -0.5f * Globals::scoreBarHeight },
+      { Globals::scoreBarMenuWidth, -Globals::scoreBarHeight },
+    };
+
+    const glm::vec2 uv[2] =
+    {
+      { pixSize, pixSize },
+      { 0.25f, 0.25f },
+    };
+
+    glm::vec3 color(0.3f, 0.6f, 0.9f);
+    const float alpha = 1.0f;
+
+    addVertex(origin + verts[0], uv[0], Globals::holdFigureBkTexIndex, color, alpha);
+    addVertex(origin + verts[1], uv[1], Globals::holdFigureBkTexIndex, color, alpha);
+    addVertex(origin + verts[2], uv[0], Globals::holdFigureBkTexIndex, color, alpha);
+    addVertex(origin + verts[0], uv[0], Globals::holdFigureBkTexIndex, color, alpha);
+    addVertex(origin + verts[1], uv[1], Globals::holdFigureBkTexIndex, color, alpha);
+    addVertex(origin + verts[3], uv[0], Globals::holdFigureBkTexIndex, color, alpha);
+    addVertex(origin + verts[1], uv[1], Globals::holdFigureBkTexIndex, color, alpha);
+    addVertex(origin + verts[3], uv[0], Globals::holdFigureBkTexIndex, color, alpha);
+    addVertex(origin + verts[4], uv[1], Globals::holdFigureBkTexIndex, color, alpha);
+    addVertex(origin + verts[3], uv[0], Globals::holdFigureBkTexIndex, color, alpha);
+    addVertex(origin + verts[4], uv[1], Globals::holdFigureBkTexIndex, color, alpha);
+    addVertex(origin + verts[5], uv[0], Globals::holdFigureBkTexIndex, color, alpha);
+    addVertex(origin + verts[1], uv[1], Globals::holdFigureBkTexIndex, color, alpha);
+    addVertex(origin + verts[2], uv[0], Globals::holdFigureBkTexIndex, color, alpha);
+    addVertex(origin + verts[4], uv[1], Globals::holdFigureBkTexIndex, color, alpha);
+    addVertex(origin + verts[2], uv[0], Globals::holdFigureBkTexIndex, color, alpha);
+    addVertex(origin + verts[4], uv[1], Globals::holdFigureBkTexIndex, color, alpha);
+    addVertex(origin + verts[5], uv[0], Globals::holdFigureBkTexIndex, color, alpha);
+
+    buildTextMesh("MENU", Globals::smallFontSize, 0.06f, glm::vec3(1.0f), origin.x + 0.48f * Globals::scoreBarMenuWidth, origin.y - 0.68f * Globals::scoreBarHeight, otCenter);
+  }
+
   // add hold figure and next figure backgrounds to mesh
 
-  const float pixSize = Globals::mainArrayTexturePixelSize;
-
-  origin =
-  { 
-    Globals::glassPos.x - Globals::holdNextBkHorzGap - Globals::holdNextBkSize,
-    Globals::glassPos.y - Globals::holdNextTitleHeight 
-  };
-  
-  glm::vec2 verts[4] =
   {
-    { 0.0f,                     0.0f },
-    { 0.0f,                     -Globals::holdNextBkSize },
-    { Globals::holdNextBkSize,  0.0f },
-    { Globals::holdNextBkSize,  -Globals::holdNextBkSize },
-  };
+    origin =
+    {
+      Globals::glassPos.x - Globals::holdNextBkHorzGap - Globals::holdNextBkSize,
+      Globals::glassPos.y - Globals::dafaultCaptionHeight,
+    };
 
-  glm::vec2 uv[4] =
+    buildTextMesh("HOLD", Globals::smallFontSize, 0.055f, glm::vec3(1.0f), origin.x + 0.5f * Globals::holdNextBkSize, origin.y + 0.1f * Globals::dafaultCaptionHeight, otCenter);
+
+    const glm::vec2 verts[4] =
+    {
+      { 0.0f, 0.0f },
+      { 0.0f, -Globals::holdNextBkSize },
+      { Globals::holdNextBkSize, 0.0f },
+      { Globals::holdNextBkSize, -Globals::holdNextBkSize },
+    };
+
+    const glm::vec2 uv[4] =
+    {
+      { pixSize, pixSize },
+      { pixSize, 1.0f - pixSize },
+      { 1.0f - pixSize, pixSize },
+      { 1.0f - pixSize, 1.0f - pixSize }
+    };
+
+    glm::vec3 color(0.5f);
+
+    if (model.holdFigure.color != Globals::Color::clNone)
+      color = Globals::ColorValues[model.holdFigure.color];
+
+    addVertex(origin + verts[0], uv[0], Globals::holdFigureBkTexIndex, color, 1.0f);
+    addVertex(origin + verts[1], uv[1], Globals::holdFigureBkTexIndex, color, 1.0f);
+    addVertex(origin + verts[2], uv[2], Globals::holdFigureBkTexIndex, color, 1.0f);
+    addVertex(origin + verts[1], uv[1], Globals::holdFigureBkTexIndex, color, 1.0f);
+    addVertex(origin + verts[2], uv[2], Globals::holdFigureBkTexIndex, color, 1.0f);
+    addVertex(origin + verts[3], uv[3], Globals::holdFigureBkTexIndex, color, 1.0f);
+
+    origin.x += Globals::holdNextBkSize + Globals::glassSize.x + 2.0f * Globals::holdNextBkHorzGap;
+
+    buildTextMesh("NEXT", Globals::smallFontSize, 0.055f, glm::vec3(1.0f), origin.x + 0.45f * Globals::holdNextBkSize, origin.y + 0.1f * Globals::dafaultCaptionHeight, otCenter);
+
+    if (model.nextFigures[0].color != Globals::Color::clNone)
+      color = Globals::ColorValues[model.nextFigures[0].color];
+
+    addVertex(origin + verts[0], uv[0], Globals::nextFigureBkTexIndex, color, 1.0f);
+    addVertex(origin + verts[1], uv[1], Globals::nextFigureBkTexIndex, color, 1.0f);
+    addVertex(origin + verts[2], uv[2], Globals::nextFigureBkTexIndex, color, 1.0f);
+    addVertex(origin + verts[1], uv[1], Globals::nextFigureBkTexIndex, color, 1.0f);
+    addVertex(origin + verts[2], uv[2], Globals::nextFigureBkTexIndex, color, 1.0f);
+    addVertex(origin + verts[3], uv[3], Globals::nextFigureBkTexIndex, color, 1.0f);
+  }
+
+// add level and goal backgrounds to mesh
+
   {
-    { pixSize,        pixSize },
-    { pixSize,        1.0f - pixSize },
-    { 1.0f - pixSize, pixSize },
-    { 1.0f - pixSize, 1.0f - pixSize }
-  };
+    origin =
+    {
+      Globals::glassPos.x - Globals::holdNextBkHorzGap - Globals::holdNextBkSize,
+      Globals::glassPos.y - 0.4f * Globals::glassSize.y,
+    };
 
-  glm::vec3 color(0.5f);
+    buildTextMesh("LEVEL", Globals::smallFontSize, 0.055f, glm::vec3(1.0f), origin.x + 0.5f * Globals::holdNextBkSize, origin.y - 0.95f * Globals::dafaultCaptionHeight, otCenter);
 
-  if (model.holdFigure.color != Globals::Color::clNone)
-    color = Globals::ColorValues[model.holdFigure.color];
+    origin.y -= Globals::dafaultCaptionHeight;
 
-  addVertex(origin + verts[0], uv[0], Globals::holdFigureBkTexIndex, color, 1.0f);
-  addVertex(origin + verts[1], uv[1], Globals::holdFigureBkTexIndex, color, 1.0f);
-  addVertex(origin + verts[2], uv[2], Globals::holdFigureBkTexIndex, color, 1.0f);
-  addVertex(origin + verts[1], uv[1], Globals::holdFigureBkTexIndex, color, 1.0f);
-  addVertex(origin + verts[2], uv[2], Globals::holdFigureBkTexIndex, color, 1.0f);
-  addVertex(origin + verts[3], uv[3], Globals::holdFigureBkTexIndex, color, 1.0f);
+    const glm::vec2 verts[4] =
+    {
+      { 0.0f, 0.0f },
+      { 0.0f, -0.6f * Globals::holdNextBkSize },
+      { Globals::holdNextBkSize, 0.0f },
+      { Globals::holdNextBkSize, -0.6f * Globals::holdNextBkSize },
+    };
 
-  origin.x += Globals::holdNextBkSize + Globals::glassSize.x + 2.0f * Globals::holdNextBkHorzGap;
+    const glm::vec2 uv[4] =
+    {
+      { pixSize, pixSize },
+      { pixSize, 1.0f - pixSize },
+      { 1.0f - pixSize, pixSize },
+      { 1.0f - pixSize, 1.0f - pixSize }
+    };
 
-  if (model.nextFigures[0].color != Globals::Color::clNone)
-    color = Globals::ColorValues[model.nextFigures[0].color];
+    glm::vec3 color(0.2f, 0.45f, 0.8f);
 
-  addVertex(origin + verts[0], uv[0], Globals::nextFigureBkTexIndex, color, 1.0f);
-  addVertex(origin + verts[1], uv[1], Globals::nextFigureBkTexIndex, color, 1.0f);
-  addVertex(origin + verts[2], uv[2], Globals::nextFigureBkTexIndex, color, 1.0f);
-  addVertex(origin + verts[1], uv[1], Globals::nextFigureBkTexIndex, color, 1.0f);
-  addVertex(origin + verts[2], uv[2], Globals::nextFigureBkTexIndex, color, 1.0f);
-  addVertex(origin + verts[3], uv[3], Globals::nextFigureBkTexIndex, color, 1.0f);
+    addVertex(origin + verts[0], uv[0], Globals::levelGoalBkTexIndex, color, 1.0f);
+    addVertex(origin + verts[1], uv[1], Globals::levelGoalBkTexIndex, color, 1.0f);
+    addVertex(origin + verts[2], uv[2], Globals::levelGoalBkTexIndex, color, 1.0f);
+    addVertex(origin + verts[1], uv[1], Globals::levelGoalBkTexIndex, color, 1.0f);
+    addVertex(origin + verts[2], uv[2], Globals::levelGoalBkTexIndex, color, 1.0f);
+    addVertex(origin + verts[3], uv[3], Globals::levelGoalBkTexIndex, color, 1.0f);
 
+    std::string str = std::to_string(model.curLevel);
+    buildTextMesh(str.c_str(), Globals::bigFontSize, 0.11f, glm::vec3(1.0f), origin.x + 0.5f * Globals::holdNextBkSize, origin.y - 0.45f * Globals::holdNextBkSize, otCenter);
+
+    origin.y -= Globals::holdNextBkSize;
+
+    buildTextMesh("GOAL", Globals::smallFontSize, 0.055f, glm::vec3(1.0f), origin.x + 0.5f * Globals::holdNextBkSize, origin.y - 0.95f * Globals::dafaultCaptionHeight, otCenter);
+
+    origin.y -= Globals::dafaultCaptionHeight;
+
+    addVertex(origin + verts[0], uv[0], Globals::levelGoalBkTexIndex, color, 1.0f);
+    addVertex(origin + verts[1], uv[1], Globals::levelGoalBkTexIndex, color, 1.0f);
+    addVertex(origin + verts[2], uv[2], Globals::levelGoalBkTexIndex, color, 1.0f);
+    addVertex(origin + verts[1], uv[1], Globals::levelGoalBkTexIndex, color, 1.0f);
+    addVertex(origin + verts[2], uv[2], Globals::levelGoalBkTexIndex, color, 1.0f);
+    addVertex(origin + verts[3], uv[3], Globals::levelGoalBkTexIndex, color, 1.0f);
+
+    str = std::to_string(model.curGoal);
+    buildTextMesh(str.c_str(), Globals::bigFontSize, 0.11f, glm::vec3(1.0f), origin.x + 0.5f * Globals::holdNextBkSize, origin.y - 0.45f * Globals::holdNextBkSize, otCenter);
+  }
 
 }
 
@@ -850,12 +1080,12 @@ void MainMesh::buildFigureBlocks()
       if (i < 0)
       {
         origin.x = Globals::glassPos.x - Globals::holdNextBkHorzGap - 0.5f * Globals::holdNextBkSize - scale * 0.5f * figureWidth - scale * figureLeftGap;
-        origin.y = Globals::glassPos.y - Globals::holdNextTitleHeight - 0.5f * Globals::holdNextBkSize + 0.5f * scale * figureHeight + scale * figureTopGap;
+        origin.y = Globals::glassPos.y - Globals::dafaultCaptionHeight - 0.5f * Globals::holdNextBkSize + 0.5f * scale * figureHeight + scale * figureTopGap;
       }
       else
       {
         origin.x = Globals::glassPos.x + Globals::glassSize.x + Globals::holdNextBkHorzGap + 0.5f * Globals::holdNextBkSize - scale * 0.5f * float(figureWidth) - scale * float(figureLeftGap);
-        origin.y = Globals::glassPos.y - Globals::holdNextTitleHeight - 0.5f * Globals::holdNextBkSize + scale * 0.5f * figureHeight + scale * figureTopGap - i * Globals::holdNextBkSize;
+        origin.y = Globals::glassPos.y - Globals::dafaultCaptionHeight - 0.5f * Globals::holdNextBkSize + scale * 0.5f * figureHeight + scale * figureTopGap - i * Globals::holdNextBkSize;
       }
 
       for (int y = 0; y < figure->dim; y++)
@@ -1001,12 +1231,12 @@ void MainMesh::buildFigureGlow()
       if (i < 0)
       {
         origin.x = Globals::glassPos.x - Globals::holdNextBkHorzGap - 0.5f * Globals::holdNextBkSize - scale * 0.5f * figureWidth - scale * figureLeftGap;
-        origin.y = Globals::glassPos.y - Globals::holdNextTitleHeight - 0.5f * Globals::holdNextBkSize + 0.5f * scale * figureHeight + scale * figureTopGap;
+        origin.y = Globals::glassPos.y - Globals::dafaultCaptionHeight - 0.5f * Globals::holdNextBkSize + 0.5f * scale * figureHeight + scale * figureTopGap;
       }
       else
       {
         origin.x = Globals::glassPos.x + Globals::glassSize.x + Globals::holdNextBkHorzGap + 0.5f * Globals::holdNextBkSize - scale * 0.5f * float(figureWidth) - scale * float(figureLeftGap);
-        origin.y = Globals::glassPos.y - Globals::holdNextTitleHeight - 0.5f * Globals::holdNextBkSize + scale * 0.5f * figureHeight + scale * figureTopGap - i * Globals::holdNextBkSize;
+        origin.y = Globals::glassPos.y - Globals::dafaultCaptionHeight - 0.5f * Globals::holdNextBkSize + scale * 0.5f * figureHeight + scale * figureTopGap - i * Globals::holdNextBkSize;
       }
 
       for (int y = 0; y < figure->dim; y++)
@@ -1211,7 +1441,6 @@ void MainMesh::buildDropTrails()
   {
     float currentTrailAlpha = 1.0f - it->getTrailProgress();
     float currentTrailHeight = float(it->height) * currentTrailAlpha;
-    float trailWidth = scale * 1.25f;
     const float dx = 0.22f;
     const float dy = 0.1f * currentTrailHeight;
 
@@ -1275,9 +1504,9 @@ void MainMesh::buildRowFlashes()
 
   float overallProgress = glm::clamp(float(getTimer() - model.rowsDeleteTimer) / model.rowsDeletionEffectTime, 0.0f, 1.0f);
   float mul = 1.0f - cos((overallProgress - 0.5f) * (overallProgress < 0.5f ? 0.5f : 2.0f) * (float)M_PI_2);
-  float currentTrailAlpha = 1.25f - mul;
+  float flashAlpha = 1.00f - overallProgress * overallProgress;// mul * mul;
   float dx = 1.0f - mul * 3.0f;
-  float dy = 0.4f - 0.9f * mul;
+  float dy = 0.25f - 0.75f * mul;
 
   for (std::vector<int>::iterator it = model.deletedRows.begin(); it != model.deletedRows.end(); ++it)
   {
@@ -1297,7 +1526,7 @@ void MainMesh::buildRowFlashes()
       { 1.0f - pixSize, 1.0f - pixSize },
     };
 
-    glm::vec3 color(currentTrailAlpha);
+    glm::vec3 color(flashAlpha);
 
     addVertex(origin + scale * verts[0], uv[0], Globals::rowFlashTexIndex, color, 0.0f);
     addVertex(origin + scale * verts[1], uv[1], Globals::rowFlashTexIndex, color, 0.0f);
@@ -1309,12 +1538,12 @@ void MainMesh::buildRowFlashes()
 
   if (!model.deletedRows.empty())
   {
-    float shineProgress = glm::clamp(overallProgress / 0.75f, 0.0f, 1.0f);
-    float ltX = (3.0f * shineProgress - 1.0f) * model.glassWidth;
+    float shineProgress = glm::clamp(overallProgress / 0.85f, 0.0f, 1.0f);
+    float ltX = (shineProgress - 0.5f) * 3.0f * model.glassWidth;
     float ltY = 0.5f * (model.deletedRows.front() + model.deletedRows.back() + 1.0f);
 
-    for (std::set<Model::CellCoord>::iterator vertGapsIt = model.deletedRowVertGaps.begin();
-      vertGapsIt != model.deletedRowVertGaps.end();
+    for (std::set<Model::CellCoord>::iterator vertGapsIt = model.deletedRowGaps.begin();
+      vertGapsIt != model.deletedRowGaps.end();
       ++vertGapsIt)
     {
       float gapX = float(vertGapsIt->x);
@@ -1335,10 +1564,9 @@ void MainMesh::buildRowFlashes()
         { 1.0f - pixSize, 1.0f - pixSize },
       };
 
-      float relDX = glm::clamp(fabs(ltDX / model.glassWidth), 0.0f, 1.0f);
-      float alphaMul = 1.0f - 2.0f * fabs(0.5f - glm::clamp(relDX * relDX, 0.1f, 1.0f));
+      float alphaMul = 1.0f - 2.0f * fabs(0.5f - glm::clamp(shineProgress * shineProgress, 0.1f, 1.0f));
 
-      glm::vec3 colors0(alphaMul);
+      glm::vec3 colors0(0.2f * alphaMul);
       glm::vec3 colors1(0.0f);
 
       glm::vec2 verts[3] =
@@ -1371,7 +1599,7 @@ void MainMesh::buildRowFlashes()
       { 1.0f - pixSize, 1.0f - pixSize },
     };
 
-    glm::vec3 colors(0.3f * sin(shineProgress * (float)M_PI));
+    glm::vec3 colors(0.1f * sin(shineProgress * (float)M_PI));
 
     addVertex(verts[0], uv[0], Globals::rowShineLightTexIndex, colors, 0.0f);
     addVertex(verts[1], uv[1], Globals::rowShineLightTexIndex, colors, 0.0f);
@@ -1379,49 +1607,292 @@ void MainMesh::buildRowFlashes()
     addVertex(verts[1], uv[1], Globals::rowShineLightTexIndex, colors, 0.0f);
     addVertex(verts[2], uv[2], Globals::rowShineLightTexIndex, colors, 0.0f);
     addVertex(verts[3], uv[3], Globals::rowShineLightTexIndex, colors, 0.0f);
-    //for (std::set<Model::CellCoord>::iterator vertGapsIt = model.deletedRowHorzGaps.begin();
-    //  vertGapsIt != model.deletedRowHorzGaps.end();
-    //  ++vertGapsIt)
-    //{
-    //  float gapX = (float)vertGapsIt->x;
-    //  float gapY = -(float)vertGapsIt->y;
-    //  float ltSourceDX1 = ltX - gapX;
-    //  float ltSourceDX2 = ltX - gapX - 1.0f;
-    //  float ltSourceDY = (ltY - gapY);
-    //  float ltSourceMidDX = ltX - (gapX - 0.5f);
-    //  const float leverRatio = 11.0f;
-    //  float ltDestDX1 = -ltSourceDX1 * leverRatio;
-    //  float ltDestDX2 = -ltSourceDX2 * leverRatio;
-    //  float ltDestDY = -ltSourceDY * leverRatio;
-
-    //  glm::vec2 uv[4] =
-    //  {
-    //    { 0.5f, pixSize },
-    //    { pixSize, 1.0f - pixSize },
-    //    { 1.0f - pixSize, 1.0f - pixSize },
-    //  };
-
-    //  float relDX = glm::clamp(fabs(ltSourceMidDX / model.glassWidth), 0.0f, 1.0f);
-    //  float alphaMul = 1.0f - 2.0f * fabs(0.5f - glm::clamp(relDX * relDX, 0.1f, 1.0f));
-
-    //  glm::vec3 color[3] =
-    //  {
-    //    glm::vec3(alphaMul),
-    //    glm::vec3(0.0f),
-    //    glm::vec3(0.0f),
-    //  };
-
-    //  glm::vec2 verts[3] =
-    //  {
-    //    { gapX + 0.5f + ltSourceMidDX, gapY + ltSourceDY },
-    //    { gapX + 0.5f + ltDestDX1, gapY + ltDestDY },
-    //    { gapX + 0.5f + ltDestDX2, gapY + ltDestDY },
-    //  };
-
-      //addVertex(origin + scale * verts[0], uv[0], Globals::rowShineRayTexIndex, color1, 0.0f);
-      //addVertex(origin + scale * verts[1], uv[1], Globals::rowShineRayTexIndex, color2, 0.0f);
-      //addVertex(origin + scale * verts[2], uv[2], Globals::rowShineRayTexIndex, color2, 0.0f);
-    //}
   }
 }
 
+void MainMesh::buildSidePanel(float x, float y, const char * text, glm::vec3 textColor, bool highlighted)
+{
+  glm::vec2 origin = Globals::gameBkPos + glm::vec2(x, y);
+  const float pixSize = Globals::mainArrayTexturePixelSize;
+  const float relWidth = 0.7f;
+  const float relHeight = 0.07f;
+  const int xTess = 25;
+  const int yTess = 4;
+  const float width = xTess * 0.03f;// relWidth * Globals::gameBkSize.x;
+  const float height = yTess * 0.03f;// relHeight * Globals::gameBkSize.y;
+  const float xPart = width / xTess;
+  const float yPart = height / yTess;
+
+  for (int y = 0; y < yTess; y++)
+  for (int x = 0; x < xTess; x++)
+  {
+    glm::vec2 verts[4] =
+    {
+      { x * xPart,        -y * yPart },
+      { (x + 1) * xPart,  -y * yPart },
+      { x * xPart,        -(y + 1) * yPart },
+      { (x + 1) * xPart,  -(y + 1) * yPart },
+    };
+
+    const float xReps = 80.0f;
+    const float yReps = xReps / Globals::gameBkSize.x * Globals::gameBkSize.y * 0.85f;
+    const float texScaleCorrection = 0.56f; // tile deformation to get power of two texture size
+    const float xVal = relWidth * xReps * texScaleCorrection;
+    const float yVal = relHeight * yReps;
+
+    glm::vec2 uv[4] =
+    {
+      { xVal * x / xTess, yVal * y / yTess },
+      { xVal * (x + 1) / xTess, yVal * y / yTess },
+      { xVal * x / xTess, yVal * (y + 1) / yTess },
+      { xVal * (x + 1) / xTess, yVal * (y + 1) / yTess },
+    };
+
+    glm::vec3 darkColor(0.01f, 0.05f, 0.17f);
+    glm::vec3 lightColor(0.4f, 0.7f, 1.2f);
+
+    float lt0 = 1.0f - glm::clamp(2.0f * float(y) / yTess, 0.0f, 1.0f);
+    float lt1 = 1.0f - glm::clamp(2.0f * float(y + 1) / yTess, 0.0f, 1.0f);
+
+    glm::vec3 col0 = darkColor + (lightColor - darkColor) * lt0;
+    glm::vec3 col1 = darkColor + (lightColor - darkColor) * lt1;
+
+    if (x < xTess - 1 || y)
+    {
+      addVertex(origin + verts[0], uv[0], Globals::backgroundTexIndex, col0, 1.0f);
+      addVertex(origin + verts[1], uv[1], Globals::backgroundTexIndex, col0, 1.0f);
+      addVertex(origin + verts[3], uv[3], Globals::backgroundTexIndex, col1, 1.0f);
+    }
+
+    addVertex(origin + verts[0], uv[0], Globals::backgroundTexIndex, col0, 1.0f);
+    addVertex(origin + verts[2], uv[2], Globals::backgroundTexIndex, col1, 1.0f);
+    addVertex(origin + verts[3], uv[3], Globals::backgroundTexIndex, col1, 1.0f);
+  }
+
+  buildTextMesh(text, Globals::midFontSize, 0.08f, textColor, origin.x + width * 0.25f, origin.y - height * 0.7f, otLeft);
+
+  const float glowWidth = 0.03f;
+  const float angle = atan(yPart / xPart);
+
+  glm::vec2 borderVerts[10] =
+  {
+    { 0.0f, 0.0f },
+    { 0.0f, glowWidth },
+    { width - xPart, 0.0f },
+    { width - xPart + glowWidth * sin(angle), glowWidth },
+    { width, -yPart },
+    { width + glowWidth, -yPart + glowWidth * cos(angle) },
+    { width, -height},
+    { width + glowWidth, -height - glowWidth },
+    { 0.0f, -height },
+    { 0.0f, -height - glowWidth },
+  };
+
+  glm::vec2 borderUV[10] =
+  {
+    { pixSize, pixSize },
+    { pixSize, 1.0f - pixSize },
+    { 1.0f - pixSize , pixSize },
+    { 1.0f - pixSize, 1.0f - pixSize },
+    { 1.0f - pixSize, pixSize },
+    { 1.0f - pixSize, 1.0f - pixSize },
+    { 1.0f - pixSize, pixSize },
+    { 1.0f - pixSize, 1.0f - pixSize },
+    { 1.0f - pixSize, pixSize },
+    { 1.0f - pixSize, 1.0f - pixSize },
+  };
+
+  glm::vec3 color = highlighted ? glm::vec3(2.4f, 2.0f, 0.8f) : glm::vec3(0.4f, 0.7f, 1.2f);
+
+  for (int i = 0; i < 8; i+=2)
+  {
+    addVertex(origin + borderVerts[i], borderUV[i], Globals::sidePanelGlowingBorderTexIndex, color, 1.0f);
+    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], Globals::sidePanelGlowingBorderTexIndex, color, 1.0f);
+    addVertex(origin + borderVerts[i + 2], borderUV[i + 2], Globals::sidePanelGlowingBorderTexIndex, color, 1.0f);
+
+    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], Globals::sidePanelGlowingBorderTexIndex, color, 1.0f);
+    addVertex(origin + borderVerts[i + 2], borderUV[i + 2], Globals::sidePanelGlowingBorderTexIndex, color, 1.0f);
+    addVertex(origin + borderVerts[i + 3], borderUV[i + 3], Globals::sidePanelGlowingBorderTexIndex, color, 1.0f);
+  }
+
+  const float innerGlowWidth1 = 0.5f * height;
+  const float innerGlowWidth2 = 0.1f * height;
+
+  glm::vec2 innerGlowVerts[14] =
+  {
+    { 0.0f, 0.0f },
+    { 0.0f, -innerGlowWidth1 },
+    { 0.75f * width, 0.0f },
+    { 0.75f * width, -innerGlowWidth1 },
+
+    { width - xPart,  0.0f },
+    { width - xPart,  -innerGlowWidth1 },
+    { width,          -yPart },
+    { width,          -innerGlowWidth1 - yPart },
+    { width,          -yPart },
+    { width - innerGlowWidth2, -yPart + innerGlowWidth2 },
+
+    { width, -height },
+    { width - innerGlowWidth2, -height + innerGlowWidth2 },
+    { 0.0f, -height },
+    { 0.0f, -height + innerGlowWidth2 },
+  };
+
+  glm::vec2 innerGlowUV[14] =
+  {
+    { pixSize, pixSize },
+    { pixSize, 1.0f - pixSize },
+    { 1.0f - pixSize, pixSize },
+    { 1.0f - pixSize, 1.0f - pixSize },
+    { 1.0f - pixSize, pixSize },
+    { 1.0f - pixSize, 1.0f - pixSize },
+    { 1.0f - pixSize, pixSize },
+    { 1.0f - pixSize, 1.0f - pixSize },
+    { 1.0f - pixSize, pixSize },
+    { 1.0f - pixSize, 1.0f - pixSize },
+    { 1.0f - pixSize, pixSize },
+    { 1.0f - pixSize, 1.0f - pixSize },
+    { pixSize, pixSize },
+    { pixSize, 1.0f - pixSize },
+  };
+
+  for (int i = 0; i < 12; i += 2)
+  {
+    addVertex(origin + innerGlowVerts[i], innerGlowUV[i], Globals::sidePanelInnerGlowTexIndex, color, 1.0f);
+    addVertex(origin + innerGlowVerts[i + 1], innerGlowUV[i + 1], Globals::sidePanelInnerGlowTexIndex, color, 1.0f);
+    addVertex(origin + innerGlowVerts[i + 2], innerGlowUV[i + 2], Globals::sidePanelInnerGlowTexIndex, color, 1.0f);
+
+    addVertex(origin + innerGlowVerts[i + 1], innerGlowUV[i + 1], Globals::sidePanelInnerGlowTexIndex, color, 1.0f);
+    addVertex(origin + innerGlowVerts[i + 2], innerGlowUV[i + 2], Globals::sidePanelInnerGlowTexIndex, color, 1.0f);
+    addVertex(origin + innerGlowVerts[i + 3], innerGlowUV[i + 3], Globals::sidePanelInnerGlowTexIndex, color, 1.0f);
+  }
+}
+
+void MainMesh::loadGlyph(char ch, int size)
+{
+  const int texSize = Globals::mainArrayTextureSize;
+  static int fontNextTexIndex = Globals::fontFirstTexIndex;
+  static std::vector<uint32_t> destBuf(texSize * texSize);
+
+  FT_Error err = FT_Load_Char(ftFace, (const FT_UInt)ch, FT_LOAD_DEFAULT | FT_LOAD_IGNORE_TRANSFORM | FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT);
+  assert(!err);
+  assert(ftFace->glyph->bitmap.pixel_mode == FT_PIXEL_MODE_GRAY);
+  Glyph & glyph = glyphs[ch][size];
+  glyph.glyphIndex = FT_Get_Char_Index(ftFace, FT_ULong(ch));
+  glyph.texIndex = fontNextTexIndex++;
+  ftFace->glyph->bitmap_left;
+  ftFace->glyph->bitmap_top;
+  glyph.metrics = ftFace->glyph->metrics;
+  uint8_t * srcBuff = ftFace->glyph->bitmap.buffer;
+  const int srcWidth = ftFace->glyph->bitmap.width;
+  const int srcHeight = ftFace->glyph->bitmap.rows;
+  const int srcWidthMinusOne = srcWidth - 1;
+  const int srcHeightMinusOne = srcHeight - 1;
+  const int srcPitch = ftFace->glyph->bitmap.pitch;
+
+  for (int y = 0; y < texSize; y++)
+  for (int x = 0; x < texSize; x++)
+  {
+    const int brd = 2;
+    if (x < brd || y < brd || x >= texSize - brd || y >= texSize - brd)
+      destBuf[x + y * texSize] = 0xFFFF0000;
+    else
+    {
+      float srcXf = float(x - brd) / (texSize - brd * 2) * (srcWidth + 1) - 1;
+      float srcYf = float(y - brd) / (texSize - brd * 2) * (srcHeight + 1) - 1;
+      int srcXi = int(glm::floor(srcXf));
+      int srcYi = int(glm::floor(srcYf));
+      float uRatio = srcXf - srcXi;
+      float vRatio = srcYf - srcYi;
+      uint8_t * srcPix = srcBuff + srcXi + srcYi * srcPitch;
+      float p00 = srcXi >= 0 && srcYi >= 0 ? float(*srcPix) : 0.0f;
+      float p10 = srcYi >= 0 && srcXi < srcWidthMinusOne ? float(*(srcPix + 1)) : 0.0f;
+      float p01 = srcXi >= 0 && srcYi < srcHeightMinusOne ? float(*(srcPix + srcPitch)) : 0.0f;
+      float p11 = srcXi < srcWidthMinusOne && srcYi < srcHeightMinusOne ? float(*(srcPix + 1 + srcPitch)) : 0.0f;
+      uint8_t result = uint8_t(glm::mix(glm::mix(p00, p10, uRatio), glm::mix(p01, p11, uRatio), vRatio));
+      destBuf[x + y * texSize] = result | ((0xFF - result) << 16) | 0xFF << 24;
+    }
+  }
+
+  glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, glyph.texIndex, texSize, texSize, 1, GL_RGBA, GL_UNSIGNED_BYTE, destBuf.data());
+  assert(!checkGlErrors());
+}
+
+void MainMesh::buildTextMesh(const char * str, int fontSize, float scale, glm::vec3 color, float originX, float originY, OriginType originType)
+{
+  float penX = 0;
+  char leftChar = 0;
+  static std::vector<glm::vec2> verts(1024);
+  static std::vector<glm::vec2> uv(1024);
+  static std::vector<int> glyphTexIndex(1024);
+  verts.clear();
+  uv.clear();
+  glyphTexIndex.clear();
+
+  for (const char * pch = str, *eof = pch + strlen(str); pch < eof; pch++)
+  {
+    GlyphCharMap::iterator charIt = glyphs.find(*pch);
+    assert(charIt != glyphs.end());
+
+    if (charIt == glyphs.end())
+      continue;
+
+    GlyphSizeMap::iterator sizeIt = charIt->second.find(fontSize);
+    assert(sizeIt != charIt->second.end());
+
+    if (sizeIt == charIt->second.end())
+      continue;
+
+    Glyph & glyph = sizeIt->second;
+    FT_Vector kern = { 0, 0 };
+
+    if (leftChar)
+    {
+      FT_UInt leftGlyphIndex = FT_Get_Char_Index(ftFace, FT_ULong(leftChar));
+      FT_UInt rightGlyphIndex = FT_Get_Char_Index(ftFace, FT_ULong(*pch));
+      FT_Error err = FT_Get_Kerning(ftFace, leftGlyphIndex, rightGlyphIndex, FT_KERNING_UNFITTED, &kern);
+      assert(!err);
+    }
+
+    leftChar = *pch;
+    float ltx = penX + scale * (kern.x + glyph.metrics.horiBearingX) / 64 / fontSize;
+    float lty = scale * glyph.metrics.horiBearingY / 64 / fontSize;
+    float rbx = ltx + scale * glyph.metrics.width / 64 / fontSize;
+    float rby = lty - scale * glyph.metrics.height / 64 / fontSize;
+
+    const float pixSize = 0.5f * Globals::mainArrayTexturePixelSize;
+
+    verts.push_back({ ltx, lty });
+    verts.push_back({ ltx, rby });
+    verts.push_back({ rbx, lty });
+    verts.push_back({ rbx, rby });
+
+    uv.push_back({ pixSize, pixSize });
+    uv.push_back({ pixSize, 1.0f - pixSize });
+    uv.push_back({ 1.0f - pixSize, pixSize });
+    uv.push_back({ 1.0f - pixSize, 1.0f - pixSize });
+
+    glyphTexIndex.push_back(glyph.texIndex);
+
+    penX += scale * glyph.metrics.horiAdvance / 64 / fontSize;
+  }
+
+  float alpha = 0.0f;
+  float meshWidth = verts.back().x - verts.front().x;
+  glm::vec2 origin(originX, originY);
+
+  if (originType == otRight)
+    origin.x -= meshWidth;
+  else if (originType == otCenter)
+    origin.x -= 0.5f * meshWidth;
+
+  for (int i = 0, cnt = (int)strlen(str); i < cnt; i++)
+  {
+    addVertex(origin + verts[i * 4 + 0], uv[i * 4 + 0], glyphTexIndex[i], color, alpha);
+    addVertex(origin + verts[i * 4 + 1], uv[i * 4 + 1], glyphTexIndex[i], color, alpha);
+    addVertex(origin + verts[i * 4 + 2], uv[i * 4 + 2], glyphTexIndex[i], color, alpha);
+    addVertex(origin + verts[i * 4 + 1], uv[i * 4 + 1], glyphTexIndex[i], color, alpha);
+    addVertex(origin + verts[i * 4 + 2], uv[i * 4 + 2], glyphTexIndex[i], color, alpha);
+    addVertex(origin + verts[i * 4 + 3], uv[i * 4 + 3], glyphTexIndex[i], color, alpha);
+  }
+}

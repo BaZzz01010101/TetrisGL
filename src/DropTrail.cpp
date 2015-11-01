@@ -1,4 +1,5 @@
-#include <glm/glm.hpp>
+#include "static_headers.h"
+
 #include "DropTrail.h"
 
 const float DropTrail::trailEffectTime = 0.6f;

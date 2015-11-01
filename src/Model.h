@@ -1,7 +1,4 @@
 #pragma once
-#include <vector>
-#include <list>
-#include <set>
 
 #include "Cell.h"
 #include "Figure.h"
@@ -12,8 +9,6 @@ class Model
 {
 private:
   const int maxLevel;
-  const float maxStepTime;
-  const float minStepTime;
   double lastStepTimer;
 
   void initGameProceed(int glassWidth, int glassHeight);
@@ -28,7 +23,8 @@ private:
   void deleteObsoleteEffects();
 
 public:
-  enum GameState { gsStartGame, gsPlayingGame, gsGameOver };
+  enum GameState { gsStartGame, gsPlayingGame, gsPauseGame, gsGameOver };
+  enum MenuState { msNone, msMainMenu, msQuitConfirmation};
   GameState gameState;
   std::vector<Cell> glass;
   Figure nextFigures[Globals::nextFiguresCount];
@@ -38,6 +34,8 @@ public:
   int glassHeight = 20;
   int curFigureX;
   int curFigureY;
+  int curScore;
+  int curGoal;
   int curLevel;
   bool forceDown;
   bool haveHold;
@@ -57,8 +55,7 @@ public:
     inline CellCoord(int x, int y) : x(x), y(y) {}
     inline bool operator < (const CellCoord & left) const { return left.x < x || (left.x == x && left.y < y); }
   };
-  std::set<CellCoord> deletedRowHorzGaps;
-  std::set<CellCoord> deletedRowVertGaps;
+  std::set<CellCoord> deletedRowGaps;
   double mouseX;
   double mouseY;
   bool showWireframe;

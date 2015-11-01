@@ -1,4 +1,3 @@
-#define _CRT_SECURE_NO_WARNINGS
 #include "Crosy.h"
 
 std::string Crosy::getExePath()

@@ -1,3 +1,5 @@
+#include "static_headers.h"
+
 #include "Shader.h"
 #include "Globals.h"
 
@@ -47,9 +49,4 @@ void Shader::compileFromString(const char * source)
     std::cout << Globals::glErrorMessage << "\n";
     assert(0);
   }
-}
-
-void Shader::compileFromFile(const char * filename)
-{
-  assert(0);
 }

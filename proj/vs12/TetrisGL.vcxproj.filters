@@ -42,9 +42,6 @@
     <ClCompile Include="..\..\src\FpsCounter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\Background.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\3rdParty\SOIL2\image_DXT.c">
       <Filter>Source Files\3rd party\SOIL2</Filter>
     </ClCompile>
@@ -96,9 +93,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\FpsCounter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\Background.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\3rdParty\SOIL2\image_DXT.h">
@@ -167,9 +161,6 @@
     <ClInclude Include="..\..\src\Cell.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\glall.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\MainMesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -177,6 +168,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\DropSparkle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\static_headers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

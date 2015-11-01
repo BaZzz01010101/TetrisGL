@@ -1,5 +1,4 @@
 #pragma once
-#include "glall.h"
 #include "Shader.h"
 
 class Program

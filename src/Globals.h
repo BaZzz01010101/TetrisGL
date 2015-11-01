@@ -1,6 +1,4 @@
 #pragma once
-#include "glall.h"
-#include <iostream>
 
 class Globals
 {
@@ -28,19 +26,26 @@ public:
   static int rowFlashTexIndex;
   static int rowShineRayTexIndex;
   static int rowShineLightTexIndex;
+  static int sidePanelGlowingBorderTexIndex;
+  static int sidePanelInnerGlowTexIndex;
+  static int levelGoalBkTexIndex;
+  static int fontFirstTexIndex;
   static const int nextFiguresCount = 3;
   static glm::vec2 gameBkPos;
   static glm::vec2 gameBkSize;
   static glm::vec2 glassPos;
   static glm::vec2 glassSize;
-  static float holdNextTitleHeight;
+  static float dafaultCaptionHeight;
   static float holdNextBkHorzGap;
   static float holdNextBkSize;
-  static float scoreBarGap;
+  static float scoreBarGaps;
   static float scoreBarHeight;
-  static float scoreBarScoreWidth;
+  static float scoreBarCaptionWidth;
   static float scoreBarValueWidth;
   static float scoreBarMenuWidth;
+  static int smallFontSize;
+  static int midFontSize;
+  static int bigFontSize;
 };
 
 extern bool checkGlErrors();
