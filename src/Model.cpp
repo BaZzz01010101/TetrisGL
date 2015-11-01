@@ -125,7 +125,7 @@ void Model::shiftFigureConveyor()
   nextFigures[Globals::nextFiguresCount - 1].buildRandomFigure();
 
   curFigureX = (glassWidth - curFigure.dim) / 2;
-  curFigureY = curFigure.dim / 2;
+  curFigureY = 0;// -curFigure.dim / 2;
 
   if (!checkCurrentFigurePos(0, 0))
   {
@@ -142,11 +142,11 @@ bool Model::checkCurrentFigurePos(int dx, int dy)
   for (int curx = 0; curx < curFigure.dim; curx++)
   for (int cury = 0; cury < curFigure.dim; cury++)
   {
-    if (!curFigure.cells[curx + cury * curFigure.dim].isEmpty())
+    if (!curFigure.cells[curx + cury * curFigure.dim].isEmpty() && curFigureY + cury + dy >= 0)
     {
       if (curFigureX + curx + dx < 0 ||
       curFigureX + curx + dx >= glassWidth ||
-      curFigureY + cury + dy < 0 ||
+      //curFigureY + cury + dy < 0 ||
       curFigureY + cury + dy >= glassHeight ||
       !glass[curFigureX + curx + dx + (curFigureY + cury + dy) * glassWidth].isEmpty()) 
         return false;
@@ -268,7 +268,7 @@ void Model::dropCurrentFigure()
 void Model::rotateCurrentFigureLeft()
 {
   Figure savedFigure = curFigure;
-  curFigure.rotate(Figure::rotLeft);
+  curFigure.rotateLeft();
 
   if (!checkCurrentFigurePos(0, 0) && !tryToPlaceCurrentFigure())
     curFigure = savedFigure;
@@ -279,7 +279,7 @@ void Model::rotateCurrentFigureLeft()
 void Model::rotateCurrentFigureRight()
 {
   Figure savedFigure = curFigure;
-  curFigure.rotate(Figure::rotRight);
+  curFigure.rotateRight();
 
   if (!checkCurrentFigurePos(0, 0) && !tryToPlaceCurrentFigure())
     curFigure = savedFigure;

@@ -5,10 +5,13 @@ class Figure
 {
 private:
   static int nextId;
+  bool haveSpecificRotation;
+  bool specificRotatedFlag;
+  void internalRotateLeft();
+  void internalRotateRight();
 
 public:
   enum Type { typeNone = -1, typeI, typeJ, typeL, typeO, typeS, typeT, typeZ, TYPE_COUNT };
-  enum Rotation { rotLeft, rotRight };
   int id;
   Type type;
   int dim;
@@ -19,7 +22,8 @@ public:
 
   void buildFigure(Type type);
   void buildRandomFigure();
-  void rotate(Rotation rot);
+  void rotateLeft();
+  void rotateRight();
   Figure & operator = (const Figure & figure);
   static void swap(Figure & figure1, Figure & figure2);
   void clear();

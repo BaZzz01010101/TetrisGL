@@ -5,6 +5,8 @@
 int Figure::nextId = 1;
 
 Figure::Figure() :
+  haveSpecificRotation(false),
+  specificRotatedFlag(false),
   type(typeNone),
   dim(0),
   color(Globals::Color::clNone)
@@ -27,36 +29,43 @@ void Figure::buildFigure(Type type)
   switch (type)
   {
   case typeI:
+    haveSpecificRotation = true;
     dim = 4;
     color = Globals::Color::clCyan;
     cdata = "0000111100000000";
     break;
   case typeJ:
+    haveSpecificRotation = false;
     dim = 3;
     color = Globals::Color::clBlue;
     cdata = "100111000";
     break;
   case typeL:
+    haveSpecificRotation = false;
     dim = 3;
     color = Globals::Color::clOrange;
     cdata = "001111000";
     break;
   case typeO:
+    haveSpecificRotation = false;
     dim = 2;
     color = Globals::Color::clYellow;
     cdata = "1111";
     break;
   case typeS:
+    haveSpecificRotation = true;
     dim = 3;
     color = Globals::Color::clGreen;
     cdata = "011110000";
     break;
   case typeT:
+    haveSpecificRotation = false;
     dim = 3;
     color = Globals::Color::clPurple;
     cdata = "010111000";
     break;
   case typeZ:
+    haveSpecificRotation = true;
     dim = 3;
     color = Globals::Color::clRed;
     cdata = "110011000";
@@ -75,30 +84,60 @@ void Figure::buildFigure(Type type)
   nextId++;
 }
 
-void Figure::rotate(Rotation rot)
+void Figure::internalRotateLeft()
 {
   std::vector<Cell> curData = cells;
 
-  if (rot == rotLeft)
+  for (int x = 0; x < dim; x++)
+  for (int y = 0; y < dim; y++)
   {
-    for (int x = 0; x < dim; x++)
-    for (int y = 0; y < dim; y++)
-    {
-      cells[x + y * dim] = curData[(dim - y - 1) + x * dim];
-    }
+    cells[x + y * dim] = curData[(dim - y - 1) + x * dim];
   }
-  else if (rot == rotRight)
+}
+
+void Figure::internalRotateRight()
+{
+  std::vector<Cell> curData = cells;
+
+  for (int x = 0; x < dim; x++)
+  for (int y = 0; y < dim; y++)
   {
-    for (int x = 0; x < dim; x++)
-    for (int y = 0; y < dim; y++)
-    {
-      cells[x + y * dim] = curData[y + (dim - x - 1) * dim];
-    }
+    cells[x + y * dim] = curData[y + (dim - x - 1) * dim];
+  }
+}
+
+void Figure::rotateLeft()
+{
+  if (haveSpecificRotation && specificRotatedFlag)
+  {
+    internalRotateRight();
+    specificRotatedFlag = false;
+  }
+  else
+  {
+    internalRotateLeft();
+    specificRotatedFlag = true;
+  }
+}
+
+void Figure::rotateRight()
+{
+  if (haveSpecificRotation && !specificRotatedFlag)
+  {
+    internalRotateLeft();
+    specificRotatedFlag = true;
+  }
+  else
+  {
+    internalRotateRight();
+    specificRotatedFlag = false;
   }
 }
 
 Figure & Figure::operator = (const Figure & figure)
 {
+  haveSpecificRotation = figure.haveSpecificRotation;
+  specificRotatedFlag = figure.specificRotatedFlag;
   type = figure.type;
   dim = figure.dim;
   color = figure.color;
@@ -109,6 +148,14 @@ Figure & Figure::operator = (const Figure & figure)
 void Figure::swap(Figure & figure1, Figure & figure2)
 {
   std::swap(figure1.cells, figure2.cells);
+
+  bool tmp_haveSpecificRotation = figure1.haveSpecificRotation;
+  figure1.haveSpecificRotation = figure2.haveSpecificRotation;
+  figure2.haveSpecificRotation = tmp_haveSpecificRotation;
+  
+  bool tmp_specificRotatedFlag = figure1.specificRotatedFlag;
+  figure1.specificRotatedFlag = figure2.specificRotatedFlag;
+  figure2.specificRotatedFlag = tmp_specificRotatedFlag;
 
   Type tmp_type = figure1.type;
   figure1.type = figure2.type;
@@ -125,6 +172,8 @@ void Figure::swap(Figure & figure1, Figure & figure2)
 
 void Figure::clear()
 {
+  haveSpecificRotation = false;
+  specificRotatedFlag = false;
   type = typeNone;
   dim = 0;
   color = Globals::Color::clNone;
