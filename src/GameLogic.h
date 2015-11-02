@@ -5,7 +5,9 @@
 #include "DropSparkle.h"
 #include "DropTrail.h"
 
-class Model
+#pragma warning(disable : 4512)
+
+class GameLogic
 {
 private:
   const int maxLevel;
@@ -40,8 +42,6 @@ public:
   bool forceDown;
   bool haveHold;
   bool justHolded;
-  bool glassChanged;
-  bool nextFiguresChanged;
   bool haveFallingRows;
   double rowsDeleteTimer;
   std::vector<int> rowElevation;
@@ -56,12 +56,9 @@ public:
     inline bool operator < (const CellCoord & left) const { return left.x < x || (left.x == x && left.y < y); }
   };
   std::set<CellCoord> deletedRowGaps;
-  double mouseX;
-  double mouseY;
-  bool showWireframe;
 
-  Model();
-  ~Model();
+  GameLogic();
+  ~GameLogic();
 
   void update();
 

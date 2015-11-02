@@ -59,20 +59,20 @@
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level3</WarningLevel>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level3</WarningLevel>
     </ClCompile>
+    <ClCompile Include="..\..\src\Application.cpp" />
     <ClCompile Include="..\..\src\Cell.cpp" />
-    <ClCompile Include="..\..\src\Controller.cpp" />
     <ClCompile Include="..\..\src\Crosy.cpp" />
     <ClCompile Include="..\..\src\DropTrail.cpp" />
     <ClCompile Include="..\..\src\Figure.cpp" />
     <ClCompile Include="..\..\src\FpsCounter.cpp" />
     <ClCompile Include="..\..\src\Globals.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
-    <ClCompile Include="..\..\src\MainMesh.cpp" />
-    <ClCompile Include="..\..\src\Model.cpp" />
+    <ClCompile Include="..\..\src\OpenGLRender.cpp" />
+    <ClCompile Include="..\..\src\GameLogic.cpp" />
+    <ClCompile Include="..\..\src\OpenGLApplication.cpp" />
     <ClCompile Include="..\..\src\Program.cpp" />
     <ClCompile Include="..\..\src\Shader.cpp" />
     <ClCompile Include="..\..\src\DropSparkle.cpp" />
-    <ClCompile Include="..\..\src\View.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\3rdParty\SOIL2\etc1_utils.h" />
@@ -91,20 +91,20 @@
     <ClInclude Include="..\..\src\3rdParty\SOIL2\stbi_pvr_c.h" />
     <ClInclude Include="..\..\src\3rdParty\SOIL2\stb_image.h" />
     <ClInclude Include="..\..\src\3rdParty\SOIL2\stb_image_write.h" />
+    <ClInclude Include="..\..\src\Application.h" />
     <ClInclude Include="..\..\src\Cell.h" />
-    <ClInclude Include="..\..\src\Controller.h" />
     <ClInclude Include="..\..\src\Crosy.h" />
     <ClInclude Include="..\..\src\DropTrail.h" />
     <ClInclude Include="..\..\src\Figure.h" />
     <ClInclude Include="..\..\src\FpsCounter.h" />
     <ClInclude Include="..\..\src\Globals.h" />
-    <ClInclude Include="..\..\src\MainMesh.h" />
-    <ClInclude Include="..\..\src\Model.h" />
+    <ClInclude Include="..\..\src\OpenGLRender.h" />
+    <ClInclude Include="..\..\src\GameLogic.h" />
+    <ClInclude Include="..\..\src\OpenGLApplication.h" />
     <ClInclude Include="..\..\src\Program.h" />
     <ClInclude Include="..\..\src\Shader.h" />
     <ClInclude Include="..\..\src\DropSparkle.h" />
     <ClInclude Include="..\..\src\static_headers.h" />
-    <ClInclude Include="..\..\src\View.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E5402C0C-49F6-4C62-A7C3-F65F43545D64}</ProjectGuid>

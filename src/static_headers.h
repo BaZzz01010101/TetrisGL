@@ -10,6 +10,7 @@
 #include <list>
 #include <set>
 #include <map>
+#include <memory>
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>

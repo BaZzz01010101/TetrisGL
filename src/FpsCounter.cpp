@@ -13,15 +13,14 @@ FpsCounter::~FpsCounter()
 {
 }
 
-void FpsCounter::init(GLFWwindow* window)
+void FpsCounter::init()
 {
-  win = window;
   cnt = 0;
   freq = Crosy::getPerformanceFrequency();
   ticks = Crosy::getPerformanceCounter();
 }
 
-void FpsCounter::pulse()
+char * FpsCounter::count(float interval)
 {
   cnt++;
 
@@ -29,15 +28,14 @@ void FpsCounter::pulse()
   {
     float timePass = float(double(Crosy::getPerformanceCounter() - ticks) / double(freq));
 
-    if (timePass > 1)
+    if (timePass > interval)
     {
       float fps = cnt / timePass;
-      const int bufSize = 256;
-      char str[bufSize];
-      Crosy::snprintf(str, bufSize, "Fps: %.3f", fps);
-      glfwSetWindowTitle(win, str);
+      Crosy::snprintf(buf, bufSize, "Fps: %.3f", fps);
       ticks = Crosy::getPerformanceCounter();
       cnt = 0;
     }
   }
+
+  return buf;
 }

@@ -1,26 +1,34 @@
 #include "static_headers.h"
 
-#include "MainMesh.h"
+#include "OpenGLRender.h"
 #include "Globals.h"
 #include "DropSparkle.h"
 #include "DropTrail.h"
 #include "Crosy.h"
 
-MainMesh::MainMesh(Model & model) :
+OpenGLRender::OpenGLRender(GameLogic & model) :
   figureVert(GL_VERTEX_SHADER),
   figureFrag(GL_FRAGMENT_SHADER),
+  showWireframe(false),
   model(model)
 {
 }
 
-MainMesh::~MainMesh()
+OpenGLRender::~OpenGLRender()
 {
 }
 
-void MainMesh::init()
+void OpenGLRender::init(int width, int height)
 {
+  glGenVertexArrays(1, &vaoId);
+  assert(!checkGlErrors());
+
+  glBindVertexArray(vaoId);
+  assert(!checkGlErrors());
+
   glGenBuffers(1, &vertexBufferId);
   assert(!checkGlErrors());
+
   const int initBufferSize = 20480;
   vertexBuffer.reserve(initBufferSize);
 
@@ -70,17 +78,17 @@ void MainMesh::init()
   figureProg.setUniform("tex", 0);
 
   std::string backPath = Crosy::getExePath() + "\\textures\\blocks.png";
-  int width, height, channels;
-  unsigned char * img = SOIL_load_image(backPath.c_str(), &width, &height, &channels, SOIL_LOAD_RGBA);
-  assert(width == Globals::mainArrayTextureSize);
-  assert(!(height % Globals::mainArrayTextureSize));
+  int imageWidth, imageHeight, channels;
+  unsigned char * img = SOIL_load_image(backPath.c_str(), &imageWidth, &imageHeight, &channels, SOIL_LOAD_RGBA);
+  assert(imageWidth == Globals::mainArrayTextureSize);
+  assert(!(imageHeight % Globals::mainArrayTextureSize));
 
   glGenTextures(1, &Globals::mainArrayTextureId);
   assert(!checkGlErrors());
   glBindTexture(GL_TEXTURE_2D_ARRAY, Globals::mainArrayTextureId);
   assert(!checkGlErrors());
   const int glyphsQty = 37 * 3;
-  const int textureQty = height / Globals::mainArrayTextureSize;
+  const int textureQty = imageHeight / Globals::mainArrayTextureSize;
   glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, Globals::mainArrayTextureSize, Globals::mainArrayTextureSize, textureQty + glyphsQty, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
   assert(!checkGlErrors());
   glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, Globals::mainArrayTextureSize, Globals::mainArrayTextureSize, textureQty, GL_RGBA, GL_UNSIGNED_BYTE, img);
@@ -90,7 +98,6 @@ void MainMesh::init()
   FT_Error err;
   err = FT_Init_FreeType(&ftLibrary);
   assert(!err);
-  //err = FT_New_Face(ftLibrary, (Crosy::getExePath() + "/fonts/Montserrat-Regular.ttf").c_str(), 0, &ftFace);
   err = FT_New_Face(ftLibrary, (Crosy::getExePath() + "/fonts/Montserrat-Bold.otf").c_str(), 0, &ftFace);
   assert(!err);
   err = FT_Set_Char_Size(ftFace, Globals::smallFontSize * 64, Globals::smallFontSize * 64, 64, 64);
@@ -138,11 +145,72 @@ void MainMesh::init()
   glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_LOD_BIAS, -1);
   assert(!checkGlErrors());
 
+  glDisable(GL_CULL_FACE);
+  assert(!checkGlErrors());
+
+  glEnable(GL_DEPTH_TEST);
+  assert(!checkGlErrors());
+
+  glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+  assert(!checkGlErrors());
+
+  resize(width, height);
 }
 
-void MainMesh::rebuild()
+void OpenGLRender::resize(int width, int height)
 {
-  clear();
+  const float gameAspect = Globals::gameBkSize.x / Globals::gameBkSize.y;
+
+  if (!height || float(width) / height > gameAspect)
+    glViewport((width - height) / 2, 0, height, height);
+  else
+    glViewport(int(width * (1.0f - 1.0f / gameAspect)) / 2, (height - int(width / gameAspect)) / 2, int(width / gameAspect), int(width / gameAspect));
+
+  glClearDepth(-1.0f);
+  assert(!checkGlErrors());
+
+  glClear(GL_DEPTH_BUFFER_BIT);
+  assert(!checkGlErrors());
+
+  glDepthFunc(GL_ALWAYS);
+  assert(!checkGlErrors());
+
+  clearVertices();
+  buildBackground();
+  sendToDevice();
+  drawMesh();
+
+  glDepthFunc(GL_LEQUAL);
+  assert(!checkGlErrors());
+}
+
+void OpenGLRender::update()
+{
+  if (showWireframe)
+  {
+    glDisable(GL_BLEND);
+    assert(!checkGlErrors());
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    assert(!checkGlErrors());
+  }
+  else
+  {
+    glEnable(GL_BLEND);
+    assert(!checkGlErrors());
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    assert(!checkGlErrors());
+  }
+
+  glClear(GL_COLOR_BUFFER_BIT);
+  assert(!checkGlErrors());
+
+  rebuildMesh();
+  drawMesh();
+}
+
+void OpenGLRender::rebuildMesh()
+{
+  clearVertices();
 
   buildBackground();
   buidGlassShadow();
@@ -153,10 +221,12 @@ void MainMesh::rebuild()
   buildDropTrails();
   buildRowFlashes();
 
+  //buildMainMenu();
+
   sendToDevice();
 }
 
-void MainMesh::draw()
+void OpenGLRender::drawMesh()
 {
   figureProg.use();
   glEnableVertexAttribArray(0);
@@ -186,27 +256,7 @@ void MainMesh::draw()
   assert(!checkGlErrors());
 }
 
-void MainMesh::fillDepthBuffer()
-{
-  glClearDepth(-1.0f);
-  assert(!checkGlErrors());
-
-  glClear(GL_DEPTH_BUFFER_BIT);
-  assert(!checkGlErrors());
-
-  glDepthFunc(GL_ALWAYS);
-  assert(!checkGlErrors());
-
-  clear();
-  buildBackground();
-  sendToDevice();
-  draw();
-
-  glDepthFunc(GL_LEQUAL);
-  assert(!checkGlErrors());
-}
-
-Cell * MainMesh::getGlassCell(int x, int y)
+Cell * OpenGLRender::getGlassCell(int x, int y)
 {
   if (x < 0 || y < 0 || x >= model.glassWidth || y >= model.glassHeight)
     return NULL;
@@ -228,7 +278,7 @@ Cell * MainMesh::getGlassCell(int x, int y)
   return cell;
 }
 
-Cell * MainMesh::getFigureCell(Figure & figure, int x, int y)
+Cell * OpenGLRender::getFigureCell(Figure & figure, int x, int y)
 {
   if (x < 0 || y < 0 || x >= figure.dim || y >= figure.dim)
     return NULL;
@@ -237,7 +287,7 @@ Cell * MainMesh::getFigureCell(Figure & figure, int x, int y)
   return cell;
 }
 
-void MainMesh::addVertex(const glm::vec2 & xy, const glm::vec2 & uv, int texIndex, const glm::vec3 & color, float alpha)
+void OpenGLRender::addVertex(const glm::vec2 & xy, const glm::vec2 & uv, int texIndex, const glm::vec3 & color, float alpha)
 {
   vertexBuffer.push_back(xy.x);
   vertexBuffer.push_back(xy.y);
@@ -251,13 +301,13 @@ void MainMesh::addVertex(const glm::vec2 & xy, const glm::vec2 & uv, int texInde
   vertexCount++;
 }
 
-void MainMesh::clear()
+void OpenGLRender::clearVertices()
 {
   vertexCount = 0;
   vertexBuffer.clear();
 }
 
-void MainMesh::sendToDevice()
+void OpenGLRender::sendToDevice()
 {
   if (vertexCount)
   {
@@ -269,7 +319,7 @@ void MainMesh::sendToDevice()
   }
 }
 
-void MainMesh::buildBackground()
+void OpenGLRender::buildBackground()
 {
   const float pixSize = Globals::mainArrayTexturePixelSize;
 
@@ -614,7 +664,7 @@ void MainMesh::buildBackground()
 
 }
 
-void MainMesh::buidGlassShadow()
+void OpenGLRender::buidGlassShadow()
 {
   const float pixSize = Globals::mainArrayTexturePixelSize;
   const float shadowWidth = 0.15f;
@@ -729,7 +779,7 @@ void MainMesh::buidGlassShadow()
   }
 }
 
-void MainMesh::buidGlassBlocks()
+void OpenGLRender::buidGlassBlocks()
 {
   const float pixSize = Globals::mainArrayTexturePixelSize;
   const float scale = Globals::glassSize.x / model.glassWidth;
@@ -813,7 +863,7 @@ void MainMesh::buidGlassBlocks()
   }
 }
 
-void MainMesh::biuldGlassGlow()
+void OpenGLRender::biuldGlassGlow()
 {
   const float pixSize = Globals::mainArrayTexturePixelSize;
   const float glowWidth = 0.5f;
@@ -1015,7 +1065,7 @@ void MainMesh::biuldGlassGlow()
   }
 }
 
-void MainMesh::buildFigureBlocks()
+void OpenGLRender::buildFigureBlocks()
 {
   const float pixSize = Globals::mainArrayTexturePixelSize;
   const float scale = Globals::holdNextBkSize * 0.75f / 4.0f;
@@ -1163,7 +1213,7 @@ void MainMesh::buildFigureBlocks()
   }
 }
 
-void MainMesh::buildFigureGlow()
+void OpenGLRender::buildFigureGlow()
 {
   const float pixSize = Globals::mainArrayTexturePixelSize;
   const float glowWidth = 0.3f;
@@ -1431,7 +1481,7 @@ void MainMesh::buildFigureGlow()
   }
 }
 
-void MainMesh::buildDropTrails()
+void OpenGLRender::buildDropTrails()
 {
   const glm::vec2 origin = Globals::glassPos;
   const float scale = Globals::glassSize.x / model.glassWidth;
@@ -1496,7 +1546,7 @@ void MainMesh::buildDropTrails()
   }
 }
 
-void MainMesh::buildRowFlashes()
+void OpenGLRender::buildRowFlashes()
 {
   const glm::vec2 origin = Globals::glassPos;
   const float scale = Globals::glassSize.x / model.glassWidth;
@@ -1542,7 +1592,7 @@ void MainMesh::buildRowFlashes()
     float ltX = (shineProgress - 0.5f) * 3.0f * model.glassWidth;
     float ltY = 0.5f * (model.deletedRows.front() + model.deletedRows.back() + 1.0f);
 
-    for (std::set<Model::CellCoord>::iterator vertGapsIt = model.deletedRowGaps.begin();
+    for (std::set<GameLogic::CellCoord>::iterator vertGapsIt = model.deletedRowGaps.begin();
       vertGapsIt != model.deletedRowGaps.end();
       ++vertGapsIt)
     {
@@ -1610,7 +1660,7 @@ void MainMesh::buildRowFlashes()
   }
 }
 
-void MainMesh::buildSidePanel(float x, float y, const char * text, glm::vec3 textColor, bool highlighted)
+void OpenGLRender::buildSidePanel(float x, float y, const char * text, glm::vec3 textColor, bool highlighted)
 {
   glm::vec2 origin = Globals::gameBkPos + glm::vec2(x, y);
   const float pixSize = Globals::mainArrayTexturePixelSize;
@@ -1768,7 +1818,49 @@ void MainMesh::buildSidePanel(float x, float y, const char * text, glm::vec3 tex
   }
 }
 
-void MainMesh::loadGlyph(char ch, int size)
+void OpenGLRender::buildMainMenu()
+{
+  const glm::vec2 origin = Globals::gameBkPos;
+
+  glm::vec2 v[4] =
+  {
+    { 0.0f, 0.0f },
+    { 0.0f, -Globals::gameBkSize.y },
+    { Globals::gameBkSize.x, 0.0f },
+    { Globals::gameBkSize.x, -Globals::gameBkSize.y },
+  };
+
+  glm::vec2 u(0.5f);
+
+  glm::vec3 color(0.0f);
+  const float alpha = 0.75f;
+
+  addVertex(origin + v[0], u, Globals::emptyTexIndex, color, alpha);
+  addVertex(origin + v[1], u, Globals::emptyTexIndex, color, alpha);
+  addVertex(origin + v[2], u, Globals::emptyTexIndex, color, alpha);
+  addVertex(origin + v[1], u, Globals::emptyTexIndex, color, alpha);
+  addVertex(origin + v[2], u, Globals::emptyTexIndex, color, alpha);
+  addVertex(origin + v[3], u, Globals::emptyTexIndex, color, alpha);
+
+  static float a = 0.0f;
+  char * menu[4] =
+  {
+    "NEW GAME",
+    "OPTIONS",
+    "CREDITS",
+    "QUIT"
+  };
+
+  for (int i = 0; i < 4; i++)
+  {
+    float x = -1.8f *(1.0f - fabs(sin(a + 0.1f * i)));
+    glm::vec3 color = ((i == 1) ? (glm::vec3(1.0f, 0.9f, 0.4f)) : (glm::vec3(0.4f, 0.7f, 1.0f)));
+    buildSidePanel(0.0f, -0.4f - 0.2f * i, menu[i], color, i == 1);
+  }
+  a += 0.1f;
+}
+
+void OpenGLRender::loadGlyph(char ch, int size)
 {
   const int texSize = Globals::mainArrayTextureSize;
   static int fontNextTexIndex = Globals::fontFirstTexIndex;
@@ -1818,7 +1910,7 @@ void MainMesh::loadGlyph(char ch, int size)
   assert(!checkGlErrors());
 }
 
-void MainMesh::buildTextMesh(const char * str, int fontSize, float scale, glm::vec3 color, float originX, float originY, OriginType originType)
+void OpenGLRender::buildTextMesh(const char * str, int fontSize, float scale, glm::vec3 color, float originX, float originY, OriginType originType)
 {
   float penX = 0;
   char leftChar = 0;

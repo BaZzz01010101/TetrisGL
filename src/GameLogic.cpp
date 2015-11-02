@@ -1,29 +1,26 @@
 #include "static_headers.h"
 
-#include "Model.h"
+#include "GameLogic.h"
 #include "Crosy.h"
 
-Model::Model() :
+GameLogic::GameLogic() :
   maxLevel(20),
   gameState(gsStartGame),
   forceDown(false),
   haveHold(false),
   justHolded(false),
-  glassChanged(false),
   haveFallingRows(false),
-  nextFiguresChanged(false),
-  showWireframe(false),
   rowsDeleteTimer(-1.0),
   rowsDeletionEffectTime(0.8f)
 {
 }
 
 
-Model::~Model()
+GameLogic::~GameLogic()
 {
 }
 
-void Model::initGameProceed(int glassWidth, int glassHeight)
+void GameLogic::initGameProceed(int glassWidth, int glassHeight)
 {
   curLevel = 1;
   curScore = 0;
@@ -39,11 +36,9 @@ void Model::initGameProceed(int glassWidth, int glassHeight)
     nextFigures[i].buildRandomFigure();
 
   shiftFigureConveyor();
-  glassChanged = true;
-  nextFiguresChanged = true;
 }
 
-void Model::update()
+void GameLogic::update()
 {
   switch (gameState)
   {
@@ -61,7 +56,7 @@ void Model::update()
   }
 }
 
-void Model::playingGameProceed()
+void GameLogic::playingGameProceed()
 {
   double curTime = getTimer();
   const float forceDownStepTime = 0.04f;
@@ -72,10 +67,7 @@ void Model::playingGameProceed()
   else if (curTime > lastStepTimer + stepTime)
   {
     if (checkCurrentFigurePos(0, 1))
-    {
       curFigureY++;
-      glassChanged = true;
-    }
     else
     {
       storeCurFigureIntoGlass();
@@ -90,7 +82,7 @@ void Model::playingGameProceed()
   deleteObsoleteEffects();
 }
 
-float Model::getStepTime()
+float GameLogic::getStepTime()
 {
   const float maxStepTime = 1.0f;
   const float minStepTime = 0.0f;
@@ -100,7 +92,7 @@ float Model::getStepTime()
   return maxStepTime - (maxStepTime - minStepTime) * k;
 }
 
-void Model::storeCurFigureIntoGlass()
+void GameLogic::storeCurFigureIntoGlass()
 {
   int dim = curFigure.dim;
 
@@ -112,7 +104,7 @@ void Model::storeCurFigureIntoGlass()
   checkGlassRows();
 }
 
-void Model::shiftFigureConveyor()
+void GameLogic::shiftFigureConveyor()
 {
   forceDown = false;
   justHolded = false;
@@ -132,12 +124,9 @@ void Model::shiftFigureConveyor()
     curFigure.clear();
     gameState = gsGameOver;
   }
-
-  glassChanged = true;
-  nextFiguresChanged = true;
 }
 
-bool Model::checkCurrentFigurePos(int dx, int dy)
+bool GameLogic::checkCurrentFigurePos(int dx, int dy)
 {
   for (int curx = 0; curx < curFigure.dim; curx++)
   for (int cury = 0; cury < curFigure.dim; cury++)
@@ -156,7 +145,7 @@ bool Model::checkCurrentFigurePos(int dx, int dy)
   return true;
 }
 
-bool Model::tryToPlaceCurrentFigure()
+bool GameLogic::tryToPlaceCurrentFigure()
 {
   if (checkCurrentFigurePos(0, 0))
     return true;
@@ -181,7 +170,7 @@ bool Model::tryToPlaceCurrentFigure()
   return false;
 }
 
-void Model::holdCurrentFigure()
+void GameLogic::holdCurrentFigure()
 {
   if (!justHolded)
   {
@@ -234,7 +223,7 @@ void Model::holdCurrentFigure()
   }
 }
 
-void Model::dropCurrentFigure()
+void GameLogic::dropCurrentFigure()
 {
   int y0 = curFigureY;
 
@@ -262,50 +251,39 @@ void Model::dropCurrentFigure()
   lastStepTimer = getTimer();
   storeCurFigureIntoGlass();
   shiftFigureConveyor();
-  glassChanged = true;
 }
 
-void Model::rotateCurrentFigureLeft()
+void GameLogic::rotateCurrentFigureLeft()
 {
   Figure savedFigure = curFigure;
   curFigure.rotateLeft();
 
   if (!checkCurrentFigurePos(0, 0) && !tryToPlaceCurrentFigure())
     curFigure = savedFigure;
-  else
-    glassChanged = true;
 }
 
-void Model::rotateCurrentFigureRight()
+void GameLogic::rotateCurrentFigureRight()
 {
   Figure savedFigure = curFigure;
   curFigure.rotateRight();
 
   if (!checkCurrentFigurePos(0, 0) && !tryToPlaceCurrentFigure())
     curFigure = savedFigure;
-  else
-    glassChanged = true;
 }
 
-void Model::shiftCurrentFigureLeft()
+void GameLogic::shiftCurrentFigureLeft()
 {
   if (checkCurrentFigurePos(-1, 0))
-  {
     curFigureX--;
-    glassChanged = true;
-  }
 }
 
-void Model::shiftCurrentFigureRight()
+void GameLogic::shiftCurrentFigureRight()
 {
   if (checkCurrentFigurePos(1, 0))
-  {
     curFigureX++;
-    glassChanged = true;
-  }
 }
 
-void Model::checkGlassRows()
+void GameLogic::checkGlassRows()
 {
   int elevation = 0;
 
@@ -359,7 +337,7 @@ void Model::checkGlassRows()
   }
 }
 
-void Model::proceedFallingRows()
+void GameLogic::proceedFallingRows()
 {
   if (haveFallingRows)
   {
@@ -380,7 +358,7 @@ void Model::proceedFallingRows()
   }
 }
 
-void Model::createDropTrail(int x, int y, int height, Globals::Color color)
+void GameLogic::createDropTrail(int x, int y, int height, Globals::Color color)
 {
   dropTrails.emplace_back();
   DropTrail & dropTrail = dropTrails.back();
@@ -390,7 +368,7 @@ void Model::createDropTrail(int x, int y, int height, Globals::Color color)
   dropTrail.height = height;
 }
 
-void Model::deleteObsoleteEffects()
+void GameLogic::deleteObsoleteEffects()
 {
   std::list<DropTrail>::iterator dropTrail = dropTrails.begin();
 

@@ -3,15 +3,16 @@
 class FpsCounter
 {
 private:
-  GLFWwindow * win;
   int cnt;
   uint64_t freq;
   uint64_t ticks;
+  enum { bufSize = 256 };
+  char buf[bufSize];
 public:
   FpsCounter();
   ~FpsCounter();
 
-  void init(GLFWwindow * window);
-  void pulse();
+  void init();
+  char * count(float interval);
 };
 
