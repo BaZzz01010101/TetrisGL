@@ -4,8 +4,8 @@
 
 int Application::createCounter = 0;
 
-Application::Application(GameLogic & model) : 
-  model(model)
+Application::Application(GameLogic & gameLogic) : 
+  gameLogic(gameLogic)
 {
   ++createCounter;
 }

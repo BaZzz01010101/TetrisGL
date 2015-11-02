@@ -15,7 +15,7 @@ private:
     FT_Glyph_Metrics metrics;
   };
 
-  GameLogic & model;
+  GameLogic & gameLogic;
   std::vector<float> vertexBuffer;
   FT_Library ftLibrary;
   FT_Face ftFace;
@@ -53,7 +53,7 @@ private:
 public:
   bool showWireframe;
 
-  OpenGLRender(GameLogic & model);
+  OpenGLRender(GameLogic & gameLogic);
   ~OpenGLRender();
 
   void init(int width, int height);

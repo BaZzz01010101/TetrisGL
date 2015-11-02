@@ -2,27 +2,30 @@
 #include "Application.h"
 #include "FpsCounter.h"
 #include "OpenGLRender.h"
+#include "Control.h"
 
 class OpenGLApplication : public Application
 {
 private:
   FpsCounter fps;
   OpenGLRender render;
+  Control control;
   GLFWwindow * wnd;
   bool vSync;
-
-  int winWidth;
-  int winHeight;
+  int wndWidth;
+  int wndHeight;
   float mouseX;
   float mouseY;
+  std::map<int, Key> glfwKeyMap;
 
+  void initGlfwKeyMap();
   static void OnFramebufferSize(GLFWwindow * wnd, int width, int height);
   static void OnKeyClick(GLFWwindow * wnd, int key, int scancode, int action, int mods);
   static void OnMouseClick(GLFWwindow * wnd, int button, int action, int mods);
   static void OnMouseMove(GLFWwindow* wnd, double xpos, double ypos);
 
 public:
-  OpenGLApplication(GameLogic & model);
+  OpenGLApplication(GameLogic & gameLogic);
   virtual ~OpenGLApplication();
 
   bool init();

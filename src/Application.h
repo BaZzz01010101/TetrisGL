@@ -5,10 +5,10 @@ class Application
 {
 protected:
   static int createCounter;
-  GameLogic & model;
+  GameLogic & gameLogic;
 
 public:
-  Application(GameLogic & model);
+  Application(GameLogic & gameLogic);
   virtual ~Application();
 
   virtual bool init() = 0;

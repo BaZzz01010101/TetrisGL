@@ -6,11 +6,11 @@
 #include "DropTrail.h"
 #include "Crosy.h"
 
-OpenGLRender::OpenGLRender(GameLogic & model) :
+OpenGLRender::OpenGLRender(GameLogic & gameLogic) :
   figureVert(GL_VERTEX_SHADER),
   figureFrag(GL_FRAGMENT_SHADER),
   showWireframe(false),
-  model(model)
+  gameLogic(gameLogic)
 {
 }
 
@@ -258,21 +258,21 @@ void OpenGLRender::drawMesh()
 
 Cell * OpenGLRender::getGlassCell(int x, int y)
 {
-  if (x < 0 || y < 0 || x >= model.glassWidth || y >= model.glassHeight)
+  if (x < 0 || y < 0 || x >= gameLogic.glassWidth || y >= gameLogic.glassHeight)
     return NULL;
 
-  Cell * cell = model.glass.data() + x + y * model.glassWidth;
+  Cell * cell = gameLogic.glass.data() + x + y * gameLogic.glassWidth;
 
-  if (!cell->figureId && !model.haveFallingRows)
+  if (!cell->figureId && !gameLogic.haveFallingRows)
   {
     bool isInCurFigure =
-      x >= model.curFigureX &&
-      x < model.curFigureX + model.curFigure.dim &&
-      y >= model.curFigureY &&
-      y < model.curFigureY + model.curFigure.dim;
+      x >= gameLogic.curFigureX &&
+      x < gameLogic.curFigureX + gameLogic.curFigure.dim &&
+      y >= gameLogic.curFigureY &&
+      y < gameLogic.curFigureY + gameLogic.curFigure.dim;
 
     if (isInCurFigure)
-      cell = model.curFigure.cells.data() + x - model.curFigureX + (y - model.curFigureY) * model.curFigure.dim;
+      cell = gameLogic.curFigure.cells.data() + x - gameLogic.curFigureX + (y - gameLogic.curFigureY) * gameLogic.curFigure.dim;
   }
 
   return cell;
@@ -499,7 +499,7 @@ void OpenGLRender::buildBackground()
     addVertex(origin + verts[6], uv, Globals::emptyTexIndex, color, alpha);
     addVertex(origin + verts[7], uv, Globals::emptyTexIndex, color, alpha);
 
-    std::string str = std::to_string(model.curScore);
+    std::string str = std::to_string(gameLogic.curScore);
     buildTextMesh(str.c_str() , Globals::bigFontSize, 0.095f, glm::vec3(1.0f), origin.x + 0.5f * Globals::scoreBarValueWidth, origin.y - 0.86f * height, otCenter);
   }
 
@@ -579,8 +579,8 @@ void OpenGLRender::buildBackground()
 
     glm::vec3 color(0.5f);
 
-    if (model.holdFigure.color != Globals::Color::clNone)
-      color = Globals::ColorValues[model.holdFigure.color];
+    if (gameLogic.holdFigure.color != Globals::Color::clNone)
+      color = Globals::ColorValues[gameLogic.holdFigure.color];
 
     addVertex(origin + verts[0], uv[0], Globals::holdFigureBkTexIndex, color, 1.0f);
     addVertex(origin + verts[1], uv[1], Globals::holdFigureBkTexIndex, color, 1.0f);
@@ -593,8 +593,8 @@ void OpenGLRender::buildBackground()
 
     buildTextMesh("NEXT", Globals::smallFontSize, 0.055f, glm::vec3(1.0f), origin.x + 0.45f * Globals::holdNextBkSize, origin.y + 0.1f * Globals::dafaultCaptionHeight, otCenter);
 
-    if (model.nextFigures[0].color != Globals::Color::clNone)
-      color = Globals::ColorValues[model.nextFigures[0].color];
+    if (gameLogic.nextFigures[0].color != Globals::Color::clNone)
+      color = Globals::ColorValues[gameLogic.nextFigures[0].color];
 
     addVertex(origin + verts[0], uv[0], Globals::nextFigureBkTexIndex, color, 1.0f);
     addVertex(origin + verts[1], uv[1], Globals::nextFigureBkTexIndex, color, 1.0f);
@@ -642,7 +642,7 @@ void OpenGLRender::buildBackground()
     addVertex(origin + verts[2], uv[2], Globals::levelGoalBkTexIndex, color, 1.0f);
     addVertex(origin + verts[3], uv[3], Globals::levelGoalBkTexIndex, color, 1.0f);
 
-    std::string str = std::to_string(model.curLevel);
+    std::string str = std::to_string(gameLogic.curLevel);
     buildTextMesh(str.c_str(), Globals::bigFontSize, 0.11f, glm::vec3(1.0f), origin.x + 0.5f * Globals::holdNextBkSize, origin.y - 0.45f * Globals::holdNextBkSize, otCenter);
 
     origin.y -= Globals::holdNextBkSize;
@@ -658,7 +658,7 @@ void OpenGLRender::buildBackground()
     addVertex(origin + verts[2], uv[2], Globals::levelGoalBkTexIndex, color, 1.0f);
     addVertex(origin + verts[3], uv[3], Globals::levelGoalBkTexIndex, color, 1.0f);
 
-    str = std::to_string(model.curGoal);
+    str = std::to_string(gameLogic.curGoal);
     buildTextMesh(str.c_str(), Globals::bigFontSize, 0.11f, glm::vec3(1.0f), origin.x + 0.5f * Globals::holdNextBkSize, origin.y - 0.45f * Globals::holdNextBkSize, otCenter);
   }
 
@@ -669,16 +669,16 @@ void OpenGLRender::buidGlassShadow()
   const float pixSize = Globals::mainArrayTexturePixelSize;
   const float shadowWidth = 0.15f;
   const glm::vec3 zeroCol(0.0f, 0.0f, 0.0f);
-  const float scale = Globals::glassSize.x / model.glassWidth;
+  const float scale = Globals::glassSize.x / gameLogic.glassWidth;
 
-  for (int y = 0; y < model.glassHeight; y++)
-  for (int x = 0; x < model.glassWidth; x++)
+  for (int y = 0; y < gameLogic.glassHeight; y++)
+  for (int x = 0; x < gameLogic.glassWidth; x++)
   {
     Cell * cell = getGlassCell(x, y);
     glm::vec2 origin = Globals::glassPos;
     
-    if (model.rowElevation[y])
-      origin.y += scale * model.rowCurrentElevation[y];
+    if (gameLogic.rowElevation[y])
+      origin.y += scale * gameLogic.rowCurrentElevation[y];
 
     if (cell->figureId)
     {
@@ -782,16 +782,16 @@ void OpenGLRender::buidGlassShadow()
 void OpenGLRender::buidGlassBlocks()
 {
   const float pixSize = Globals::mainArrayTexturePixelSize;
-  const float scale = Globals::glassSize.x / model.glassWidth;
+  const float scale = Globals::glassSize.x / gameLogic.glassWidth;
 
-  for (int y = 0; y < model.glassHeight; y++)
-  for (int x = 0; x < model.glassWidth; x++)
+  for (int y = 0; y < gameLogic.glassHeight; y++)
+  for (int x = 0; x < gameLogic.glassWidth; x++)
   {
     Cell * cell = getGlassCell(x, y);
     glm::vec2 origin = Globals::glassPos;
     
-    if (model.rowElevation[y])
-      origin.y += scale * model.rowCurrentElevation[y];
+    if (gameLogic.rowElevation[y])
+      origin.y += scale * gameLogic.rowCurrentElevation[y];
 
     if (cell && cell->figureId)
     {
@@ -869,16 +869,16 @@ void OpenGLRender::biuldGlassGlow()
   const float glowWidth = 0.5f;
   const float glowMinAlpha = 0.01f;
   const float glowMaxAlpha = 0.25f;
-  const float scale = Globals::glassSize.x / model.glassWidth;
+  const float scale = Globals::glassSize.x / gameLogic.glassWidth;
 
-  for (int y = 0; y < model.glassHeight; y++)
-  for (int x = 0; x < model.glassWidth; x++)
+  for (int y = 0; y < gameLogic.glassHeight; y++)
+  for (int x = 0; x < gameLogic.glassWidth; x++)
   {
     Cell * cell = getGlassCell(x, y);
     glm::vec2 origin = Globals::glassPos;
 
-    if (model.rowElevation[y])
-      origin.y += scale * model.rowCurrentElevation[y];
+    if (gameLogic.rowElevation[y])
+      origin.y += scale * gameLogic.rowCurrentElevation[y];
 
     if (cell->figureId)
     {
@@ -1076,9 +1076,9 @@ void OpenGLRender::buildFigureBlocks()
     Figure * figure = NULL;
 
     if (i < 0)
-      figure = &model.holdFigure;
+      figure = &gameLogic.holdFigure;
     else
-      figure = &model.nextFigures[i];
+      figure = &gameLogic.nextFigures[i];
 
     if (figure->dim)
     {
@@ -1227,9 +1227,9 @@ void OpenGLRender::buildFigureGlow()
     Figure * figure = NULL;
 
     if (i < 0)
-      figure = &model.holdFigure;
+      figure = &gameLogic.holdFigure;
     else
-      figure = &model.nextFigures[i];
+      figure = &gameLogic.nextFigures[i];
 
     if (figure->dim)
     {
@@ -1484,10 +1484,10 @@ void OpenGLRender::buildFigureGlow()
 void OpenGLRender::buildDropTrails()
 {
   const glm::vec2 origin = Globals::glassPos;
-  const float scale = Globals::glassSize.x / model.glassWidth;
+  const float scale = Globals::glassSize.x / gameLogic.glassWidth;
   const float pixSize = Globals::mainArrayTexturePixelSize;
 
-  for (std::list<DropTrail>::iterator it = model.dropTrails.begin(); it != model.dropTrails.end(); ++it)
+  for (std::list<DropTrail>::iterator it = gameLogic.dropTrails.begin(); it != gameLogic.dropTrails.end(); ++it)
   {
     float currentTrailAlpha = 1.0f - it->getTrailProgress();
     float currentTrailHeight = float(it->height) * currentTrailAlpha;
@@ -1497,9 +1497,9 @@ void OpenGLRender::buildDropTrails()
     glm::vec2 verts[4] =
     {
       { glm::max<float>(it->x - dx, 0.0f),                                  -glm::max<float>(it->y - currentTrailHeight, 0.0f)  },
-      { glm::min<float>(it->x + 1.0f + 2.0f * dx, (float)model.glassWidth), -glm::max<float>(it->y - currentTrailHeight, 0.0f) },
-      { glm::max<float>(it->x - dx, 0.0f),                                  -glm::min<float>(it->y + dy, (float)model.glassHeight) },
-      { glm::min<float>(it->x + 1.0f + 2.0f * dx, (float)model.glassWidth), -glm::min<float>(it->y + dy, (float)model.glassHeight) },
+      { glm::min<float>(it->x + 1.0f + 2.0f * dx, (float)gameLogic.glassWidth), -glm::max<float>(it->y - currentTrailHeight, 0.0f) },
+      { glm::max<float>(it->x - dx, 0.0f),                                  -glm::min<float>(it->y + dy, (float)gameLogic.glassHeight) },
+      { glm::min<float>(it->x + 1.0f + 2.0f * dx, (float)gameLogic.glassWidth), -glm::min<float>(it->y + dy, (float)gameLogic.glassHeight) },
     };
 
     glm::vec2 uv[4] =
@@ -1525,7 +1525,7 @@ void OpenGLRender::buildDropTrails()
       float sparkleY = it->y - it->sparkles[i].relY * float(it->height) - it->sparkles[i].speed * it->getTrailProgress();
       const float sparkleSize = 0.1f;
 
-      if (sparkleX < model.glassWidth - sparkleSize && sparkleY > 0.0f)
+      if (sparkleX < gameLogic.glassWidth - sparkleSize && sparkleY > 0.0f)
       {
         glm::vec2 verts[4] =
         {
@@ -1549,23 +1549,23 @@ void OpenGLRender::buildDropTrails()
 void OpenGLRender::buildRowFlashes()
 {
   const glm::vec2 origin = Globals::glassPos;
-  const float scale = Globals::glassSize.x / model.glassWidth;
+  const float scale = Globals::glassSize.x / gameLogic.glassWidth;
   const float pixSize = Globals::mainArrayTexturePixelSize;
 
-  float overallProgress = glm::clamp(float(getTimer() - model.rowsDeleteTimer) / model.rowsDeletionEffectTime, 0.0f, 1.0f);
+  float overallProgress = glm::clamp(float(getTimer() - gameLogic.rowsDeleteTimer) / gameLogic.rowsDeletionEffectTime, 0.0f, 1.0f);
   float mul = 1.0f - cos((overallProgress - 0.5f) * (overallProgress < 0.5f ? 0.5f : 2.0f) * (float)M_PI_2);
   float flashAlpha = 1.00f - overallProgress * overallProgress;// mul * mul;
   float dx = 1.0f - mul * 3.0f;
   float dy = 0.25f - 0.75f * mul;
 
-  for (std::vector<int>::iterator it = model.deletedRows.begin(); it != model.deletedRows.end(); ++it)
+  for (std::vector<int>::iterator it = gameLogic.deletedRows.begin(); it != gameLogic.deletedRows.end(); ++it)
   {
     glm::vec2 verts[4] =
     {
       { 0.0f - dx, -*it + dy },
-      { model.glassWidth + dx, -*it + dy },
+      { gameLogic.glassWidth + dx, -*it + dy },
       { 0.0f - dx, -*it - 1.0f - dy },
-      { model.glassWidth + dx, -*it - 1.0f - dy },
+      { gameLogic.glassWidth + dx, -*it - 1.0f - dy },
     };
 
     glm::vec2 uv[4] =
@@ -1586,14 +1586,14 @@ void OpenGLRender::buildRowFlashes()
     addVertex(origin + scale * verts[3], uv[3], Globals::rowFlashTexIndex, color, 0.0f);
   }
 
-  if (!model.deletedRows.empty())
+  if (!gameLogic.deletedRows.empty())
   {
     float shineProgress = glm::clamp(overallProgress / 0.85f, 0.0f, 1.0f);
-    float ltX = (shineProgress - 0.5f) * 3.0f * model.glassWidth;
-    float ltY = 0.5f * (model.deletedRows.front() + model.deletedRows.back() + 1.0f);
+    float ltX = (shineProgress - 0.5f) * 3.0f * gameLogic.glassWidth;
+    float ltY = 0.5f * (gameLogic.deletedRows.front() + gameLogic.deletedRows.back() + 1.0f);
 
-    for (std::set<GameLogic::CellCoord>::iterator vertGapsIt = model.deletedRowGaps.begin();
-      vertGapsIt != model.deletedRowGaps.end();
+    for (std::set<GameLogic::CellCoord>::iterator vertGapsIt = gameLogic.deletedRowGaps.begin();
+      vertGapsIt != gameLogic.deletedRowGaps.end();
       ++vertGapsIt)
     {
       float gapX = float(vertGapsIt->x);

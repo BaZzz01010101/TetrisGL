@@ -10,8 +10,8 @@ int main()
 {
   srand((unsigned int)Crosy::getPerformanceCounter());
 
-  GameLogic model;
-  std::unique_ptr<Application> application = std::unique_ptr<OpenGLApplication>(new OpenGLApplication(model));
+  GameLogic gameLogic;
+  std::unique_ptr<Application> application = std::unique_ptr<OpenGLApplication>(new OpenGLApplication(gameLogic));
 
   if(!application->init())
     return 1;

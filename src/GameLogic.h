@@ -4,6 +4,7 @@
 #include "Figure.h"
 #include "DropSparkle.h"
 #include "DropTrail.h"
+#include "Bindings.h"
 
 #pragma warning(disable : 4512)
 
@@ -27,6 +28,7 @@ private:
 public:
   enum GameState { gsStartGame, gsPlayingGame, gsPauseGame, gsGameOver };
   enum MenuState { msNone, msMainMenu, msQuitConfirmation};
+  Bindings bindings;
   GameState gameState;
   std::vector<Cell> glass;
   Figure nextFigures[Globals::nextFiguresCount];
@@ -39,7 +41,7 @@ public:
   int curScore;
   int curGoal;
   int curLevel;
-  bool forceDown;
+  bool fastDown;
   bool haveHold;
   bool justHolded;
   bool haveFallingRows;

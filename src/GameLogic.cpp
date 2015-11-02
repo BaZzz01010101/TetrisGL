@@ -6,7 +6,7 @@
 GameLogic::GameLogic() :
   maxLevel(20),
   gameState(gsStartGame),
-  forceDown(false),
+  fastDown(false),
   haveHold(false),
   justHolded(false),
   haveFallingRows(false),
@@ -60,7 +60,7 @@ void GameLogic::playingGameProceed()
 {
   double curTime = getTimer();
   const float forceDownStepTime = 0.04f;
-  const float stepTime = forceDown ? forceDownStepTime : getStepTime();
+  const float stepTime = fastDown ? forceDownStepTime : getStepTime();
 
   if (haveFallingRows)
     lastStepTimer = getTimer();
@@ -106,7 +106,7 @@ void GameLogic::storeCurFigureIntoGlass()
 
 void GameLogic::shiftFigureConveyor()
 {
-  forceDown = false;
+  fastDown = false;
   justHolded = false;
 
   Figure::swap(curFigure, nextFigures[0]);
