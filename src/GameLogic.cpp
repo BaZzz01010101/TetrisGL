@@ -117,7 +117,7 @@ void GameLogic::shiftFigureConveyor()
   nextFigures[Globals::nextFiguresCount - 1].buildRandomFigure();
 
   curFigureX = (glassWidth - curFigure.dim) / 2;
-  curFigureY = 0;// -curFigure.dim / 2;
+  curFigureY = 0;
 
   if (!checkCurrentFigurePos(0, 0))
   {
@@ -183,7 +183,7 @@ void GameLogic::holdCurrentFigure()
       Figure::Type type = curFigure.type;
       curFigure = holdFigure;
       curFigureX = (glassWidth - curFigure.dim) / 2;
-      curFigureY = curFigure.dim / 2;
+      curFigureY = 0;
 
       if (tryToPlaceCurrentFigure())
       {
@@ -203,7 +203,7 @@ void GameLogic::holdCurrentFigure()
       holdFigure = curFigure;
       curFigure = nextFigures[0];
       curFigureX = (glassWidth - curFigure.dim) / 2;
-      curFigureY = curFigure.dim / 2;
+      curFigureY = 0;
 
       if (tryToPlaceCurrentFigure())
       {
