@@ -2,16 +2,16 @@
 
 #include "GameLogic.h"
 #include "Crosy.h"
+#include "Time.h"
 
 GameLogic::GameLogic() :
   maxLevel(20),
-  gameState(gsStartGame),
-  fastDown(false),
+  state(stStopped),
+  nextFigures(1),
   haveHold(false),
   justHolded(false),
   haveFallingRows(false),
-  rowsDeleteTimer(-1.0),
-  rowsDeletionEffectTime(0.8f)
+  rowsDeleteTimer(-1.0)
 {
 }
 
@@ -20,17 +20,20 @@ GameLogic::~GameLogic()
 {
 }
 
-void GameLogic::initGameProceed(int glassWidth, int glassHeight)
+void GameLogic::initGame()
 {
+  glassWidth = 10;
+  glassHeight = 20;
   curLevel = 1;
   curScore = 0;
   curGoal = 5;
-  this->glassWidth = glassWidth;
-  this->glassHeight = glassHeight;
+  haveHold = false;
+  holdFigure.clear();
   rowElevation.assign(glassHeight, 0);
   rowCurrentElevation.assign(glassHeight, 0.0f);
+  nextFigures.resize(Globals::nextFiguresCount);
   glass.assign(glassWidth * glassHeight, Cell(0, Globals::Color::clNone));
-  lastStepTimer = getTimer();
+  lastStepTimer = Time::timer;
   
   for (int i = 0; i < Globals::nextFiguresCount; i++)
     nextFigures[i].buildRandomFigure();
@@ -38,33 +41,46 @@ void GameLogic::initGameProceed(int glassWidth, int glassHeight)
   shiftFigureConveyor();
 }
 
-void GameLogic::update()
+GameLogic::Result GameLogic::update()
 {
-  switch (gameState)
+  Result result = resNone;
+
+  switch (state)
   {
-  case gsStartGame:
-    initGameProceed(10, 20);
-    gameState = gsPlayingGame;
+  case stInit:
+    initGame();
+    state = stPlaying;
     break;
-  case gsPlayingGame:
-    playingGameProceed();
+
+  case stPlaying:
+    gameUpdate();
     break;
-  case gsGameOver:
+
+  case stPaused:
     break;
+
+  case stGameOver:
+    state = stStopped;
+    result = resGameOver;
+    break;
+
+  case stStopped:
+    break;
+
   default:
     assert(0);
   }
+
+  return result;
 }
 
-void GameLogic::playingGameProceed()
+void GameLogic::gameUpdate()
 {
-  double curTime = getTimer();
-  const float forceDownStepTime = 0.04f;
-  const float stepTime = fastDown ? forceDownStepTime : getStepTime();
+  const float stepTime = getStepTime();
 
   if (haveFallingRows)
-    lastStepTimer = getTimer();
-  else if (curTime > lastStepTimer + stepTime)
+    lastStepTimer = Time::timer;
+  else if (Time::timer > lastStepTimer + stepTime)
   {
     if (checkCurrentFigurePos(0, 1))
       curFigureY++;
@@ -74,7 +90,7 @@ void GameLogic::playingGameProceed()
       shiftFigureConveyor();
     }
 
-    lastStepTimer = curTime;
+    lastStepTimer = Time::timer;
   }
 
   proceedFallingRows();
@@ -82,7 +98,7 @@ void GameLogic::playingGameProceed()
   deleteObsoleteEffects();
 }
 
-float GameLogic::getStepTime()
+float GameLogic::getStepTime() const
 {
   const float maxStepTime = 1.0f;
   const float minStepTime = 0.0f;
@@ -106,7 +122,6 @@ void GameLogic::storeCurFigureIntoGlass()
 
 void GameLogic::shiftFigureConveyor()
 {
-  fastDown = false;
   justHolded = false;
 
   Figure::swap(curFigure, nextFigures[0]);
@@ -122,7 +137,7 @@ void GameLogic::shiftFigureConveyor()
   if (!checkCurrentFigurePos(0, 0))
   {
     curFigure.clear();
-    gameState = gsGameOver;
+    state = stGameOver;
   }
 }
 
@@ -135,7 +150,6 @@ bool GameLogic::checkCurrentFigurePos(int dx, int dy)
     {
       if (curFigureX + curx + dx < 0 ||
       curFigureX + curx + dx >= glassWidth ||
-      //curFigureY + cury + dy < 0 ||
       curFigureY + cury + dy >= glassHeight ||
       !glass[curFigureX + curx + dx + (curFigureY + cury + dy) * glassWidth].isEmpty()) 
         return false;
@@ -152,7 +166,7 @@ bool GameLogic::tryToPlaceCurrentFigure()
 
   const int shift = curFigure.dim / 2 + (curFigure.dim & 1);
 
-  for (int dx = 1; dx < shift; dx++)
+  for (int dx = 1; dx <= shift; dx++)
   {
     if (checkCurrentFigurePos(dx, 0))
     {
@@ -188,7 +202,7 @@ void GameLogic::holdCurrentFigure()
       if (tryToPlaceCurrentFigure())
       {
         holdFigure.buildFigure(type);
-        lastStepTimer = getTimer();
+        lastStepTimer = Time::timer;
         justHolded = true;
       }
       else
@@ -209,7 +223,7 @@ void GameLogic::holdCurrentFigure()
       {
         shiftFigureConveyor();
         haveHold = true;
-        lastStepTimer = getTimer();
+        lastStepTimer = Time::timer;
         justHolded = true;
       }
       else
@@ -221,6 +235,19 @@ void GameLogic::holdCurrentFigure()
       }
     }
   }
+}
+
+void GameLogic::fastDownCurrentFigure()
+{
+  if (checkCurrentFigurePos(0, 1))
+    curFigureY++;
+  else
+  {
+    storeCurFigureIntoGlass();
+    shiftFigureConveyor();
+  }
+
+  lastStepTimer = Time::timer;
 }
 
 void GameLogic::dropCurrentFigure()
@@ -248,7 +275,7 @@ void GameLogic::dropCurrentFigure()
     }
   }
 
-  lastStepTimer = getTimer();
+  lastStepTimer = Time::timer;
   storeCurFigureIntoGlass();
   shiftFigureConveyor();
 }
@@ -323,7 +350,7 @@ void GameLogic::checkGlassRows()
   if (elevation)
   {
     haveFallingRows = true;
-    rowsDeleteTimer = getTimer();
+    rowsDeleteTimer = Time::timer;
     curScore += elevation * elevation * 10;
     curGoal -= (int)pow(elevation, 1.5f);
 
@@ -332,8 +359,6 @@ void GameLogic::checkGlassRows()
       curLevel++;
       curGoal = curLevel * 5;
     }
-//    curLevel = 0.5f * (sqrt(1 + 8 * curScore / 100) - 1) + 1;
-//    curGoal = curLevel * 10;
   }
 }
 
@@ -342,7 +367,7 @@ void GameLogic::proceedFallingRows()
   if (haveFallingRows)
   {
     haveFallingRows = false;
-    float timePassed = float(getTimer() - rowsDeleteTimer);
+    float timePassed = float(Time::timer - rowsDeleteTimer);
 
     for (int y = 0; y < glassHeight; y++)
     for (int x = 0; x < glassWidth; x++)
@@ -382,9 +407,57 @@ void GameLogic::deleteObsoleteEffects()
     else ++dropTrail;
   }
 
-  if (!deletedRows.empty() && getTimer() - rowsDeleteTimer > rowsDeletionEffectTime)
+  if (!deletedRows.empty() && Time::timer - rowsDeleteTimer > Globals::rowsDeletionEffectTime)
   {
     deletedRows.clear();
     deletedRowGaps.clear();
   }
 }
+
+int GameLogic::getRowElevation(int y) const
+{
+  assert(y >= 0);
+  assert(y < glassHeight);
+
+  return (y >= 0 && y < glassHeight) ? rowElevation[y] : 0;
+}
+
+float GameLogic::getRowCurrentElevation(int y) const
+{
+  assert(y >= 0);
+  assert(y < glassHeight);
+
+  return (y >= 0 && y < glassHeight) ? rowCurrentElevation[y] : 0.0f;
+}
+
+const Cell * GameLogic::getGlassCell(int x, int y) const
+{
+  if (x < 0 || y < 0 || x >= glassWidth || y >= glassHeight)
+    return NULL;
+
+  const Cell * cell = glass.data() + x + y * glassWidth;
+
+  if (!cell->figureId && !haveFallingRows)
+  {
+    bool isInCurFigure =
+      x >= curFigureX &&
+      x < curFigureX + curFigure.dim &&
+      y >= curFigureY &&
+      y < curFigureY + curFigure.dim;
+
+    if (isInCurFigure)
+      cell = curFigure.cells.data() + x - curFigureX + (y - curFigureY) * curFigure.dim;
+  }
+
+  return cell;
+}
+
+const Cell * GameLogic::getFigureCell(Figure & figure, int x, int y) const
+{
+  if (x < 0 || y < 0 || x >= figure.dim || y >= figure.dim)
+    return NULL;
+
+  Cell * cell = figure.cells.data() + x + y * figure.dim;
+  return cell;
+}
+

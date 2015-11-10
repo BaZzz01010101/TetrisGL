@@ -5,18 +5,85 @@
 #include "DropSparkle.h"
 #include "DropTrail.h"
 #include "Bindings.h"
+#include "MenuLogic.h"
 
 #pragma warning(disable : 4512)
 
 class GameLogic
 {
+public:
+  enum State { stInit, stPlaying, stPaused, stGameOver, stStopped };
+  enum Result { resNone, resGameOver };
+  ReadOnly<State, GameLogic> state;
+  std::vector<Cell> glass;
+  std::vector<Figure> nextFigures;
+  Figure holdFigure;
+  Figure curFigure;
+  ReadOnly<int, GameLogic> glassWidth;
+  ReadOnly<int, GameLogic> glassHeight;
+  ReadOnly<int, GameLogic> curFigureX;
+  ReadOnly<int, GameLogic> curFigureY;
+  ReadOnly<int, GameLogic> curScore;
+  ReadOnly<int, GameLogic> curGoal;
+  ReadOnly<int, GameLogic> curLevel;
+  ReadOnly<bool, GameLogic> haveHold;
+  ReadOnly<bool, GameLogic> haveFallingRows;
+  ReadOnly<double, GameLogic> rowsDeleteTimer;
+
+  struct CellCoord
+  {
+    int x, y;
+    inline CellCoord(int x, int y) : x(x), y(y) {}
+    inline bool operator < (const CellCoord & left) const { return left.x < x || (left.x == x && left.y < y); }
+  };
+
+  typedef std::vector<int>::const_iterator DeletedRowsIterator;
+  typedef std::list<DropTrail>::const_iterator DropTrailsIterator;
+  typedef std::set<CellCoord>::const_iterator DeletedRowGapsIterator;
+
+  GameLogic();
+  ~GameLogic();
+
+  Result update();
+
+  void holdCurrentFigure();
+  void fastDownCurrentFigure();
+  void dropCurrentFigure();
+  void rotateCurrentFigureLeft();
+  void rotateCurrentFigureRight();
+  void shiftCurrentFigureLeft();
+  void shiftCurrentFigureRight();
+  void storeCurFigureIntoGlass();
+  void newGame() { state = stInit; }
+  void pauseGame() { state = stPaused; }
+  void continueGame() { state = stPlaying; }
+  void stopGame() { state = stStopped; }
+
+  DropTrailsIterator getDropTrailsBegin() const { return dropTrails.begin(); }
+  DropTrailsIterator getDropTrailsEnd() const { return dropTrails.end(); }
+  DeletedRowsIterator getDeletedRowsBegin() const { return deletedRows.begin(); }
+  DeletedRowsIterator getDeletedRowsEnd() const { return deletedRows.end(); }
+  DeletedRowGapsIterator getDeletedRowGapsBegin() const { return deletedRowGaps.begin(); }
+  DeletedRowGapsIterator getDeletedRowGapsEnd() const { return deletedRowGaps.end(); }
+
+  int getRowElevation(int y) const;
+  float getRowCurrentElevation(int y) const;
+  const Cell * getGlassCell(int x, int y) const;
+  const Cell * getFigureCell(Figure & figure, int x, int y) const;
+
 private:
   const int maxLevel;
   double lastStepTimer;
+  bool justHolded;
+  std::vector<int> rowElevation;
+  std::vector<float> rowCurrentElevation;
+  std::list<DropTrail> dropTrails;
+  std::vector<int> deletedRows;
+  std::set<CellCoord> deletedRowGaps;
 
-  void initGameProceed(int glassWidth, int glassHeight);
-  void playingGameProceed();
-  float getStepTime();
+  void initGame();
+  void gameUpdate();
+  float getStepTime() const;
   void shiftFigureConveyor();
   bool checkCurrentFigurePos(int dx, int dy);
   bool tryToPlaceCurrentFigure();
@@ -24,51 +91,4 @@ private:
   void proceedFallingRows();
   void createDropTrail(int x, int y, int height, Globals::Color color);
   void deleteObsoleteEffects();
-
-public:
-  enum GameState { gsStartGame, gsPlayingGame, gsPauseGame, gsGameOver };
-  enum MenuState { msNone, msMainMenu, msQuitConfirmation};
-  Bindings bindings;
-  GameState gameState;
-  std::vector<Cell> glass;
-  Figure nextFigures[Globals::nextFiguresCount];
-  Figure holdFigure;
-  Figure curFigure;
-  int glassWidth = 10;
-  int glassHeight = 20;
-  int curFigureX;
-  int curFigureY;
-  int curScore;
-  int curGoal;
-  int curLevel;
-  bool fastDown;
-  bool haveHold;
-  bool justHolded;
-  bool haveFallingRows;
-  double rowsDeleteTimer;
-  std::vector<int> rowElevation;
-  std::vector<float> rowCurrentElevation;
-  std::list<DropTrail> dropTrails;
-  const float rowsDeletionEffectTime;
-  std::vector<int> deletedRows;
-  struct CellCoord
-  { 
-    int x, y; 
-    inline CellCoord(int x, int y) : x(x), y(y) {}
-    inline bool operator < (const CellCoord & left) const { return left.x < x || (left.x == x && left.y < y); }
-  };
-  std::set<CellCoord> deletedRowGaps;
-
-  GameLogic();
-  ~GameLogic();
-
-  void update();
-
-  void holdCurrentFigure();
-  void dropCurrentFigure();
-  void rotateCurrentFigureLeft();
-  void rotateCurrentFigureRight();
-  void shiftCurrentFigureLeft();
-  void shiftCurrentFigureRight();
-  void storeCurFigureIntoGlass();
 };

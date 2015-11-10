@@ -14,7 +14,7 @@ public:
 
   void setDefault();
   void setKeyBinding(Key key, Action action);
-  Action getKeyAction(Key key);
-  Key getActionKey(Action action);
+  Action getKeyAction(Key key) const;
+  Key getActionKey(Action action) const;
 };
 

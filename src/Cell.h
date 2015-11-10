@@ -12,6 +12,6 @@ public:
 
   void clear();
   Cell & operator = (const Cell & cell);
-  inline bool isEmpty() { return color == Globals::Color::clNone; };
+  inline bool isEmpty() const { return color == Globals::Color::clNone; };
 };
 

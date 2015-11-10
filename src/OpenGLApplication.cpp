@@ -2,13 +2,14 @@
 
 #include "OpenGLApplication.h"
 #include "Crosy.h"
+#include "Time.h"
 
 #pragma warning(disable : 4100)
 
-OpenGLApplication::OpenGLApplication(GameLogic & gameLogic) : 
-  Application(gameLogic),
-  render(gameLogic),
-  control(gameLogic)
+OpenGLApplication::OpenGLApplication(GameLogic & gameLogic, InterfaceLogic & interfaceLogic) :
+  Application(gameLogic, interfaceLogic),
+  render(gameLogic, interfaceLogic),
+  control(gameLogic, interfaceLogic)
 {
   initGlfwKeyMap();
 }
@@ -67,17 +68,37 @@ bool OpenGLApplication::init()
 
 void OpenGLApplication::run()
 {
-  while (!glfwWindowShouldClose(wnd))
+  bool exitFlag = false;
+
+  while (!exitFlag)
   {
+    Time::update();
     control.update();
-    gameLogic.update();
+    
+    if(gameLogic.update() == GameLogic::resGameOver)
+      interfaceLogic.showMainMenu();
+
+    switch (interfaceLogic.update())
+    {
+    case InterfaceLogic::resNewGame:      gameLogic.newGame();      break;
+    case InterfaceLogic::resContinueGame: gameLogic.continueGame(); break;
+    case InterfaceLogic::resStopGame:     gameLogic.stopGame();     break;
+    case InterfaceLogic::resCloseApp:     exitFlag = true;          break;
+    case InterfaceLogic::resNone: break;
+    default: assert(0);
+    }
+
     render.update();
+    //Sleep(500);
 
     glfwSetWindowTitle(wnd, fps.count(0.5f));
     glfwSwapInterval((int)vSync);
     glfwSwapBuffers(wnd);
     glfwPollEvents();
     //Crosy::sleep(5);
+
+    if (glfwWindowShouldClose(wnd))
+      exitFlag = true;
   }
 }
 
@@ -99,6 +120,9 @@ void OpenGLApplication::OnFramebufferSize(GLFWwindow * wnd, int width, int heigh
 void OpenGLApplication::OnKeyClick(GLFWwindow * wnd, int key, int scancode, int action, int mods)
 {
   OpenGLApplication & app = *reinterpret_cast<OpenGLApplication *>(glfwGetWindowUserPointer(wnd));
+
+  if (action == GLFW_PRESS && key == GLFW_KEY_F11)
+    app.vSync = !app.vSync;
 
   switch (action)
   {

@@ -128,8 +128,3 @@ const char * const Keys::names[KEY_COUNT] =
   "RIGHT SUPER",
   "MENU"
 };
-
-const char * Keys::getName(Key key)
-{
-  return names[key];
-}

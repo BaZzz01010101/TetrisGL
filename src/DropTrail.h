@@ -18,7 +18,7 @@ public:
   DropSparkle sparkles[sparkleQty];
 
   DropTrail();
-  float getTrailProgress();
-  float getSparklesProgress();
+  float getTrailProgress() const;
+  float getSparklesProgress() const;
 };
 

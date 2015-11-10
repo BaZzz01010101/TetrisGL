@@ -2,7 +2,7 @@
 
 enum Action
 {
-  none,
+  doNothing = 0,
   moveLeft, 
   moveRight, 
   rotateLeft, 

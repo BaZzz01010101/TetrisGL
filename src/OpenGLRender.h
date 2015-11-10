@@ -1,10 +1,23 @@
 #pragma once
-#include "GameLogic.h"
 #include "Program.h"
 #include "Shader.h"
+#include "Cell.h"
+#include "Figure.h"
+#include "GameLogic.h"
+#include "InterfaceLogic.h"
 
 class OpenGLRender
 {
+public:
+  bool showWireframe;
+
+  OpenGLRender(GameLogic & gameLogic, InterfaceLogic & interfaceLogic);
+  ~OpenGLRender();
+
+  void init(int width, int height);
+  void resize(int width, int height);
+  void update();
+
 private:
   enum OriginType { otLeft, otRight, otCenter};
 
@@ -16,6 +29,7 @@ private:
   };
 
   GameLogic & gameLogic;
+  InterfaceLogic & interfaceLogic;
   std::vector<float> vertexBuffer;
   FT_Library ftLibrary;
   FT_Face ftFace;
@@ -30,8 +44,6 @@ private:
   int vertexCount;
 
   void loadGlyph(char ch, int size);
-  Cell * getGlassCell(int x, int y);
-  Cell * getFigureCell(Figure & figure, int x, int y);
   void addVertex(const glm::vec2 & xy, const glm::vec2 & uv, int texIndex, const glm::vec3 & color, float alpha);
   void clearVertices();
   void sendToDevice();
@@ -46,17 +58,7 @@ private:
   void buildFigureGlow();
   void buildDropTrails();
   void buildRowFlashes();
-  void buildSidePanel(float x, float y, const char * text, glm::vec3 textColor, bool highlighted);
-  void buildMainMenu();
+  void buildSidePanel(float x, float y, glm::vec3 panelColor);
+  void buildMenu();
   void buildTextMesh(const char * str, int fontSize, float scale, glm::vec3 color, float originX, float originY, OriginType originType = otLeft);
-
-public:
-  bool showWireframe;
-
-  OpenGLRender(GameLogic & gameLogic);
-  ~OpenGLRender();
-
-  void init(int width, int height);
-  void resize(int width, int height);
-  void update();
 };

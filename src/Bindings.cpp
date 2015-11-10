@@ -28,12 +28,12 @@ void Bindings::setKeyBinding(Key key, Action action)
   keyActions[key] = action;
 }
 
-Action Bindings::getKeyAction(Key key)
+Action Bindings::getKeyAction(Key key) const
 {
   return keyActions[key];
 }
 
-Key Bindings::getActionKey(Action action)
+Key Bindings::getActionKey(Action action) const
 {
   for (int key = 0; key < KEY_COUNT; key++)
   if (keyActions[key] == action)

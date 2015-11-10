@@ -3,6 +3,8 @@
 #include "FpsCounter.h"
 #include "OpenGLRender.h"
 #include "Control.h"
+#include "GameLogic.h"
+#include "InterfaceLogic.h"
 
 class OpenGLApplication : public Application
 {
@@ -25,7 +27,7 @@ private:
   static void OnMouseMove(GLFWwindow* wnd, double xpos, double ypos);
 
 public:
-  OpenGLApplication(GameLogic & gameLogic);
+  OpenGLApplication(GameLogic & gameLogic, InterfaceLogic & interfaceLogic);
   virtual ~OpenGLApplication();
 
   bool init();

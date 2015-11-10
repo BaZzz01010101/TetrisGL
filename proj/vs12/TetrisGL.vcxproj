@@ -70,13 +70,16 @@
     <ClCompile Include="..\..\src\Globals.cpp" />
     <ClCompile Include="..\..\src\Control.cpp" />
     <ClCompile Include="..\..\src\Keys.cpp" />
+    <ClCompile Include="..\..\src\InterfaceLogic.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
+    <ClCompile Include="..\..\src\MenuLogic.cpp" />
     <ClCompile Include="..\..\src\OpenGLRender.cpp" />
     <ClCompile Include="..\..\src\GameLogic.cpp" />
     <ClCompile Include="..\..\src\OpenGLApplication.cpp" />
     <ClCompile Include="..\..\src\Program.cpp" />
     <ClCompile Include="..\..\src\Shader.cpp" />
     <ClCompile Include="..\..\src\DropSparkle.cpp" />
+    <ClCompile Include="..\..\src\Time.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\3rdParty\SOIL2\etc1_utils.h" />
@@ -106,13 +109,19 @@
     <ClInclude Include="..\..\src\Globals.h" />
     <ClInclude Include="..\..\src\Control.h" />
     <ClInclude Include="..\..\src\Keys.h" />
+    <ClInclude Include="..\..\src\InterfaceLogic.h" />
+    <ClInclude Include="..\..\src\MenuLogic.h" />
     <ClInclude Include="..\..\src\OpenGLRender.h" />
     <ClInclude Include="..\..\src\GameLogic.h" />
     <ClInclude Include="..\..\src\OpenGLApplication.h" />
     <ClInclude Include="..\..\src\Program.h" />
+    <ClInclude Include="..\..\src\ReadOnly.h" />
     <ClInclude Include="..\..\src\Shader.h" />
     <ClInclude Include="..\..\src\DropSparkle.h" />
+    <ClInclude Include="..\..\src\singleton.h" />
     <ClInclude Include="..\..\src\static_headers.h" />
+    <ClInclude Include="..\..\src\Time.h" />
+    <ClInclude Include="Header.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E5402C0C-49F6-4C62-A7C3-F65F43545D64}</ProjectGuid>

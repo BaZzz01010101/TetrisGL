@@ -5,12 +5,14 @@
 #include "DropSparkle.h"
 #include "DropTrail.h"
 #include "Crosy.h"
+#include "Time.h"
 
-OpenGLRender::OpenGLRender(GameLogic & gameLogic) :
+OpenGLRender::OpenGLRender(GameLogic & gameLogic, InterfaceLogic & interfaceLogic) :
   figureVert(GL_VERTEX_SHADER),
   figureFrag(GL_FRAGMENT_SHADER),
   showWireframe(false),
-  gameLogic(gameLogic)
+  gameLogic(gameLogic),
+  interfaceLogic(interfaceLogic)
 {
 }
 
@@ -110,6 +112,7 @@ void OpenGLRender::init(int width, int height)
     loadGlyph(ch, Globals::smallFontSize);
 
   loadGlyph(' ', Globals::smallFontSize);
+  loadGlyph('\'', Globals::smallFontSize);
 
   err = FT_Set_Char_Size(ftFace, Globals::midFontSize * 64, Globals::midFontSize * 64, 64, 64);
   assert(!err);
@@ -121,6 +124,7 @@ void OpenGLRender::init(int width, int height)
     loadGlyph(ch, Globals::midFontSize);
 
   loadGlyph(' ', Globals::midFontSize);
+  loadGlyph('\'', Globals::smallFontSize);
 
   err = FT_Set_Char_Size(ftFace, Globals::bigFontSize * 64, Globals::bigFontSize * 64, 64, 64);
   assert(!err);
@@ -132,6 +136,7 @@ void OpenGLRender::init(int width, int height)
     loadGlyph(ch, Globals::bigFontSize);
 
   loadGlyph(' ', Globals::midFontSize);
+  loadGlyph('\'', Globals::smallFontSize);
 
   glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
   assert(!checkGlErrors());
@@ -213,15 +218,20 @@ void OpenGLRender::rebuildMesh()
   clearVertices();
 
   buildBackground();
-  buidGlassShadow();
-  buidGlassBlocks();
-  biuldGlassGlow();
-  buildFigureBlocks();
-  buildFigureGlow();
-  buildDropTrails();
-  buildRowFlashes();
 
-  //buildMainMenu();
+  if (gameLogic.state == GameLogic::stPlaying ||
+    gameLogic.state == GameLogic::stPaused)
+  {
+    buidGlassShadow();
+    buidGlassBlocks();
+    biuldGlassGlow();
+    buildFigureBlocks();
+    buildFigureGlow();
+    buildDropTrails();
+    buildRowFlashes();
+  }
+
+  buildMenu();
 
   sendToDevice();
 }
@@ -254,37 +264,6 @@ void OpenGLRender::drawMesh()
   assert(!checkGlErrors());
   glDisableVertexAttribArray(2);
   assert(!checkGlErrors());
-}
-
-Cell * OpenGLRender::getGlassCell(int x, int y)
-{
-  if (x < 0 || y < 0 || x >= gameLogic.glassWidth || y >= gameLogic.glassHeight)
-    return NULL;
-
-  Cell * cell = gameLogic.glass.data() + x + y * gameLogic.glassWidth;
-
-  if (!cell->figureId && !gameLogic.haveFallingRows)
-  {
-    bool isInCurFigure =
-      x >= gameLogic.curFigureX &&
-      x < gameLogic.curFigureX + gameLogic.curFigure.dim &&
-      y >= gameLogic.curFigureY &&
-      y < gameLogic.curFigureY + gameLogic.curFigure.dim;
-
-    if (isInCurFigure)
-      cell = gameLogic.curFigure.cells.data() + x - gameLogic.curFigureX + (y - gameLogic.curFigureY) * gameLogic.curFigure.dim;
-  }
-
-  return cell;
-}
-
-Cell * OpenGLRender::getFigureCell(Figure & figure, int x, int y)
-{
-  if (x < 0 || y < 0 || x >= figure.dim || y >= figure.dim)
-    return NULL;
-
-  Cell * cell = figure.cells.data() + x + y * figure.dim;
-  return cell;
 }
 
 void OpenGLRender::addVertex(const glm::vec2 & xy, const glm::vec2 & uv, int texIndex, const glm::vec3 & color, float alpha)
@@ -674,22 +653,22 @@ void OpenGLRender::buidGlassShadow()
   for (int y = 0; y < gameLogic.glassHeight; y++)
   for (int x = 0; x < gameLogic.glassWidth; x++)
   {
-    Cell * cell = getGlassCell(x, y);
+    const Cell * cell = gameLogic.getGlassCell(x, y);
     glm::vec2 origin = Globals::glassPos;
     
-    if (gameLogic.rowElevation[y])
-      origin.y += scale * gameLogic.rowCurrentElevation[y];
+    if (gameLogic.getRowElevation(y))
+      origin.y += scale * gameLogic.getRowCurrentElevation(y);
 
     if (cell->figureId)
     {
-      Cell * rightCell = getGlassCell(x + 1, y);
-      Cell * rightBottomCell = getGlassCell(x + 1, y + 1);
-      Cell * bottomCell = getGlassCell(x, y + 1);
+      const Cell * rightCell = gameLogic.getGlassCell(x + 1, y);
+      const Cell * rightBottomCell = gameLogic.getGlassCell(x + 1, y + 1);
+      const Cell * bottomCell = gameLogic.getGlassCell(x, y + 1);
 
       if (bottomCell && bottomCell->figureId != cell->figureId)
       {
-        Cell * leftCell = getGlassCell(x - 1, y);
-        Cell * bottomLeftCell = getGlassCell(x - 1, y + 1);
+        const Cell * leftCell = gameLogic.getGlassCell(x - 1, y);
+        const Cell * bottomLeftCell = gameLogic.getGlassCell(x - 1, y + 1);
         bool softLeft = !leftCell || leftCell->figureId != cell->figureId;
 
         glm::vec2 verts[4] =
@@ -733,8 +712,8 @@ void OpenGLRender::buidGlassShadow()
 
       if (rightCell && rightCell->figureId != cell->figureId)
       {
-        Cell * topCell = getGlassCell(x, y - 1);
-        Cell * topRightCell = getGlassCell(x + 1, y - 1);
+        const Cell * topCell = gameLogic.getGlassCell(x, y - 1);
+        const Cell * topRightCell = gameLogic.getGlassCell(x + 1, y - 1);
         bool softTop = !topCell || topCell->figureId != cell->figureId;
 
         glm::vec2 verts[4] =
@@ -787,11 +766,11 @@ void OpenGLRender::buidGlassBlocks()
   for (int y = 0; y < gameLogic.glassHeight; y++)
   for (int x = 0; x < gameLogic.glassWidth; x++)
   {
-    Cell * cell = getGlassCell(x, y);
+    const Cell * cell = gameLogic.getGlassCell(x, y);
     glm::vec2 origin = Globals::glassPos;
     
-    if (gameLogic.rowElevation[y])
-      origin.y += scale * gameLogic.rowCurrentElevation[y];
+    if (gameLogic.getRowElevation(y))
+      origin.y += scale * gameLogic.getRowCurrentElevation(y);
 
     if (cell && cell->figureId)
     {
@@ -802,9 +781,9 @@ void OpenGLRender::buidGlassBlocks()
         int cornerDX = (i & 1) * 2 - 1;
         int cornerDY = (i & 2) - 1;
 
-        Cell * horzAdjCell = getGlassCell(x + cornerDX, y);
-        Cell * vertAdjCell = getGlassCell(x, y + cornerDY);
-        Cell * cornerAdjCell = getGlassCell(x + cornerDX, y + cornerDY);
+        const Cell * horzAdjCell = gameLogic.getGlassCell(x + cornerDX, y);
+        const Cell * vertAdjCell = gameLogic.getGlassCell(x, y + cornerDY);
+        const Cell * cornerAdjCell = gameLogic.getGlassCell(x + cornerDX, y + cornerDY);
 
         bool haveHorzAdjCell = (horzAdjCell && horzAdjCell->figureId == cellId);
         bool haveVertAdjCell = (vertAdjCell && vertAdjCell->figureId == cellId);
@@ -874,22 +853,22 @@ void OpenGLRender::biuldGlassGlow()
   for (int y = 0; y < gameLogic.glassHeight; y++)
   for (int x = 0; x < gameLogic.glassWidth; x++)
   {
-    Cell * cell = getGlassCell(x, y);
+    const Cell * cell = gameLogic.getGlassCell(x, y);
     glm::vec2 origin = Globals::glassPos;
 
-    if (gameLogic.rowElevation[y])
-      origin.y += scale * gameLogic.rowCurrentElevation[y];
+    if (gameLogic.getRowElevation(y))
+      origin.y += scale * gameLogic.getRowCurrentElevation(y);
 
     if (cell->figureId)
     {
-      Cell * leftCell = getGlassCell(x - 1, y);
-      Cell * leftTopCell = getGlassCell(x - 1, y - 1);
-      Cell * topCell = getGlassCell(x, y - 1);
-      Cell * topRightCell = getGlassCell(x + 1, y - 1);
-      Cell * rightCell = getGlassCell(x + 1, y);
-      Cell * rightBottomCell = getGlassCell(x + 1, y + 1);
-      Cell * bottomCell = getGlassCell(x, y + 1);
-      Cell * bottomLeftCell = getGlassCell(x - 1, y + 1);
+      const Cell * leftCell = gameLogic.getGlassCell(x - 1, y);
+      const Cell * leftTopCell = gameLogic.getGlassCell(x - 1, y - 1);
+      const Cell * topCell = gameLogic.getGlassCell(x, y - 1);
+      const Cell * topRightCell = gameLogic.getGlassCell(x + 1, y - 1);
+      const Cell * rightCell = gameLogic.getGlassCell(x + 1, y);
+      const Cell * rightBottomCell = gameLogic.getGlassCell(x + 1, y + 1);
+      const Cell * bottomCell = gameLogic.getGlassCell(x, y + 1);
+      const Cell * bottomLeftCell = gameLogic.getGlassCell(x - 1, y + 1);
 
       bool haveLeftCell = leftCell && leftCell->figureId == cell->figureId;
       bool haveLeftTopCell = leftTopCell && leftTopCell->figureId == cell->figureId;
@@ -1070,7 +1049,7 @@ void OpenGLRender::buildFigureBlocks()
   const float pixSize = Globals::mainArrayTexturePixelSize;
   const float scale = Globals::holdNextBkSize * 0.75f / 4.0f;
 
-  for (int i = -1; i < Globals::nextFiguresCount; i++)
+  for (int i = (gameLogic.haveHold ? -1 : 0); i < Globals::nextFiguresCount; i++)
   {
 
     Figure * figure = NULL;
@@ -1141,7 +1120,7 @@ void OpenGLRender::buildFigureBlocks()
       for (int y = 0; y < figure->dim; y++)
       for (int x = 0; x < figure->dim; x++)
       {
-        Cell * cell = getFigureCell(*figure, x, y);
+        const Cell * cell = gameLogic.getFigureCell(*figure, x, y);
 
         if (cell && !cell->isEmpty())
         {
@@ -1150,9 +1129,9 @@ void OpenGLRender::buildFigureBlocks()
             int cornerDX = (i & 1) * 2 - 1;
             int cornerDY = (i & 2) - 1;
 
-            Cell * horzAdjCell = getFigureCell(*figure, x + cornerDX, y);
-            Cell * vertAdjCell = getFigureCell(*figure, x, y + cornerDY);
-            Cell * cornerAdjCell = getFigureCell(*figure, x + cornerDX, y + cornerDY);
+            const Cell * horzAdjCell = gameLogic.getFigureCell(*figure, x + cornerDX, y);
+            const Cell * vertAdjCell = gameLogic.getFigureCell(*figure, x, y + cornerDY);
+            const Cell * cornerAdjCell = gameLogic.getFigureCell(*figure, x + cornerDX, y + cornerDY);
 
             bool haveHorzAdjCell = (horzAdjCell && !horzAdjCell->isEmpty());
             bool haveVertAdjCell = (vertAdjCell && !vertAdjCell->isEmpty());
@@ -1292,18 +1271,18 @@ void OpenGLRender::buildFigureGlow()
       for (int y = 0; y < figure->dim; y++)
       for (int x = 0; x < figure->dim; x++)
       {
-        Cell * cell = getFigureCell(*figure, x, y);
+        const Cell * cell = gameLogic.getFigureCell(*figure, x, y);
 
         if (cell && !cell->isEmpty())
         {
-          Cell * leftCell = getFigureCell(*figure, x - 1, y);
-          Cell * leftTopCell = getFigureCell(*figure, x - 1, y - 1);
-          Cell * topCell = getFigureCell(*figure, x, y - 1);
-          Cell * topRightCell = getFigureCell(*figure, x + 1, y - 1);
-          Cell * rightCell = getFigureCell(*figure, x + 1, y);
-          Cell * rightBottomCell = getFigureCell(*figure, x + 1, y + 1);
-          Cell * bottomCell = getFigureCell(*figure, x, y + 1);
-          Cell * bottomLeftCell = getFigureCell(*figure, x - 1, y + 1);
+          const Cell * leftCell = gameLogic.getFigureCell(*figure, x - 1, y);
+          const Cell * leftTopCell = gameLogic.getFigureCell(*figure, x - 1, y - 1);
+          const Cell * topCell = gameLogic.getFigureCell(*figure, x, y - 1);
+          const Cell * topRightCell = gameLogic.getFigureCell(*figure, x + 1, y - 1);
+          const Cell * rightCell = gameLogic.getFigureCell(*figure, x + 1, y);
+          const Cell * rightBottomCell = gameLogic.getFigureCell(*figure, x + 1, y + 1);
+          const Cell * bottomCell = gameLogic.getFigureCell(*figure, x, y + 1);
+          const Cell * bottomLeftCell = gameLogic.getFigureCell(*figure, x - 1, y + 1);
 
           bool haveLeftCell = leftCell && !leftCell->isEmpty();
           bool haveLeftTopCell = leftTopCell && !leftTopCell->isEmpty();
@@ -1487,19 +1466,21 @@ void OpenGLRender::buildDropTrails()
   const float scale = Globals::glassSize.x / gameLogic.glassWidth;
   const float pixSize = Globals::mainArrayTexturePixelSize;
 
-  for (std::list<DropTrail>::iterator it = gameLogic.dropTrails.begin(); it != gameLogic.dropTrails.end(); ++it)
+  for (GameLogic::DropTrailsIterator dropTrailIt = gameLogic.getDropTrailsBegin(), end = gameLogic.getDropTrailsEnd(); dropTrailIt != end; ++dropTrailIt)
   {
-    float currentTrailAlpha = 1.0f - it->getTrailProgress();
-    float currentTrailHeight = float(it->height) * currentTrailAlpha;
+    float currentTrailAlpha = 1.0f - dropTrailIt->getTrailProgress();
+    float currentTrailHeight = float(dropTrailIt->height) * currentTrailAlpha;
+    float dtx = float(dropTrailIt->x);
+    float dty = float(dropTrailIt->y);
     const float dx = 0.22f;
     const float dy = 0.1f * currentTrailHeight;
 
     glm::vec2 verts[4] =
     {
-      { glm::max<float>(it->x - dx, 0.0f),                                  -glm::max<float>(it->y - currentTrailHeight, 0.0f)  },
-      { glm::min<float>(it->x + 1.0f + 2.0f * dx, (float)gameLogic.glassWidth), -glm::max<float>(it->y - currentTrailHeight, 0.0f) },
-      { glm::max<float>(it->x - dx, 0.0f),                                  -glm::min<float>(it->y + dy, (float)gameLogic.glassHeight) },
-      { glm::min<float>(it->x + 1.0f + 2.0f * dx, (float)gameLogic.glassWidth), -glm::min<float>(it->y + dy, (float)gameLogic.glassHeight) },
+      { glm::max<float>(dtx - dx, 0.0f),                                      -glm::max<float>(dty - currentTrailHeight, 0.0f)  },
+      { glm::min<float>(dtx + 1.0f + 2.0f * dx, (float)gameLogic.glassWidth), -glm::max<float>(dty - currentTrailHeight, 0.0f) },
+      { glm::max<float>(dtx - dx, 0.0f),                                      -glm::min<float>(dty + dy, (float)gameLogic.glassHeight) },
+      { glm::min<float>(dtx + 1.0f + 2.0f * dx, (float)gameLogic.glassWidth), -glm::min<float>(dty + dy, (float)gameLogic.glassHeight) },
     };
 
     glm::vec2 uv[4] =
@@ -1510,7 +1491,7 @@ void OpenGLRender::buildDropTrails()
       { 1.0f - pixSize, 1.0f - pixSize },
     };
 
-    glm::vec3 color = Globals::ColorValues[it->color] * currentTrailAlpha;
+    glm::vec3 color = Globals::ColorValues[dropTrailIt->color] * currentTrailAlpha;
 
     addVertex(origin + scale * verts[0], uv[0], Globals::dropTrailTexIndex, color, 0.0f);
     addVertex(origin + scale * verts[1], uv[1], Globals::dropTrailTexIndex, color, 0.0f);
@@ -1519,10 +1500,10 @@ void OpenGLRender::buildDropTrails()
     addVertex(origin + scale * verts[2], uv[2], Globals::dropTrailTexIndex, color, 0.0f);
     addVertex(origin + scale * verts[3], uv[3], Globals::dropTrailTexIndex, color, 0.0f);
 
-    for (int i = 0; i < DropTrail::sparkleQty; i++)
+    for (int spInd = 0; spInd < DropTrail::sparkleQty; spInd++)
     {
-      float sparkleX = it->x + it->sparkles[i].relX;
-      float sparkleY = it->y - it->sparkles[i].relY * float(it->height) - it->sparkles[i].speed * it->getTrailProgress();
+      float sparkleX = dropTrailIt->x + dropTrailIt->sparkles[spInd].relX;
+      float sparkleY = dropTrailIt->y - dropTrailIt->sparkles[spInd].relY * dropTrailIt->height - dropTrailIt->sparkles[spInd].speed * dropTrailIt->getTrailProgress();
       const float sparkleSize = 0.1f;
 
       if (sparkleX < gameLogic.glassWidth - sparkleSize && sparkleY > 0.0f)
@@ -1552,20 +1533,22 @@ void OpenGLRender::buildRowFlashes()
   const float scale = Globals::glassSize.x / gameLogic.glassWidth;
   const float pixSize = Globals::mainArrayTexturePixelSize;
 
-  float overallProgress = glm::clamp(float(getTimer() - gameLogic.rowsDeleteTimer) / gameLogic.rowsDeletionEffectTime, 0.0f, 1.0f);
+  float overallProgress = glm::clamp(float(Time::timer - gameLogic.rowsDeleteTimer) / Globals::rowsDeletionEffectTime, 0.0f, 1.0f);
   float mul = 1.0f - cos((overallProgress - 0.5f) * (overallProgress < 0.5f ? 0.5f : 2.0f) * (float)M_PI_2);
-  float flashAlpha = 1.00f - overallProgress * overallProgress;// mul * mul;
+  float flashAlpha = 1.00f - overallProgress * overallProgress;
   float dx = 1.0f - mul * 3.0f;
   float dy = 0.25f - 0.75f * mul;
 
-  for (std::vector<int>::iterator it = gameLogic.deletedRows.begin(); it != gameLogic.deletedRows.end(); ++it)
+  for (GameLogic::DeletedRowsIterator delRowIt = gameLogic.getDeletedRowsBegin(), end = gameLogic.getDeletedRowsEnd(); delRowIt != end; ++delRowIt)
   {
+    int row = *delRowIt;
+
     glm::vec2 verts[4] =
     {
-      { 0.0f - dx, -*it + dy },
-      { gameLogic.glassWidth + dx, -*it + dy },
-      { 0.0f - dx, -*it - 1.0f - dy },
-      { gameLogic.glassWidth + dx, -*it - 1.0f - dy },
+      { 0.0f - dx, -row + dy },
+      { gameLogic.glassWidth + dx, -row + dy },
+      { 0.0f - dx, -row - 1.0f - dy },
+      { gameLogic.glassWidth + dx, -row - 1.0f - dy },
     };
 
     glm::vec2 uv[4] =
@@ -1586,19 +1569,21 @@ void OpenGLRender::buildRowFlashes()
     addVertex(origin + scale * verts[3], uv[3], Globals::rowFlashTexIndex, color, 0.0f);
   }
 
-  if (!gameLogic.deletedRows.empty())
+  if (gameLogic.getDeletedRowsBegin() != gameLogic.getDeletedRowsEnd())
   {
     float shineProgress = glm::clamp(overallProgress / 0.85f, 0.0f, 1.0f);
+    int firstRow = *gameLogic.getDeletedRowsBegin();
+    int lastRow = *(gameLogic.getDeletedRowsEnd() - 1);
     float ltX = (shineProgress - 0.5f) * 3.0f * gameLogic.glassWidth;
-    float ltY = 0.5f * (gameLogic.deletedRows.front() + gameLogic.deletedRows.back() + 1.0f);
+    float ltY = 0.5f * (firstRow + lastRow + 1);
 
-    for (std::set<GameLogic::CellCoord>::iterator vertGapsIt = gameLogic.deletedRowGaps.begin();
-      vertGapsIt != gameLogic.deletedRowGaps.end();
-      ++vertGapsIt)
+    for (GameLogic::DeletedRowGapsIterator rowGapsIt = gameLogic.getDeletedRowGapsBegin();
+      rowGapsIt != gameLogic.getDeletedRowGapsEnd();
+      ++rowGapsIt)
     {
-      float gapX = float(vertGapsIt->x);
-      float gapY1 = float(vertGapsIt->y);
-      float gapY2 = float(vertGapsIt->y + 1);
+      float gapX = float(rowGapsIt->x);
+      float gapY1 = float(rowGapsIt->y);
+      float gapY2 = float(rowGapsIt->y + 1);
       float ltDX = gapX - ltX;
       float ltDY1 = gapY1 - ltY;
       float ltDY2 = gapY2 - ltY;
@@ -1660,16 +1645,16 @@ void OpenGLRender::buildRowFlashes()
   }
 }
 
-void OpenGLRender::buildSidePanel(float x, float y, const char * text, glm::vec3 textColor, bool highlighted)
+void OpenGLRender::buildSidePanel(float x, float y, glm::vec3 panelColor)
 {
-  glm::vec2 origin = Globals::gameBkPos + glm::vec2(x, y);
+  glm::vec2 origin = glm::vec2(x, y);
   const float pixSize = Globals::mainArrayTexturePixelSize;
   const float relWidth = 0.7f;
   const float relHeight = 0.07f;
   const int xTess = 25;
   const int yTess = 4;
-  const float width = xTess * 0.03f;// relWidth * Globals::gameBkSize.x;
-  const float height = yTess * 0.03f;// relHeight * Globals::gameBkSize.y;
+  const float width = Globals::menuRowWidth;
+  const float height = Globals::menuRowHeight;
   const float xPart = width / xTess;
   const float yPart = height / yTess;
 
@@ -1698,8 +1683,8 @@ void OpenGLRender::buildSidePanel(float x, float y, const char * text, glm::vec3
       { xVal * (x + 1) / xTess, yVal * (y + 1) / yTess },
     };
 
-    glm::vec3 darkColor(0.01f, 0.05f, 0.17f);
-    glm::vec3 lightColor(0.4f, 0.7f, 1.2f);
+    glm::vec3 darkColor = 0.1f * panelColor;
+    glm::vec3 lightColor = panelColor;
 
     float lt0 = 1.0f - glm::clamp(2.0f * float(y) / yTess, 0.0f, 1.0f);
     float lt1 = 1.0f - glm::clamp(2.0f * float(y + 1) / yTess, 0.0f, 1.0f);
@@ -1719,9 +1704,7 @@ void OpenGLRender::buildSidePanel(float x, float y, const char * text, glm::vec3
     addVertex(origin + verts[3], uv[3], Globals::backgroundTexIndex, col1, 1.0f);
   }
 
-  buildTextMesh(text, Globals::midFontSize, 0.08f, textColor, origin.x + width * 0.25f, origin.y - height * 0.7f, otLeft);
-
-  const float glowWidth = 0.03f;
+  const float glowWidth = Globals::menuGlowWidth;
   const float angle = atan(yPart / xPart);
 
   glm::vec2 borderVerts[10] =
@@ -1752,17 +1735,15 @@ void OpenGLRender::buildSidePanel(float x, float y, const char * text, glm::vec3
     { 1.0f - pixSize, 1.0f - pixSize },
   };
 
-  glm::vec3 color = highlighted ? glm::vec3(2.4f, 2.0f, 0.8f) : glm::vec3(0.4f, 0.7f, 1.2f);
-
   for (int i = 0; i < 8; i+=2)
   {
-    addVertex(origin + borderVerts[i], borderUV[i], Globals::sidePanelGlowingBorderTexIndex, color, 1.0f);
-    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], Globals::sidePanelGlowingBorderTexIndex, color, 1.0f);
-    addVertex(origin + borderVerts[i + 2], borderUV[i + 2], Globals::sidePanelGlowingBorderTexIndex, color, 1.0f);
+    addVertex(origin + borderVerts[i], borderUV[i], Globals::sidePanelGlowingBorderTexIndex, panelColor, 1.0f);
+    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], Globals::sidePanelGlowingBorderTexIndex, panelColor, 1.0f);
+    addVertex(origin + borderVerts[i + 2], borderUV[i + 2], Globals::sidePanelGlowingBorderTexIndex, panelColor, 1.0f);
 
-    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], Globals::sidePanelGlowingBorderTexIndex, color, 1.0f);
-    addVertex(origin + borderVerts[i + 2], borderUV[i + 2], Globals::sidePanelGlowingBorderTexIndex, color, 1.0f);
-    addVertex(origin + borderVerts[i + 3], borderUV[i + 3], Globals::sidePanelGlowingBorderTexIndex, color, 1.0f);
+    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], Globals::sidePanelGlowingBorderTexIndex, panelColor, 1.0f);
+    addVertex(origin + borderVerts[i + 2], borderUV[i + 2], Globals::sidePanelGlowingBorderTexIndex, panelColor, 1.0f);
+    addVertex(origin + borderVerts[i + 3], borderUV[i + 3], Globals::sidePanelGlowingBorderTexIndex, panelColor, 1.0f);
   }
 
   const float innerGlowWidth1 = 0.5f * height;
@@ -1808,56 +1789,97 @@ void OpenGLRender::buildSidePanel(float x, float y, const char * text, glm::vec3
 
   for (int i = 0; i < 12; i += 2)
   {
-    addVertex(origin + innerGlowVerts[i], innerGlowUV[i], Globals::sidePanelInnerGlowTexIndex, color, 1.0f);
-    addVertex(origin + innerGlowVerts[i + 1], innerGlowUV[i + 1], Globals::sidePanelInnerGlowTexIndex, color, 1.0f);
-    addVertex(origin + innerGlowVerts[i + 2], innerGlowUV[i + 2], Globals::sidePanelInnerGlowTexIndex, color, 1.0f);
+    addVertex(origin + innerGlowVerts[i], innerGlowUV[i], Globals::sidePanelInnerGlowTexIndex, panelColor, 1.0f);
+    addVertex(origin + innerGlowVerts[i + 1], innerGlowUV[i + 1], Globals::sidePanelInnerGlowTexIndex, panelColor, 1.0f);
+    addVertex(origin + innerGlowVerts[i + 2], innerGlowUV[i + 2], Globals::sidePanelInnerGlowTexIndex, panelColor, 1.0f);
 
-    addVertex(origin + innerGlowVerts[i + 1], innerGlowUV[i + 1], Globals::sidePanelInnerGlowTexIndex, color, 1.0f);
-    addVertex(origin + innerGlowVerts[i + 2], innerGlowUV[i + 2], Globals::sidePanelInnerGlowTexIndex, color, 1.0f);
-    addVertex(origin + innerGlowVerts[i + 3], innerGlowUV[i + 3], Globals::sidePanelInnerGlowTexIndex, color, 1.0f);
+    addVertex(origin + innerGlowVerts[i + 1], innerGlowUV[i + 1], Globals::sidePanelInnerGlowTexIndex, panelColor, 1.0f);
+    addVertex(origin + innerGlowVerts[i + 2], innerGlowUV[i + 2], Globals::sidePanelInnerGlowTexIndex, panelColor, 1.0f);
+    addVertex(origin + innerGlowVerts[i + 3], innerGlowUV[i + 3], Globals::sidePanelInnerGlowTexIndex, panelColor, 1.0f);
   }
 }
 
-void OpenGLRender::buildMainMenu()
+void OpenGLRender::buildMenu()
 {
-  const glm::vec2 origin = Globals::gameBkPos;
+  MenuLogic * menuLogic = NULL;
 
-  glm::vec2 v[4] =
+  switch (interfaceLogic.state)
   {
-    { 0.0f, 0.0f },
-    { 0.0f, -Globals::gameBkSize.y },
-    { Globals::gameBkSize.x, 0.0f },
-    { Globals::gameBkSize.x, -Globals::gameBkSize.y },
-  };
-
-  glm::vec2 u(0.5f);
-
-  glm::vec3 color(0.0f);
-  const float alpha = 0.75f;
-
-  addVertex(origin + v[0], u, Globals::emptyTexIndex, color, alpha);
-  addVertex(origin + v[1], u, Globals::emptyTexIndex, color, alpha);
-  addVertex(origin + v[2], u, Globals::emptyTexIndex, color, alpha);
-  addVertex(origin + v[1], u, Globals::emptyTexIndex, color, alpha);
-  addVertex(origin + v[2], u, Globals::emptyTexIndex, color, alpha);
-  addVertex(origin + v[3], u, Globals::emptyTexIndex, color, alpha);
-
-  static float a = 0.0f;
-  char * menu[4] =
-  {
-    "NEW GAME",
-    "OPTIONS",
-    "CREDITS",
-    "QUIT"
-  };
-
-  for (int i = 0; i < 4; i++)
-  {
-    float x = -1.8f *(1.0f - fabs(sin(a + 0.1f * i)));
-    glm::vec3 color = ((i == 1) ? (glm::vec3(1.0f, 0.9f, 0.4f)) : (glm::vec3(0.4f, 0.7f, 1.0f)));
-    buildSidePanel(0.0f, -0.4f - 0.2f * i, menu[i], color, i == 1);
+  case InterfaceLogic::stMainMenu:                menuLogic = &interfaceLogic.mainMenu;                    break;
+  case InterfaceLogic::stInGameMenu:              menuLogic = &interfaceLogic.inGameMenu;                  break;
+  case InterfaceLogic::stQuitConfirmation:        menuLogic = &interfaceLogic.quitConfirmationMenu;        break;
+  case InterfaceLogic::stRestartConfirmation:     menuLogic = &interfaceLogic.restartConfirmationMenu;     break;
+  case InterfaceLogic::stExitToMainConfirmation:  menuLogic = &interfaceLogic.exitToMainConfirmationMenu;  break;
+  case InterfaceLogic::stSettings: break;
+  case InterfaceLogic::stLeaderboard: break;
+  case InterfaceLogic::stHidden: break;
+  default: assert(0);
   }
-  a += 0.1f;
+
+  static InterfaceLogic::State lastInterfaceState = interfaceLogic.state;
+  static InterfaceLogic::State curInterfaceState = interfaceLogic.state;
+
+  if (interfaceLogic.state != curInterfaceState)
+  {
+    lastInterfaceState = curInterfaceState;
+    curInterfaceState = interfaceLogic.state;
+  }
+
+  if (menuLogic)
+  {
+
+    const glm::vec2 origin = Globals::gameBkPos;
+
+    glm::vec2 verts[4] =
+    {
+      { 0.0f, 0.0f },
+      { 0.0f, -Globals::gameBkSize.y },
+      { Globals::gameBkSize.x, 0.0f },
+      { Globals::gameBkSize.x, -Globals::gameBkSize.y },
+    };
+
+    glm::vec2 uv(0.5f);
+    glm::vec3 color(0.0f);
+    float alpha = 0.75f * interfaceLogic.menuShadeProgress;
+
+    addVertex(origin + verts[0], uv, Globals::emptyTexIndex, color, alpha);
+    addVertex(origin + verts[1], uv, Globals::emptyTexIndex, color, alpha);
+    addVertex(origin + verts[2], uv, Globals::emptyTexIndex, color, alpha);
+    addVertex(origin + verts[1], uv, Globals::emptyTexIndex, color, alpha);
+    addVertex(origin + verts[2], uv, Globals::emptyTexIndex, color, alpha);
+    addVertex(origin + verts[3], uv, Globals::emptyTexIndex, color, alpha);
+
+    for (int row = 0, cnt = menuLogic->rowCount; row < cnt; row++)
+    {
+      const float rowLag = 0.2f;
+      float rowProgress;
+
+      switch (menuLogic->state)
+      {
+      case MenuLogic::stShowing:
+        rowProgress = 1.0f - glm::clamp(menuLogic->transitionProgress * (1.0f + rowLag * cnt) - rowLag * row, 0.0f, 1.0f);
+        break;
+      case MenuLogic::stHiding:
+        rowProgress = 1.0f - glm::clamp(menuLogic->transitionProgress * (1.0f + rowLag * cnt) - rowLag * (cnt - row), 0.0f, 1.0f);
+        break;
+      default:
+        rowProgress = 1.0f - menuLogic->transitionProgress;
+        break;
+      }
+
+      float x = Globals::gameBkPos.x - (Globals::menuRowWidth + Globals::menuRowWidth) * rowProgress * rowProgress;
+      float y = Globals::menuTop - (Globals::menuRowHeight + Globals::menuRowInterval) * row;
+      bool highlight = (row == menuLogic->selectedRow);
+      glm::vec3 & panelColor = highlight ? Globals::menuSelectedPanelColor : Globals::menuNormalPanelColor;
+      buildSidePanel(x, y, panelColor);
+      x += Globals::menuRowWidth * 0.2f;
+      y -= Globals::menuRowHeight * 0.7f;
+      const float textHeight = 0.08f;
+      glm::vec3 & textColor = highlight ? Globals::menuSelectedTextColor : Globals::menuNormalTextColor;
+      const char * text = menuLogic->getText(row);
+      buildTextMesh(text, Globals::midFontSize, textHeight, textColor, x, y, otLeft);
+    }
+  }
 }
 
 void OpenGLRender::loadGlyph(char ch, int size)

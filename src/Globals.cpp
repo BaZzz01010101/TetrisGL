@@ -34,6 +34,8 @@ int Globals::sidePanelGlowingBorderTexIndex = 12;
 int Globals::sidePanelInnerGlowTexIndex = 13;
 int Globals::levelGoalBkTexIndex = 14;
 int Globals::fontFirstTexIndex = 15;
+int Globals::nextFiguresCount = 3;
+float Globals::rowsDeletionEffectTime = 0.8f;
 glm::vec2 Globals::gameBkPos(-0.75f, 1.0f);
 glm::vec2 Globals::gameBkSize(1.5f, 2.0f);
 glm::vec2 Globals::glassPos(-0.45f, 0.85f);
@@ -46,6 +48,17 @@ float Globals::scoreBarHeight = 0.1f;
 float Globals::scoreBarCaptionWidth = 0.45f;
 float Globals::scoreBarMenuWidth = 0.25f;
 float Globals::scoreBarValueWidth = Globals::gameBkSize.x - Globals::scoreBarCaptionWidth - Globals::scoreBarMenuWidth;
+float Globals::menuTop = 0.5f;
+float Globals::menuRowWidth = 0.5f * Globals::gameBkSize.x;
+float Globals::menuRowHeight = 0.06f * Globals::gameBkSize.y;
+float Globals::menuRowInterval = 0.04f * Globals::gameBkSize.y;
+float Globals::menuGlowWidth = 0.03f;
+float Globals::menuShowingTime = 0.4f;
+float Globals::menuHidingTime = 0.3f;
+glm::vec3 Globals::menuNormalPanelColor(0.4f, 0.7f, 1.2f);
+glm::vec3 Globals::menuSelectedPanelColor(2.0f, 1.9f, 1.2f);
+glm::vec3 Globals::menuNormalTextColor(0.4f, 0.7f, 1.0f);
+glm::vec3 Globals::menuSelectedTextColor(1.0f, 0.9f, 0.4f);
 int Globals::smallFontSize = 24;
 int Globals::midFontSize = 32;
 int Globals::bigFontSize = 48;
@@ -102,15 +115,4 @@ bool checkGlErrors()
     Globals::glErrorMessage.clear();
 
   return errCode != 0;
-}
-
-double getTimer()
-{
-  static double freq = (double)Crosy::getPerformanceFrequency();
-  assert(freq);
-
-  if (freq > VERY_SMALL_NUMBER)
-    return double(Crosy::getPerformanceCounter()) / freq;
-  else
-    return 0.0;
 }

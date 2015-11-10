@@ -20,6 +20,7 @@
 #include <GLM/gtc/matrix_transform.hpp>
 #include "SOIL2/SOIL2.h"
 #include "ft2build.h"
+#include "ReadOnly.h"
 #include FT_FREETYPE_H
 
 #pragma warning(pop)

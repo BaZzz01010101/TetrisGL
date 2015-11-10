@@ -2,6 +2,7 @@
 
 #include "Crosy.h"
 #include "GameLogic.h"
+#include "InterfaceLogic.h"
 #include "OpenGlApplication.h"
 
 #pragma warning(disable : 4100)
@@ -11,7 +12,8 @@ int main()
   srand((unsigned int)Crosy::getPerformanceCounter());
 
   GameLogic gameLogic;
-  std::unique_ptr<Application> application = std::unique_ptr<OpenGLApplication>(new OpenGLApplication(gameLogic));
+  InterfaceLogic interfaceLogic;
+  std::unique_ptr<Application> application = std::unique_ptr<OpenGLApplication>(new OpenGLApplication(gameLogic, interfaceLogic));
 
   if(!application->init())
     return 1;

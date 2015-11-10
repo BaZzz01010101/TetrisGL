@@ -131,6 +131,27 @@ enum Key
   KEY_COUNT
 };
 
+inline Key operator++(Key & key)
+{
+  key = static_cast <Key>(key + 1);
+
+  if (key > KEY_COUNT)
+    key = KB_NONE;
+
+  return key;
+}
+
+inline Key operator++(Key & key, int)
+{
+  Key k = key;
+  key = static_cast <Key>(key + 1);
+
+  if (key > KEY_COUNT)
+    key = KB_NONE;
+
+  return k;
+}
+
 class Keys
 {
 private:
@@ -140,6 +161,6 @@ private:
   ~Keys();
 
 public:
-  static const char * getName(Key key);
+  static const char * getName(Key key) { return names[key]; }
 };
 
