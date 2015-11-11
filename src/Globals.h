@@ -25,19 +25,20 @@ public:
   static int rowFlashTexIndex;
   static int rowShineRayTexIndex;
   static int rowShineLightTexIndex;
-
-  static glm::vec2 bkTileSize;
   static int sidePanelGlowingBorderTexIndex;
   static int sidePanelInnerGlowTexIndex;
   static int levelGoalBkTexIndex;
   static int fontFirstTexIndex;
+
+  static glm::vec2 bkTileSize;
+  static glm::vec2 sidePanelBkTileSize;
   static int nextFiguresCount;
   static float rowsDeletionEffectTime;
   static glm::vec2 gameBkPos;
   static glm::vec2 gameBkSize;
   static glm::vec2 glassPos;
   static glm::vec2 glassSize;
-  static float dafaultCaptionHeight;
+  static float defaultCaptionHeight;
   static float holdNextBkHorzGap;
   static float holdNextBkSize;
   static float scoreBarGaps;

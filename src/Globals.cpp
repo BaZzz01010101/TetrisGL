@@ -36,13 +36,14 @@ int Globals::levelGoalBkTexIndex = 14;
 int Globals::fontFirstTexIndex = 15;
 
 glm::vec2 Globals::bkTileSize(0.03f, 0.02f);
+glm::vec2 Globals::sidePanelBkTileSize(0.024f, 0.016f);
 int Globals::nextFiguresCount = 3;
 float Globals::rowsDeletionEffectTime = 0.8f;
 glm::vec2 Globals::gameBkPos(-0.75f, 1.0f);
 glm::vec2 Globals::gameBkSize(1.5f, 2.0f);
 glm::vec2 Globals::glassPos(-0.45f, 0.85f);
 glm::vec2 Globals::glassSize(0.9f, 1.8f);
-float Globals::dafaultCaptionHeight = 0.05f;
+float Globals::defaultCaptionHeight = 0.05f;
 float Globals::holdNextBkHorzGap = 0.04f;
 float Globals::holdNextBkSize = 0.2f;
 float Globals::scoreBarGaps = 0.01f;

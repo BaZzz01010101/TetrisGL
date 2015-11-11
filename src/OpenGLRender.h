@@ -49,6 +49,7 @@ private:
   void sendToDevice();
   void rebuildMesh();
   void drawMesh();
+  void buildRect(float left, float top, float right, float bottom, glm::vec3 color, float alpha);
   void buildBackground();
   void buildFigureBackgroundsMesh();
   void buidGlassShadow();
@@ -58,7 +59,7 @@ private:
   void buildFigureGlow();
   void buildDropTrails();
   void buildRowFlashes();
-  void buildSidePanel(float x, float y, glm::vec3 panelColor);
+  void buildSidePanel(float x, float y, float width, float height, glm::vec3 color);
   void buildMenu();
-  void buildTextMesh(const char * str, int fontSize, float scale, glm::vec3 color, float originX, float originY, OriginType originType = otLeft);
+  void buildTextMesh(const char * str, int fontSize, float scale, glm::vec3 color, float alpha, float originX, float originY, OriginType originType = otLeft);
 };
