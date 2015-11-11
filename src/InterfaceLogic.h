@@ -1,10 +1,11 @@
 #pragma once
 #include "MenuLogic.h"
+#include "SettingsLogic.h"
 
 class InterfaceLogic
 {
 public:
-  enum State { stHidden, stMainMenu, stInGameMenu, stSettings, stLeaderboard, stQuitConfirmation, stRestartConfirmation, stExitToMainConfirmation };
+  enum State { stHidden, stMainMenu, stInGameMenu, stSettings, stLeaderboard, stQuitConfirmation, stRestartConfirmation, stExitToMainConfirmation, stSaveConfirmation };
   enum Result { resNone, resNewGame, resContinueGame, resStopGame, resCloseApp };
   MenuLogic mainMenu;
   MenuLogic inGameMenu;
@@ -12,6 +13,7 @@ public:
   MenuLogic restartConfirmationMenu;
   MenuLogic exitToMainConfirmationMenu;
   MenuLogic saveSettingsMenu;
+  SettingsLogic settingsLogic;
   ReadOnly<State, InterfaceLogic> state;
   ReadOnly<float, InterfaceLogic> menuShadeProgress;
 

@@ -114,7 +114,12 @@ void InterfaceLogic::inGameMenuUpdate()
 
 void InterfaceLogic::settingsUpdate()
 {
-  goPreviousState();
+  switch (settingsLogic.update())
+  {
+  case SettingsLogic::resSaveConfirmation:  goNextState(stSaveConfirmation);  break;
+  case SettingsLogic::resClose:             goPreviousState();                break;
+  default: break;
+  }
 }
 
 void InterfaceLogic::leaderboardUpdate()
