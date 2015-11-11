@@ -319,18 +319,14 @@ void OpenGLRender::buildBackground()
       { Globals::gameBkSize.x * (x + 1) / xTess, -Globals::gameBkSize.y * (y + 1) / yTess },
     };
 
-    const float xReps = 80.0f;
-    const float yReps = xReps / Globals::gameBkSize.x * Globals::gameBkSize.y * 0.85f;
-    const float texScaleCorrection = 0.56f; // tile deformation to get power of two texture size
-    const float xVal = xReps * texScaleCorrection;
-    const float yVal = yReps;
+    const glm::vec2 tiledUV = Globals::gameBkSize / Globals::bkTileSize;
 
     glm::vec2 uv[4] =
     {
-      { xVal * x / xTess, yVal * y / yTess },
-      { xVal * x / xTess, yVal * (y + 1) / yTess },
-      { xVal * (x + 1) / xTess, yVal * y / yTess },
-      { xVal * (x + 1) / xTess, yVal * (y + 1) / yTess },
+      { tiledUV.x * x / xTess,        tiledUV.y * y / yTess },
+      { tiledUV.x * x / xTess,        tiledUV.y * (y + 1) / yTess },
+      { tiledUV.x * (x + 1) / xTess,  tiledUV.y * y / yTess },
+      { tiledUV.x * (x + 1) / xTess,  tiledUV.y * (y + 1) / yTess },
     };
 
     float fx0 = float(abs(xTess - 2 * x)) / xTess;
@@ -1649,8 +1645,6 @@ void OpenGLRender::buildSidePanel(float x, float y, glm::vec3 panelColor)
 {
   glm::vec2 origin = glm::vec2(x, y);
   const float pixSize = Globals::mainArrayTexturePixelSize;
-  const float relWidth = 0.7f;
-  const float relHeight = 0.07f;
   const int xTess = 25;
   const int yTess = 4;
   const float width = Globals::menuRowWidth;
@@ -1669,18 +1663,14 @@ void OpenGLRender::buildSidePanel(float x, float y, glm::vec3 panelColor)
       { (x + 1) * xPart,  -(y + 1) * yPart },
     };
 
-    const float xReps = 80.0f;
-    const float yReps = xReps / Globals::gameBkSize.x * Globals::gameBkSize.y * 0.85f;
-    const float texScaleCorrection = 0.56f; // tile deformation to get power of two texture size
-    const float xVal = relWidth * xReps * texScaleCorrection;
-    const float yVal = relHeight * yReps;
+    const glm::vec2 tiledUV = 1.25f * glm::vec2(width, height) / Globals::bkTileSize;
 
     glm::vec2 uv[4] =
     {
-      { xVal * x / xTess, yVal * y / yTess },
-      { xVal * (x + 1) / xTess, yVal * y / yTess },
-      { xVal * x / xTess, yVal * (y + 1) / yTess },
-      { xVal * (x + 1) / xTess, yVal * (y + 1) / yTess },
+      { tiledUV.x * x / xTess, tiledUV.y * y / yTess },
+      { tiledUV.x * (x + 1) / xTess, tiledUV.y * y / yTess },
+      { tiledUV.x * x / xTess, tiledUV.y * (y + 1) / yTess },
+      { tiledUV.x * (x + 1) / xTess, tiledUV.y * (y + 1) / yTess },
     };
 
     glm::vec3 darkColor = 0.1f * panelColor;

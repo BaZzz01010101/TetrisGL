@@ -34,6 +34,8 @@ int Globals::sidePanelGlowingBorderTexIndex = 12;
 int Globals::sidePanelInnerGlowTexIndex = 13;
 int Globals::levelGoalBkTexIndex = 14;
 int Globals::fontFirstTexIndex = 15;
+
+glm::vec2 Globals::bkTileSize(0.03f, 0.02f);
 int Globals::nextFiguresCount = 3;
 float Globals::rowsDeletionEffectTime = 0.8f;
 glm::vec2 Globals::gameBkPos(-0.75f, 1.0f);

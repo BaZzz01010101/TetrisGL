@@ -25,6 +25,8 @@ public:
   static int rowFlashTexIndex;
   static int rowShineRayTexIndex;
   static int rowShineLightTexIndex;
+
+  static glm::vec2 bkTileSize;
   static int sidePanelGlowingBorderTexIndex;
   static int sidePanelInnerGlowTexIndex;
   static int levelGoalBkTexIndex;
