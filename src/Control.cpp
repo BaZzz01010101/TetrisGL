@@ -161,7 +161,25 @@ void Control::updateMenuKeyboard(MenuLogic & menu)
 
 void Control::updateSettingsKeyboard()
 {
+  if (interfaceLogic.settingsLogic.state != SettingsLogic::stVisible)
+    return;
 
+  for (Key key = KB_NONE; key < KEY_COUNT; key++)
+  {
+    KeyState keyState = getKeyState(key);
+
+    if (keyState.pressCount || keyState.repeatCount)
+      switch (key)
+    {
+      case KB_UP:     break;
+      case KB_DOWN:   break;
+      case KB_ENTER:
+      case KB_KP_ENTER:
+      case KB_SPACE:  break;
+      case KB_ESCAPE: interfaceLogic.settingsLogic.escape();  break;
+      default: break;
+    }
+  }
 }
 
 void Control::updateLeaderboardKeyboard()
