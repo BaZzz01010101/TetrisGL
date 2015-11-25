@@ -93,6 +93,8 @@ void InterfaceLogic::mainMenuUpdate()
   if ((mainMenu.state == MenuLogic::stShowing && prevState == stHidden) ||
   (mainMenu.state == MenuLogic::stHiding && mainMenu.result == MenuLogic::resNewGame))
     menuShadeProgress = mainMenu.transitionProgress;
+  else
+    menuShadeProgress = 1.0f;
 }
 
 void InterfaceLogic::inGameMenuUpdate()
@@ -110,6 +112,8 @@ void InterfaceLogic::inGameMenuUpdate()
   if ((inGameMenu.state == MenuLogic::stShowing && prevState == stHidden) ||
   (inGameMenu.state == MenuLogic::stHiding && inGameMenu.result == MenuLogic::resContinue))
     menuShadeProgress = inGameMenu.transitionProgress;
+  else
+    menuShadeProgress = 1.0f;
 }
 
 void InterfaceLogic::settingsUpdate()
@@ -149,6 +153,8 @@ void InterfaceLogic::restartConfirmationUpdate()
   if (restartConfirmationMenu.state == MenuLogic::stHiding && 
   restartConfirmationMenu.result == MenuLogic::resRestart)
     menuShadeProgress = restartConfirmationMenu.transitionProgress;
+  else
+    menuShadeProgress = 1.0f;
 }
 
 void InterfaceLogic::exitToMainConfirmationUpdate()

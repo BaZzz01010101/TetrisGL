@@ -77,6 +77,7 @@
     <ClCompile Include="..\..\src\GameLogic.cpp" />
     <ClCompile Include="..\..\src\OpenGLApplication.cpp" />
     <ClCompile Include="..\..\src\Program.cpp" />
+    <ClCompile Include="..\..\src\SettingsLogic.cpp" />
     <ClCompile Include="..\..\src\Shader.cpp" />
     <ClCompile Include="..\..\src\DropSparkle.cpp" />
     <ClCompile Include="..\..\src\Time.cpp" />
@@ -116,6 +117,7 @@
     <ClInclude Include="..\..\src\OpenGLApplication.h" />
     <ClInclude Include="..\..\src\Program.h" />
     <ClInclude Include="..\..\src\ReadOnly.h" />
+    <ClInclude Include="..\..\src\SettingsLogic.h" />
     <ClInclude Include="..\..\src\Shader.h" />
     <ClInclude Include="..\..\src\DropSparkle.h" />
     <ClInclude Include="..\..\src\singleton.h" />

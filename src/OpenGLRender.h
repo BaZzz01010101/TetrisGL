@@ -20,6 +20,8 @@ public:
 
 private:
   enum OriginType { otLeft, otRight, otCenter};
+  int width;
+  int height;
 
   struct Glyph
   {
@@ -49,7 +51,12 @@ private:
   void sendToDevice();
   void rebuildMesh();
   void drawMesh();
-  void buildRect(float left, float top, float right, float bottom, glm::vec3 color, float alpha);
+  void buildRect(float x, float y, float width, float height, glm::vec3 color, float alpha);
+  void buildTexturedRect(float x, float y, float width, float height, int texIndex, glm::vec3 color, float alpha);
+  void buildVertGradientRect(float x, float y, float width, float height, glm::vec3 topColor, float topAlpha, glm::vec3 bottomColor, float bottomAlpha);
+  void buildLine(float x0, float y0, float x1, float y1, float width, glm::vec3 color, float alpha);
+  void buildFrameRect(float x, float y, float width, float height, float borderWidth, glm::vec3 borderColor, float borderAlpha);
+  void buildProgressBar(float x, float y, float width, float height, glm::vec3 bkColor, glm::vec3 fgColor, float alpha, float progress);
   void buildBackground();
   void buildFigureBackgroundsMesh();
   void buidGlassShadow();
@@ -59,7 +66,8 @@ private:
   void buildFigureGlow();
   void buildDropTrails();
   void buildRowFlashes();
-  void buildSidePanel(float x, float y, float width, float height, glm::vec3 color);
+  void buildSidePanel(float x, float y, float width, float height, float cornerSize, glm::vec3 topColor, glm::vec3 bottomColor, glm::vec3 glowColor, float glowWidth);
   void buildMenu();
   void buildTextMesh(const char * str, int fontSize, float scale, glm::vec3 color, float alpha, float originX, float originY, OriginType originType = otLeft);
+  void buildSettings();
 };

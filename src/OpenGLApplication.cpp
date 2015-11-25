@@ -124,6 +124,12 @@ void OpenGLApplication::OnKeyClick(GLFWwindow * wnd, int key, int scancode, int 
   if (action == GLFW_PRESS && key == GLFW_KEY_F11)
     app.vSync = !app.vSync;
 
+  if (action == GLFW_PRESS && key == GLFW_KEY_RIGHT_ALT)
+    app.render.showWireframe = true;
+
+  if (action == GLFW_RELEASE && key == GLFW_KEY_RIGHT_ALT)
+    app.render.showWireframe = false;
+
   switch (action)
   {
   case GLFW_PRESS:    app.control.keyDown(app.glfwKeyMap[key]);   break;
