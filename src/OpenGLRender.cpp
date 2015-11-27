@@ -604,20 +604,17 @@ void OpenGLRender::buildBackground()
 
   {
     origin = Globals::gameBkPos + glm::vec2(Globals::scoreBarGaps, -Globals::scoreBarGaps);
-    const float height = Globals::scoreBarHeight - 2.0f * Globals::scoreBarGaps;
-    const float width1 = Globals::scoreBarCaptionWidth - 2.0f * Globals::scoreBarGaps;
-    const float width2 = Globals::scoreBarValueWidth - Globals::scoreBarGaps;
 
     const glm::vec2 verts[8] =
     {
       { 0.0f, 0.0f },
-      { 0.0f, -height },
-      { width1, 0.0f },
-      { width1, -height },
+      { 0.0f, -Globals::scoreBarHeight },
+      { Globals::scoreBarCaptionWidth, 0.0f },
+      { Globals::scoreBarCaptionWidth, -Globals::scoreBarHeight },
       { 0.0f, 0.0f },
-      { 0.0f, -height },
-      { width2, 0.0f },
-      { width2, -height },
+      { 0.0f, -Globals::scoreBarHeight },
+      { Globals::scoreBarValueWidth, 0.0f },
+      { Globals::scoreBarValueWidth, -Globals::scoreBarHeight },
     };
 
     const glm::vec2 uv(0.5f);
@@ -632,8 +629,8 @@ void OpenGLRender::buildBackground()
     addVertex(origin + verts[2], uv, Globals::emptyTexIndex, color, alpha);
     addVertex(origin + verts[3], uv, Globals::emptyTexIndex, color, alpha);
 
-    buildTextMesh("SCORE", Globals::midFontSize, 0.08f, glm::vec3(1.0f), 1.0f, origin.x + 0.5f * Globals::scoreBarCaptionWidth, origin.y - 0.8f * height, otCenter);
-    origin.x += Globals::scoreBarCaptionWidth;
+    buildTextMesh(origin.x + 0.5f * Globals::scoreBarCaptionWidth, origin.y - 0.5f * Globals::scoreBarHeight, "SCORE", Globals::midFontSize, 0.08f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+    origin.x += Globals::scoreBarCaptionWidth + Globals::scoreBarGaps;
 
     addVertex(origin + verts[4], uv, Globals::emptyTexIndex, color, alpha);
     addVertex(origin + verts[5], uv, Globals::emptyTexIndex, color, alpha);
@@ -643,23 +640,23 @@ void OpenGLRender::buildBackground()
     addVertex(origin + verts[7], uv, Globals::emptyTexIndex, color, alpha);
 
     std::string str = std::to_string(gameLogic.curScore);
-    buildTextMesh(str.c_str() , Globals::bigFontSize, 0.095f, glm::vec3(1.0f), 1.0f, origin.x + 0.5f * Globals::scoreBarValueWidth, origin.y - 0.86f * height, otCenter);
+    buildTextMesh(origin.x + 0.5f * Globals::scoreBarValueWidth, origin.y - 0.5f * Globals::scoreBarHeight, str.c_str(), Globals::bigFontSize, 0.08f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
   }
 
   // add MENU button to mesh
 
   {
     glm::vec2 origin = Globals::gameBkPos;
-    origin.x += Globals::scoreBarCaptionWidth + Globals::scoreBarValueWidth;
+    origin.x += Globals::scoreBarCaptionWidth + Globals::scoreBarValueWidth + 2.0f * Globals::scoreBarGaps;
 
     const glm::vec2 verts[6] =
     {
       { 0.0f, 0.0f },
-      { 0.5f * Globals::scoreBarHeight, -0.5f * Globals::scoreBarHeight },
-      { 0.0f, -Globals::scoreBarHeight },
+      { 0.5f * Globals::scoreBarHeight, -0.5f * Globals::scoreBarHeight - Globals::scoreBarGaps },
+      { 0.0f, -Globals::scoreBarHeight - 2.0f * Globals::scoreBarGaps },
       { Globals::scoreBarMenuWidth, 0.0f },
-      { Globals::scoreBarMenuWidth - 0.5f * Globals::scoreBarHeight, -0.5f * Globals::scoreBarHeight },
-      { Globals::scoreBarMenuWidth, -Globals::scoreBarHeight },
+      { Globals::scoreBarMenuWidth - 0.5f * Globals::scoreBarHeight - Globals::scoreBarGaps, -0.5f * Globals::scoreBarHeight - Globals::scoreBarGaps },
+      { Globals::scoreBarMenuWidth, -Globals::scoreBarHeight - 2.0f * Globals::scoreBarGaps },
     };
 
     const glm::vec2 uv[2] =
@@ -690,7 +687,7 @@ void OpenGLRender::buildBackground()
     addVertex(origin + verts[4], uv[1], Globals::holdFigureBkTexIndex, color, alpha);
     addVertex(origin + verts[5], uv[0], Globals::holdFigureBkTexIndex, color, alpha);
 
-    buildTextMesh("MENU", Globals::smallFontSize, 0.06f, glm::vec3(1.0f), 1.0f, origin.x + 0.48f * Globals::scoreBarMenuWidth, origin.y - 0.68f * Globals::scoreBarHeight, otCenter);
+    buildTextMesh(origin.x + 0.5f * Globals::scoreBarMenuWidth, origin.y - 0.5f * Globals::scoreBarHeight - Globals::scoreBarGaps, "MENU", Globals::smallFontSize, 0.06f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
   }
 
   // add hold figure and next figure backgrounds to mesh
@@ -702,7 +699,7 @@ void OpenGLRender::buildBackground()
       Globals::glassPos.y - Globals::defaultCaptionHeight,
     };
 
-    buildTextMesh("HOLD", Globals::smallFontSize, 0.055f, glm::vec3(1.0f), 1.0f, origin.x + 0.5f * Globals::holdNextBkSize, origin.y + 0.1f * Globals::defaultCaptionHeight, otCenter);
+    buildTextMesh(origin.x + 0.5f * Globals::holdNextBkSize, origin.y + 0.5f * Globals::defaultCaptionHeight, "HOLD", Globals::smallFontSize, 0.055f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
 
     const glm::vec2 verts[4] =
     {
@@ -734,7 +731,7 @@ void OpenGLRender::buildBackground()
 
     origin.x += Globals::holdNextBkSize + Globals::glassSize.x + 2.0f * Globals::holdNextBkHorzGap;
 
-    buildTextMesh("NEXT", Globals::smallFontSize, 0.055f, glm::vec3(1.0f), 1.0f, origin.x + 0.45f * Globals::holdNextBkSize, origin.y + 0.1f * Globals::defaultCaptionHeight, otCenter);
+    buildTextMesh(origin.x + 0.5f * Globals::holdNextBkSize, origin.y + 0.5f * Globals::defaultCaptionHeight, "NEXT", Globals::smallFontSize, 0.055f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
 
     if (gameLogic.nextFigures[0].color != Globals::Color::clNone)
       color = Globals::ColorValues[gameLogic.nextFigures[0].color];
@@ -756,7 +753,7 @@ void OpenGLRender::buildBackground()
       Globals::glassPos.y - 0.4f * Globals::glassSize.y,
     };
 
-    buildTextMesh("LEVEL", Globals::smallFontSize, 0.055f, glm::vec3(1.0f), 1.0f, origin.x + 0.5f * Globals::holdNextBkSize, origin.y - 0.95f * Globals::defaultCaptionHeight, otCenter);
+    buildTextMesh(origin.x + 0.5f * Globals::holdNextBkSize, origin.y - 0.5f * Globals::defaultCaptionHeight, "LEVEL", Globals::smallFontSize, 0.055f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
 
     origin.y -= Globals::defaultCaptionHeight;
 
@@ -786,11 +783,11 @@ void OpenGLRender::buildBackground()
     addVertex(origin + verts[3], uv[3], Globals::levelGoalBkTexIndex, color, 1.0f);
 
     std::string str = std::to_string(gameLogic.curLevel);
-    buildTextMesh(str.c_str(), Globals::bigFontSize, 0.11f, glm::vec3(1.0f), 1.0f, origin.x + 0.5f * Globals::holdNextBkSize, origin.y - 0.45f * Globals::holdNextBkSize, otCenter);
+    buildTextMesh(origin.x + 0.5f * Globals::holdNextBkSize, origin.y - 0.3f * Globals::holdNextBkSize, str.c_str(), Globals::bigFontSize, 0.11f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
 
     origin.y -= Globals::holdNextBkSize;
 
-    buildTextMesh("GOAL", Globals::smallFontSize, 0.055f, glm::vec3(1.0f), 1.0f, origin.x + 0.5f * Globals::holdNextBkSize, origin.y - 0.95f * Globals::defaultCaptionHeight, otCenter);
+    buildTextMesh(origin.x + 0.5f * Globals::holdNextBkSize, origin.y - 0.5f * Globals::defaultCaptionHeight, "GOAL", Globals::smallFontSize, 0.055f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
 
     origin.y -= Globals::defaultCaptionHeight;
 
@@ -802,9 +799,8 @@ void OpenGLRender::buildBackground()
     addVertex(origin + verts[3], uv[3], Globals::levelGoalBkTexIndex, color, 1.0f);
 
     str = std::to_string(gameLogic.curGoal);
-    buildTextMesh(str.c_str(), Globals::bigFontSize, 0.11f, glm::vec3(1.0f), 1.0f, origin.x + 0.5f * Globals::holdNextBkSize, origin.y - 0.45f * Globals::holdNextBkSize, otCenter);
+    buildTextMesh(origin.x + 0.5f * Globals::holdNextBkSize, origin.y - 0.3f * Globals::holdNextBkSize, str.c_str(), Globals::bigFontSize, 0.11f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
   }
-
 }
 
 void OpenGLRender::buidGlassShadow()
@@ -1996,12 +1992,12 @@ void OpenGLRender::buildMenu()
       bool highlight = (row == menuLogic->selectedRow);
       glm::vec3 & panelColor = highlight ? Globals::menuSelectedPanelColor : Globals::menuNormalPanelColor;
       buildSidePanel(x, y, Globals::menuRowWidth, Globals::menuRowHeight, Globals::menuRowCornerSize, panelColor, 0.1f * panelColor, panelColor, Globals::menuRowGlowWidth);
-      x += Globals::menuRowWidth * 0.2f;
-      y -= Globals::menuRowHeight * 0.7f;
+      x += 0.2f * Globals::menuRowWidth;
+      y -= 0.5f * Globals::menuRowHeight;
       const float textHeight = 0.08f;
       glm::vec3 & textColor = highlight ? Globals::menuSelectedTextColor : Globals::menuNormalTextColor;
       const char * text = menuLogic->getText(row);
-      buildTextMesh(text, Globals::midFontSize, textHeight, textColor, 1.0f, x, y, otLeft);
+      buildTextMesh(x, y, text, Globals::midFontSize, textHeight, textColor, 1.0f, haLeft, vaCenter);
     }
   }
 }
@@ -2056,7 +2052,7 @@ void OpenGLRender::loadGlyph(char ch, int size)
   assert(!checkGlErrors());
 }
 
-void OpenGLRender::buildTextMesh(const char * str, int fontSize, float scale, glm::vec3 color, float alpha, float originX, float originY, OriginType originType)
+void OpenGLRender::buildTextMesh(float originX, float originY, const char * str, int fontSize, float scale, glm::vec3 color, float alpha, HorzAllign horzAllign, VertAllign vertAllign)
 {
   float penX = 0;
   char leftChar = 0;
@@ -2091,19 +2087,19 @@ void OpenGLRender::buildTextMesh(const char * str, int fontSize, float scale, gl
       FT_Error err = FT_Get_Kerning(ftFace, leftGlyphIndex, rightGlyphIndex, FT_KERNING_UNFITTED, &kern);
       assert(!err);
     }
-
+    
     leftChar = *pch;
-    float ltx = penX + scale * (kern.x + glyph.metrics.horiBearingX) / 64 / fontSize;
-    float lty = scale * glyph.metrics.horiBearingY / 64 / fontSize;
-    float rbx = ltx + scale * glyph.metrics.width / 64 / fontSize;
-    float rby = lty - scale * glyph.metrics.height / 64 / fontSize;
+    float leftTopX = penX + scale * (kern.x + glyph.metrics.horiBearingX) / 64 / fontSize;
+    float leftTopY = scale * glyph.metrics.horiBearingY / 64 / fontSize;
+    float rightBottomX = leftTopX + scale * glyph.metrics.width / 64 / fontSize;
+    float rightBottomY = leftTopY - scale * glyph.metrics.height / 64 / fontSize;
 
     const float pixSize = 0.5f * Globals::mainArrayTexturePixelSize;
 
-    verts.push_back({ ltx, lty });
-    verts.push_back({ ltx, rby });
-    verts.push_back({ rbx, lty });
-    verts.push_back({ rbx, rby });
+    verts.push_back({ leftTopX,     leftTopY });
+    verts.push_back({ leftTopX,     rightBottomY });
+    verts.push_back({ rightBottomX, leftTopY });
+    verts.push_back({ rightBottomX, rightBottomY });
 
     uv.push_back({ pixSize, pixSize });
     uv.push_back({ pixSize, 1.0f - pixSize });
@@ -2116,12 +2112,17 @@ void OpenGLRender::buildTextMesh(const char * str, int fontSize, float scale, gl
   }
 
   float meshWidth = verts.back().x - verts.front().x;
-  glm::vec2 origin(originX, originY);
+  glm::vec2 origin(originX, originY - scale * ftFace->ascender / ftFace->height);
 
-  if (originType == otRight)
+  if (horzAllign == haRight)
     origin.x -= meshWidth;
-  else if (originType == otCenter)
+  else if (horzAllign == haCenter)
     origin.x -= 0.5f * meshWidth;
+
+  if (vertAllign == vaBottom)
+    origin.y += scale;
+  else if (vertAllign == vaCenter)
+    origin.y += 0.5f * scale;
 
   for (int i = 0, cnt = (int)strlen(str); i < cnt; i++)
   {
@@ -2150,8 +2151,8 @@ void OpenGLRender::buildSettings()
   //buildTextMesh("Settings", Globals::bigFontSize, 0.15f, Globals::settingsCaptionColor, 1.0f, x + 0.05f, Globals::settingsTop - 0.14f, otLeft);
 
   buildSidePanel(x, Globals::settingsTop, Globals::settingsWidth, Globals::settingsHeight, Globals::settingsCornerSize, Globals::settingsTopBkColor, 0.1f * Globals::settingsTopBkColor, Globals::settingsTopBkColor, Globals::settingsGlowWidth);
-  buildTextMesh("SETTINGS", Globals::midFontSize, 0.08f, glm::vec3(0.0f), 0.6f, x + 0.05f + 0.007f, Globals::settingsTop - 0.08f - 0.007f, otLeft);
-  buildTextMesh("SETTINGS", Globals::midFontSize, 0.08f, Globals::settingsCaptionColor, 1.0f, x + 0.05f, Globals::settingsTop - 0.08f, otLeft);
+  buildTextMesh(x + 0.05f + 0.007f, Globals::settingsTop - 0.08f - 0.007f, "SETTINGS", Globals::midFontSize, 0.08f, glm::vec3(0.0f), 0.6f, haLeft, vaTop);
+  buildTextMesh(x + 0.05f, Globals::settingsTop - 0.08f, "SETTINGS", Globals::midFontSize, 0.08f, Globals::settingsCaptionColor, 1.0f, haLeft, vaTop);
   
 
   const float panelHorzGaps = 0.05f;
@@ -2179,11 +2180,11 @@ void OpenGLRender::buildSettings()
   //buildTextMesh("CLOSE", Globals::bigFontSize, 0.05f, glm::vec3(0.5f), 1.0f, x + Globals::settingsWidth - 0.05f, Globals::settingsTop - Globals::settingsHeight + 0.05f, otRight);
   
   //  buildRect(panelLeft + 0.01f, panelTop - 0.04f, Globals::settingsWidth - 0.2f - 0.02f, 0.05, glm::vec3(0.75f), 1.0f);
-  buildTextMesh("SOUND", Globals::smallFontSize, 0.035f, glm::vec3(0.75f), 1.0f, panelLeft + 0.03f, panelTop - 0.045f, otLeft);
+  buildTextMesh(panelLeft + 0.03f, panelTop - 0.045f, "SOUND", Globals::smallFontSize, 0.035f, glm::vec3(0.75f), 1.0f, haLeft, vaCenter);
   buildProgressBar(panelLeft + 0.35f * Globals::settingsWidth, panelTop - 0.02f, panelWidth - 0.35f * Globals::settingsWidth - 0.02f, 0.03f, glm::vec3(0.75f), glm::vec3(0.25f), 1.0f, 0.75f);
 
   buildRect(panelLeft + 0.01f, panelTop - 0.04f - 0.025f, panelWidth - 0.02f, 0.05f, glm::vec3(0.75f), 1.0f);
-  buildTextMesh("MUSIC", Globals::smallFontSize, 0.035f, glm::vec3(0.25f), 1.0f, panelLeft + 0.03f, panelTop - 0.045f - 0.055f, otLeft);
+  buildTextMesh(panelLeft + 0.03f, panelTop - 0.045f - 0.055f, "MUSIC", Globals::smallFontSize, 0.035f, glm::vec3(0.25f), 1.0f, haLeft, vaCenter);
   buildProgressBar(panelLeft + 0.35f * Globals::settingsWidth, panelTop - 0.02f - 0.055f, panelWidth - 0.35f * Globals::settingsWidth - 0.02f, 0.03f, glm::vec3(0.75f), glm::vec3(0.25f), 1.0f, 0.75f);
 
   return;

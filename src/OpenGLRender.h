@@ -19,7 +19,8 @@ public:
   void update();
 
 private:
-  enum OriginType { otLeft, otRight, otCenter};
+  enum HorzAllign { haLeft, haRight, haCenter };
+  enum VertAllign { vaTop, vaBottom, vaCenter };
   int width;
   int height;
 
@@ -37,7 +38,7 @@ private:
   FT_Face ftFace;
   typedef std::map<int, Glyph> GlyphSizeMap;
   typedef std::map<char, GlyphSizeMap> GlyphCharMap;
-  std::map<char, std::map<int, Glyph> > glyphs;
+  GlyphCharMap glyphs;
   GLuint vaoId;
   GLuint vertexBufferId;
   Program figureProg;
@@ -68,6 +69,6 @@ private:
   void buildRowFlashes();
   void buildSidePanel(float x, float y, float width, float height, float cornerSize, glm::vec3 topColor, glm::vec3 bottomColor, glm::vec3 glowColor, float glowWidth);
   void buildMenu();
-  void buildTextMesh(const char * str, int fontSize, float scale, glm::vec3 color, float alpha, float originX, float originY, OriginType originType = otLeft);
+  void buildTextMesh(float originX, float originY, const char * str, int fontSize, float scale, glm::vec3 color, float alpha, HorzAllign horzAllign = haLeft, VertAllign vertAllign = vaTop);
   void buildSettings();
 };

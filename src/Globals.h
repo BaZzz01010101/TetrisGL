@@ -47,6 +47,8 @@ public:
   static float scoreBarCaptionWidth;
   static float scoreBarValueWidth;
   static float scoreBarMenuWidth;
+  static glm::vec3 levelPanelColor;
+  static glm::vec3 goalPanelColor;
   static float menuTop;
   static float menuRowWidth;
   static float menuRowHeight;
