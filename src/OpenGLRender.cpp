@@ -31,8 +31,7 @@ void OpenGLRender::init(int width, int height)
   glGenBuffers(1, &vertexBufferId);
   assert(!checkGlErrors());
 
-  const int initBufferSize = 20480;
-  vertexBuffer.reserve(initBufferSize);
+  vertexBuffer.reserve(4096);
 
   figureVert.compileFromString(
     "#version 330 core\n"
@@ -67,7 +66,7 @@ void OpenGLRender::init(int width, int height)
 
     "void main()"
     "{"
-    "  vec4 texcol = texture(tex, uvw).rgba;"
+    "  vec3 texcol = texture(tex, uvw).rgb;"
     "  float alpha = (1.0f - texcol.b) * color.a;"
     "  vec3 rgb = mix(texcol.r * color.rgb, texcol.rrr, texcol.g);"
     "  out_color = vec4(rgb * (1.0f + (rand(pixPos) - 0.5f) / 30.0f * alpha), alpha);"
@@ -264,14 +263,14 @@ void OpenGLRender::drawMesh()
 
   glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId);
   assert(!checkGlErrors());
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)0);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, xy));
   assert(!checkGlErrors());
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(2 * sizeof(float)));
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uvw));
   assert(!checkGlErrors());
-  glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void*)(5 * sizeof(float)));
+  glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, rgba));
   assert(!checkGlErrors());
 
-  glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+  glDrawArrays(GL_TRIANGLES, 0, (int)vertexBuffer.size());
   assert(!checkGlErrors());
   
   glDisableVertexAttribArray(0);
@@ -284,32 +283,26 @@ void OpenGLRender::drawMesh()
 
 void OpenGLRender::addVertex(const glm::vec2 & xy, const glm::vec2 & uv, int texIndex, const glm::vec3 & color, float alpha)
 {
-  vertexBuffer.push_back(xy.x);
-  vertexBuffer.push_back(xy.y);
-  vertexBuffer.push_back(uv.x);
-  vertexBuffer.push_back(uv.y);
-  vertexBuffer.push_back(float(texIndex));
-  vertexBuffer.push_back(color.r);
-  vertexBuffer.push_back(color.g);
-  vertexBuffer.push_back(color.b);
-  vertexBuffer.push_back(alpha);
-  vertexCount++;
+  Vertex vertex;
+  vertex.xy = xy;
+  vertex.uvw = glm::vec3(uv, float(texIndex));
+  vertex.rgba = glm::vec4(color, alpha);
+  vertexBuffer.push_back(vertex);
 }
 
 void OpenGLRender::clearVertices()
 {
-  vertexCount = 0;
   vertexBuffer.clear();
 }
 
 void OpenGLRender::sendToDevice()
 {
-  if (vertexCount)
+  if (!vertexBuffer.empty())
   {
     glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId);
     assert(!checkGlErrors());
 
-    glBufferData(GL_ARRAY_BUFFER, vertexBuffer.size() * sizeof(float), vertexBuffer.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertexBuffer.size() * sizeof(Vertex), vertexBuffer.data(), GL_STATIC_DRAW);
     assert(!checkGlErrors());
   }
 }
@@ -468,8 +461,6 @@ void OpenGLRender::buildProgressBar(float x, float y, float width, float height,
 
 void OpenGLRender::buildBackground()
 {
-  const float pixSize = Globals::mainArrayTexturePixelSize;
-
   // add game base background to the mesh
 
   glm::vec2 origin = Globals::gameBkPos;
@@ -602,205 +593,63 @@ void OpenGLRender::buildBackground()
 
   // add score to the mesh
 
-  {
-    origin = Globals::gameBkPos + glm::vec2(Globals::scoreBarGaps, -Globals::scoreBarGaps);
-
-    const glm::vec2 verts[8] =
-    {
-      { 0.0f, 0.0f },
-      { 0.0f, -Globals::scoreBarHeight },
-      { Globals::scoreBarCaptionWidth, 0.0f },
-      { Globals::scoreBarCaptionWidth, -Globals::scoreBarHeight },
-      { 0.0f, 0.0f },
-      { 0.0f, -Globals::scoreBarHeight },
-      { Globals::scoreBarValueWidth, 0.0f },
-      { Globals::scoreBarValueWidth, -Globals::scoreBarHeight },
-    };
-
-    const glm::vec2 uv(0.5f);
-
-    glm::vec3 color(0.0f);
-    const float alpha = 0.6f;
-
-    addVertex(origin + verts[0], uv, Globals::emptyTexIndex, color, alpha);
-    addVertex(origin + verts[1], uv, Globals::emptyTexIndex, color, alpha);
-    addVertex(origin + verts[2], uv, Globals::emptyTexIndex, color, alpha);
-    addVertex(origin + verts[1], uv, Globals::emptyTexIndex, color, alpha);
-    addVertex(origin + verts[2], uv, Globals::emptyTexIndex, color, alpha);
-    addVertex(origin + verts[3], uv, Globals::emptyTexIndex, color, alpha);
-
-    buildTextMesh(origin.x + 0.5f * Globals::scoreBarCaptionWidth, origin.y - 0.5f * Globals::scoreBarHeight, "SCORE", Globals::midFontSize, 0.08f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
-    origin.x += Globals::scoreBarCaptionWidth + Globals::scoreBarGaps;
-
-    addVertex(origin + verts[4], uv, Globals::emptyTexIndex, color, alpha);
-    addVertex(origin + verts[5], uv, Globals::emptyTexIndex, color, alpha);
-    addVertex(origin + verts[6], uv, Globals::emptyTexIndex, color, alpha);
-    addVertex(origin + verts[5], uv, Globals::emptyTexIndex, color, alpha);
-    addVertex(origin + verts[6], uv, Globals::emptyTexIndex, color, alpha);
-    addVertex(origin + verts[7], uv, Globals::emptyTexIndex, color, alpha);
-
-    std::string str = std::to_string(gameLogic.curScore);
-    buildTextMesh(origin.x + 0.5f * Globals::scoreBarValueWidth, origin.y - 0.5f * Globals::scoreBarHeight, str.c_str(), Globals::bigFontSize, 0.08f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
-  }
+  origin = Globals::gameBkPos + glm::vec2(Globals::scoreBarGaps, -Globals::scoreBarGaps);
+  buildRect(origin.x, origin.y, Globals::scoreBarCaptionWidth, Globals::scoreBarHeight, glm::vec3(0.0f), 0.6f);
+  buildTextMesh(origin.x + 0.5f * Globals::scoreBarCaptionWidth, origin.y - 0.5f * Globals::scoreBarHeight, "SCORE", Globals::midFontSize, 0.08f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+  origin.x += Globals::scoreBarCaptionWidth + Globals::scoreBarGaps;
+  buildRect(origin.x, origin.y, Globals::scoreBarValueWidth, Globals::scoreBarHeight, glm::vec3(0.0f), 0.6f);
+  buildTextMesh(origin.x + 0.5f * Globals::scoreBarValueWidth, origin.y - 0.5f * Globals::scoreBarHeight, std::to_string(gameLogic.curScore).c_str(), Globals::bigFontSize, 0.08f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
 
   // add MENU button to mesh
 
+  origin.x += Globals::scoreBarValueWidth + Globals::scoreBarGaps;
+  glm::vec3 color(0.3f, 0.6f, 0.9f);
+  const float border = 0.01f;
+  buildRect(origin.x + 0.5f * border, origin.y - 0.5f * border, Globals::scoreBarMenuWidth - border, Globals::scoreBarHeight - border, color, 1.0f);
+  buildFrameRect(origin.x + 0.5f * border, origin.y - 0.5f * border, Globals::scoreBarMenuWidth - border, Globals::scoreBarHeight - border, border, glm::vec3(1.0f), 1.0f);
+  buildTextMesh(origin.x + 0.5f * Globals::scoreBarMenuWidth, origin.y - 0.5f * Globals::scoreBarHeight, "MENU", Globals::smallFontSize, 0.06f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+
+  // add hold figure panel to mesh
+
+  origin = 
+  { 
+    Globals::glassPos.x - Globals::holdNextBkHorzGap - Globals::holdNextBkSize, 
+    Globals::glassPos.y - Globals::defaultCaptionHeight 
+  };
+
+  buildTextMesh(origin.x + 0.5f * Globals::holdNextBkSize, origin.y + 0.5f * Globals::defaultCaptionHeight, "HOLD", Globals::smallFontSize, 0.055f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+  color = (gameLogic.holdFigure.color != Globals::Color::clNone) ? 
+    Globals::ColorValues[gameLogic.holdFigure.color] : 
+    glm::vec3(0.5f);
+  buildTexturedRect(origin.x, origin.y, Globals::holdNextBkSize, Globals::holdNextBkSize, Globals::holdFigureBkTexIndex, color, 1.0f);
+
+  // add next figure panel to mesh
+
+  origin.x += Globals::holdNextBkSize + Globals::glassSize.x + 2.0f * Globals::holdNextBkHorzGap;
+  buildTextMesh(origin.x + 0.5f * Globals::holdNextBkSize, origin.y + 0.5f * Globals::defaultCaptionHeight, "NEXT", Globals::smallFontSize, 0.055f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+  color = (gameLogic.nextFigures[0].color != Globals::Color::clNone) ? 
+    Globals::ColorValues[gameLogic.nextFigures[0].color] : 
+    glm::vec3(0.5f);
+  buildTexturedRect(origin.x, origin.y, Globals::holdNextBkSize, Globals::holdNextBkSize, Globals::nextFigureBkTexIndex, color, 1.0f);
+
+  // add level and goal panels to mesh
+
+  origin =
   {
-    glm::vec2 origin = Globals::gameBkPos;
-    origin.x += Globals::scoreBarCaptionWidth + Globals::scoreBarValueWidth + 2.0f * Globals::scoreBarGaps;
+    Globals::glassPos.x - Globals::holdNextBkHorzGap - Globals::holdNextBkSize,
+    Globals::glassPos.y - 0.4f * Globals::glassSize.y
+  };
 
-    const glm::vec2 verts[6] =
-    {
-      { 0.0f, 0.0f },
-      { 0.5f * Globals::scoreBarHeight, -0.5f * Globals::scoreBarHeight - Globals::scoreBarGaps },
-      { 0.0f, -Globals::scoreBarHeight - 2.0f * Globals::scoreBarGaps },
-      { Globals::scoreBarMenuWidth, 0.0f },
-      { Globals::scoreBarMenuWidth - 0.5f * Globals::scoreBarHeight - Globals::scoreBarGaps, -0.5f * Globals::scoreBarHeight - Globals::scoreBarGaps },
-      { Globals::scoreBarMenuWidth, -Globals::scoreBarHeight - 2.0f * Globals::scoreBarGaps },
-    };
+  buildTextMesh(origin.x + 0.5f * Globals::holdNextBkSize, origin.y - 0.5f * Globals::defaultCaptionHeight, "LEVEL", Globals::smallFontSize, 0.055f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+  origin.y -= Globals::defaultCaptionHeight;
+  buildTexturedRect(origin.x, origin.y, Globals::holdNextBkSize, 0.6f * Globals::holdNextBkSize, Globals::levelGoalBkTexIndex, Globals::levelPanelColor, 1.0f);
+  buildTextMesh(origin.x + 0.5f * Globals::holdNextBkSize, origin.y - 0.3f * Globals::holdNextBkSize, std::to_string(gameLogic.curLevel).c_str(), Globals::bigFontSize, 0.11f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
 
-    const glm::vec2 uv[2] =
-    {
-      { pixSize, pixSize },
-      { 0.25f, 0.25f },
-    };
-
-    glm::vec3 color(0.3f, 0.6f, 0.9f);
-    const float alpha = 1.0f;
-
-    addVertex(origin + verts[0], uv[0], Globals::holdFigureBkTexIndex, color, alpha);
-    addVertex(origin + verts[1], uv[1], Globals::holdFigureBkTexIndex, color, alpha);
-    addVertex(origin + verts[2], uv[0], Globals::holdFigureBkTexIndex, color, alpha);
-    addVertex(origin + verts[0], uv[0], Globals::holdFigureBkTexIndex, color, alpha);
-    addVertex(origin + verts[1], uv[1], Globals::holdFigureBkTexIndex, color, alpha);
-    addVertex(origin + verts[3], uv[0], Globals::holdFigureBkTexIndex, color, alpha);
-    addVertex(origin + verts[1], uv[1], Globals::holdFigureBkTexIndex, color, alpha);
-    addVertex(origin + verts[3], uv[0], Globals::holdFigureBkTexIndex, color, alpha);
-    addVertex(origin + verts[4], uv[1], Globals::holdFigureBkTexIndex, color, alpha);
-    addVertex(origin + verts[3], uv[0], Globals::holdFigureBkTexIndex, color, alpha);
-    addVertex(origin + verts[4], uv[1], Globals::holdFigureBkTexIndex, color, alpha);
-    addVertex(origin + verts[5], uv[0], Globals::holdFigureBkTexIndex, color, alpha);
-    addVertex(origin + verts[1], uv[1], Globals::holdFigureBkTexIndex, color, alpha);
-    addVertex(origin + verts[2], uv[0], Globals::holdFigureBkTexIndex, color, alpha);
-    addVertex(origin + verts[4], uv[1], Globals::holdFigureBkTexIndex, color, alpha);
-    addVertex(origin + verts[2], uv[0], Globals::holdFigureBkTexIndex, color, alpha);
-    addVertex(origin + verts[4], uv[1], Globals::holdFigureBkTexIndex, color, alpha);
-    addVertex(origin + verts[5], uv[0], Globals::holdFigureBkTexIndex, color, alpha);
-
-    buildTextMesh(origin.x + 0.5f * Globals::scoreBarMenuWidth, origin.y - 0.5f * Globals::scoreBarHeight - Globals::scoreBarGaps, "MENU", Globals::smallFontSize, 0.06f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
-  }
-
-  // add hold figure and next figure backgrounds to mesh
-
-  {
-    origin =
-    {
-      Globals::glassPos.x - Globals::holdNextBkHorzGap - Globals::holdNextBkSize,
-      Globals::glassPos.y - Globals::defaultCaptionHeight,
-    };
-
-    buildTextMesh(origin.x + 0.5f * Globals::holdNextBkSize, origin.y + 0.5f * Globals::defaultCaptionHeight, "HOLD", Globals::smallFontSize, 0.055f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
-
-    const glm::vec2 verts[4] =
-    {
-      { 0.0f, 0.0f },
-      { 0.0f, -Globals::holdNextBkSize },
-      { Globals::holdNextBkSize, 0.0f },
-      { Globals::holdNextBkSize, -Globals::holdNextBkSize },
-    };
-
-    const glm::vec2 uv[4] =
-    {
-      { pixSize, pixSize },
-      { pixSize, 1.0f - pixSize },
-      { 1.0f - pixSize, pixSize },
-      { 1.0f - pixSize, 1.0f - pixSize }
-    };
-
-    glm::vec3 color(0.5f);
-
-    if (gameLogic.holdFigure.color != Globals::Color::clNone)
-      color = Globals::ColorValues[gameLogic.holdFigure.color];
-
-    addVertex(origin + verts[0], uv[0], Globals::holdFigureBkTexIndex, color, 1.0f);
-    addVertex(origin + verts[1], uv[1], Globals::holdFigureBkTexIndex, color, 1.0f);
-    addVertex(origin + verts[2], uv[2], Globals::holdFigureBkTexIndex, color, 1.0f);
-    addVertex(origin + verts[1], uv[1], Globals::holdFigureBkTexIndex, color, 1.0f);
-    addVertex(origin + verts[2], uv[2], Globals::holdFigureBkTexIndex, color, 1.0f);
-    addVertex(origin + verts[3], uv[3], Globals::holdFigureBkTexIndex, color, 1.0f);
-
-    origin.x += Globals::holdNextBkSize + Globals::glassSize.x + 2.0f * Globals::holdNextBkHorzGap;
-
-    buildTextMesh(origin.x + 0.5f * Globals::holdNextBkSize, origin.y + 0.5f * Globals::defaultCaptionHeight, "NEXT", Globals::smallFontSize, 0.055f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
-
-    if (gameLogic.nextFigures[0].color != Globals::Color::clNone)
-      color = Globals::ColorValues[gameLogic.nextFigures[0].color];
-
-    addVertex(origin + verts[0], uv[0], Globals::nextFigureBkTexIndex, color, 1.0f);
-    addVertex(origin + verts[1], uv[1], Globals::nextFigureBkTexIndex, color, 1.0f);
-    addVertex(origin + verts[2], uv[2], Globals::nextFigureBkTexIndex, color, 1.0f);
-    addVertex(origin + verts[1], uv[1], Globals::nextFigureBkTexIndex, color, 1.0f);
-    addVertex(origin + verts[2], uv[2], Globals::nextFigureBkTexIndex, color, 1.0f);
-    addVertex(origin + verts[3], uv[3], Globals::nextFigureBkTexIndex, color, 1.0f);
-  }
-
-// add level and goal backgrounds to mesh
-
-  {
-    origin =
-    {
-      Globals::glassPos.x - Globals::holdNextBkHorzGap - Globals::holdNextBkSize,
-      Globals::glassPos.y - 0.4f * Globals::glassSize.y,
-    };
-
-    buildTextMesh(origin.x + 0.5f * Globals::holdNextBkSize, origin.y - 0.5f * Globals::defaultCaptionHeight, "LEVEL", Globals::smallFontSize, 0.055f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
-
-    origin.y -= Globals::defaultCaptionHeight;
-
-    const glm::vec2 verts[4] =
-    {
-      { 0.0f, 0.0f },
-      { 0.0f, -0.6f * Globals::holdNextBkSize },
-      { Globals::holdNextBkSize, 0.0f },
-      { Globals::holdNextBkSize, -0.6f * Globals::holdNextBkSize },
-    };
-
-    const glm::vec2 uv[4] =
-    {
-      { pixSize, pixSize },
-      { pixSize, 1.0f - pixSize },
-      { 1.0f - pixSize, pixSize },
-      { 1.0f - pixSize, 1.0f - pixSize }
-    };
-
-    glm::vec3 color(0.2f, 0.45f, 0.8f);
-
-    addVertex(origin + verts[0], uv[0], Globals::levelGoalBkTexIndex, color, 1.0f);
-    addVertex(origin + verts[1], uv[1], Globals::levelGoalBkTexIndex, color, 1.0f);
-    addVertex(origin + verts[2], uv[2], Globals::levelGoalBkTexIndex, color, 1.0f);
-    addVertex(origin + verts[1], uv[1], Globals::levelGoalBkTexIndex, color, 1.0f);
-    addVertex(origin + verts[2], uv[2], Globals::levelGoalBkTexIndex, color, 1.0f);
-    addVertex(origin + verts[3], uv[3], Globals::levelGoalBkTexIndex, color, 1.0f);
-
-    std::string str = std::to_string(gameLogic.curLevel);
-    buildTextMesh(origin.x + 0.5f * Globals::holdNextBkSize, origin.y - 0.3f * Globals::holdNextBkSize, str.c_str(), Globals::bigFontSize, 0.11f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
-
-    origin.y -= Globals::holdNextBkSize;
-
-    buildTextMesh(origin.x + 0.5f * Globals::holdNextBkSize, origin.y - 0.5f * Globals::defaultCaptionHeight, "GOAL", Globals::smallFontSize, 0.055f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
-
-    origin.y -= Globals::defaultCaptionHeight;
-
-    addVertex(origin + verts[0], uv[0], Globals::levelGoalBkTexIndex, color, 1.0f);
-    addVertex(origin + verts[1], uv[1], Globals::levelGoalBkTexIndex, color, 1.0f);
-    addVertex(origin + verts[2], uv[2], Globals::levelGoalBkTexIndex, color, 1.0f);
-    addVertex(origin + verts[1], uv[1], Globals::levelGoalBkTexIndex, color, 1.0f);
-    addVertex(origin + verts[2], uv[2], Globals::levelGoalBkTexIndex, color, 1.0f);
-    addVertex(origin + verts[3], uv[3], Globals::levelGoalBkTexIndex, color, 1.0f);
-
-    str = std::to_string(gameLogic.curGoal);
-    buildTextMesh(origin.x + 0.5f * Globals::holdNextBkSize, origin.y - 0.3f * Globals::holdNextBkSize, str.c_str(), Globals::bigFontSize, 0.11f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
-  }
+  origin.y -= Globals::holdNextBkSize;
+  buildTextMesh(origin.x + 0.5f * Globals::holdNextBkSize, origin.y - 0.5f * Globals::defaultCaptionHeight, "GOAL", Globals::smallFontSize, 0.055f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+  origin.y -= Globals::defaultCaptionHeight;
+  buildTexturedRect(origin.x, origin.y, Globals::holdNextBkSize, 0.6f * Globals::holdNextBkSize, Globals::levelGoalBkTexIndex, Globals::goalPanelColor, 1.0f);
+  buildTextMesh(origin.x + 0.5f * Globals::holdNextBkSize, origin.y - 0.3f * Globals::holdNextBkSize, std::to_string(gameLogic.curGoal).c_str(), Globals::bigFontSize, 0.11f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
 }
 
 void OpenGLRender::buidGlassShadow()
@@ -1624,65 +1473,28 @@ void OpenGLRender::buildDropTrails()
 {
   const glm::vec2 origin = Globals::glassPos;
   const float scale = Globals::glassSize.x / gameLogic.glassWidth;
-  const float pixSize = Globals::mainArrayTexturePixelSize;
 
   for (GameLogic::DropTrailsIterator dropTrailIt = gameLogic.getDropTrailsBegin(), end = gameLogic.getDropTrailsEnd(); dropTrailIt != end; ++dropTrailIt)
   {
-    float currentTrailAlpha = 1.0f - dropTrailIt->getTrailProgress();
-    float currentTrailHeight = float(dropTrailIt->height) * currentTrailAlpha;
-    float dtx = float(dropTrailIt->x);
-    float dty = float(dropTrailIt->y);
-    const float dx = 0.22f;
-    const float dy = 0.1f * currentTrailHeight;
+    float trailProgress = dropTrailIt->getTrailProgress();
+    float trailOpSqProgress = 1.0f - trailProgress * trailProgress;
+    float trailLeft = origin.x + scale * dropTrailIt->x - scale * 0.25f;
+    float trailTop = origin.y - scale * (dropTrailIt->y - dropTrailIt->height * trailOpSqProgress);
+    float trailWidth = scale * 1.5f;
+    float trailHeight = scale * (0.1f + 1.1f * dropTrailIt->height * trailOpSqProgress);
+    glm::vec3 color = Globals::ColorValues[dropTrailIt->color] * trailOpSqProgress;
 
-    glm::vec2 verts[4] =
-    {
-      { glm::max<float>(dtx - dx, 0.0f),                                      -glm::max<float>(dty - currentTrailHeight, 0.0f)  },
-      { glm::min<float>(dtx + 1.0f + 2.0f * dx, (float)gameLogic.glassWidth), -glm::max<float>(dty - currentTrailHeight, 0.0f) },
-      { glm::max<float>(dtx - dx, 0.0f),                                      -glm::min<float>(dty + dy, (float)gameLogic.glassHeight) },
-      { glm::min<float>(dtx + 1.0f + 2.0f * dx, (float)gameLogic.glassWidth), -glm::min<float>(dty + dy, (float)gameLogic.glassHeight) },
-    };
-
-    glm::vec2 uv[4] =
-    {
-      { pixSize,        pixSize },
-      { 1.0f - pixSize, pixSize },
-      { pixSize,        1.0f - pixSize },
-      { 1.0f - pixSize, 1.0f - pixSize },
-    };
-
-    glm::vec3 color = Globals::ColorValues[dropTrailIt->color] * currentTrailAlpha;
-
-    addVertex(origin + scale * verts[0], uv[0], Globals::dropTrailTexIndex, color, 0.0f);
-    addVertex(origin + scale * verts[1], uv[1], Globals::dropTrailTexIndex, color, 0.0f);
-    addVertex(origin + scale * verts[2], uv[2], Globals::dropTrailTexIndex, color, 0.0f);
-    addVertex(origin + scale * verts[1], uv[1], Globals::dropTrailTexIndex, color, 0.0f);
-    addVertex(origin + scale * verts[2], uv[2], Globals::dropTrailTexIndex, color, 0.0f);
-    addVertex(origin + scale * verts[3], uv[3], Globals::dropTrailTexIndex, color, 0.0f);
+    buildTexturedRect(trailLeft, trailTop, trailWidth, trailHeight, Globals::dropTrailTexIndex, color, 0.0f);
 
     for (int spInd = 0; spInd < DropTrail::sparkleQty; spInd++)
     {
-      float sparkleX = dropTrailIt->x + dropTrailIt->sparkles[spInd].relX;
-      float sparkleY = dropTrailIt->y - dropTrailIt->sparkles[spInd].relY * dropTrailIt->height - dropTrailIt->sparkles[spInd].speed * dropTrailIt->getTrailProgress();
-      const float sparkleSize = 0.1f;
+      float sparkleX = scale * (dropTrailIt->x + dropTrailIt->sparkles[spInd].relX);
+      float sparkleY = scale * (dropTrailIt->y - dropTrailIt->sparkles[spInd].relY * dropTrailIt->height - dropTrailIt->sparkles[spInd].speed * dropTrailIt->getTrailProgress());
+      const float sparkleSize = scale * 0.07f;
+      color = (0.5f + Globals::ColorValues[dropTrailIt->color]) * dropTrailIt->sparkles[spInd].alpha * trailOpSqProgress;
 
       if (sparkleX < gameLogic.glassWidth - sparkleSize && sparkleY > 0.0f)
-      {
-        glm::vec2 verts[4] =
-        {
-          { sparkleX,               -sparkleY },
-          { sparkleX + sparkleSize, -sparkleY },
-          { sparkleX,               -sparkleY - sparkleSize },
-          { sparkleX + sparkleSize, -sparkleY - sparkleSize },
-        };
-
-        addVertex(origin + scale * verts[0], uv[0], Globals::dropSparkleTexIndex, color, 0.0f);
-        addVertex(origin + scale * verts[1], uv[1], Globals::dropSparkleTexIndex, color, 0.0f);
-        addVertex(origin + scale * verts[2], uv[2], Globals::dropSparkleTexIndex, color, 0.0f);
-        addVertex(origin + scale * verts[1], uv[1], Globals::dropSparkleTexIndex, color, 0.0f);
-        addVertex(origin + scale * verts[2], uv[2], Globals::dropSparkleTexIndex, color, 0.0f);
-        addVertex(origin + scale * verts[3], uv[3], Globals::dropSparkleTexIndex, color, 0.0f);
-      }
+        buildTexturedRect(origin.x + sparkleX, origin.y - sparkleY, sparkleSize, sparkleSize, Globals::dropSparkleTexIndex, color, 0.0f);
     }
   }
 }
@@ -1695,38 +1507,20 @@ void OpenGLRender::buildRowFlashes()
 
   float overallProgress = glm::clamp(float(Time::timer - gameLogic.rowsDeleteTimer) / Globals::rowsDeletionEffectTime, 0.0f, 1.0f);
   float mul = 1.0f - cos((overallProgress - 0.5f) * (overallProgress < 0.5f ? 0.5f : 2.0f) * (float)M_PI_2);
-  float flashAlpha = 1.00f - overallProgress * overallProgress;
+  float flashBright = 1.00f - overallProgress * overallProgress;
   float dx = 1.0f - mul * 3.0f;
   float dy = 0.25f - 0.75f * mul;
 
   for (GameLogic::DeletedRowsIterator delRowIt = gameLogic.getDeletedRowsBegin(), end = gameLogic.getDeletedRowsEnd(); delRowIt != end; ++delRowIt)
   {
     int row = *delRowIt;
+    float flashLeft = origin.x - scale * dx;
+    float flashTop = origin.y + scale * (dy - row);
+    float flashWidth = scale * (gameLogic.glassWidth + 2.0f * dx);
+    float flashHeight = scale * (1.0f + 2.0f * dy);
+    glm::vec3 color(flashBright);
 
-    glm::vec2 verts[4] =
-    {
-      { 0.0f - dx, -row + dy },
-      { gameLogic.glassWidth + dx, -row + dy },
-      { 0.0f - dx, -row - 1.0f - dy },
-      { gameLogic.glassWidth + dx, -row - 1.0f - dy },
-    };
-
-    glm::vec2 uv[4] =
-    {
-      { pixSize, pixSize },
-      { 1.0f - pixSize, pixSize },
-      { pixSize, 1.0f - pixSize },
-      { 1.0f - pixSize, 1.0f - pixSize },
-    };
-
-    glm::vec3 color(flashAlpha);
-
-    addVertex(origin + scale * verts[0], uv[0], Globals::rowFlashTexIndex, color, 0.0f);
-    addVertex(origin + scale * verts[1], uv[1], Globals::rowFlashTexIndex, color, 0.0f);
-    addVertex(origin + scale * verts[2], uv[2], Globals::rowFlashTexIndex, color, 0.0f);
-    addVertex(origin + scale * verts[1], uv[1], Globals::rowFlashTexIndex, color, 0.0f);
-    addVertex(origin + scale * verts[2], uv[2], Globals::rowFlashTexIndex, color, 0.0f);
-    addVertex(origin + scale * verts[3], uv[3], Globals::rowFlashTexIndex, color, 0.0f);
+    buildTexturedRect(flashLeft, flashTop, flashWidth, flashHeight, Globals::rowFlashTexIndex, color, 0.0f);
   }
 
   if (gameLogic.getDeletedRowsBegin() != gameLogic.getDeletedRowsEnd())
@@ -1776,39 +1570,19 @@ void OpenGLRender::buildRowFlashes()
       addVertex(verts[2], uv[2], Globals::rowShineRayTexIndex, colors1, 0.0f);
     }
 
-    const float radius = 20.0f;
+    float shineSize = 3.5f;
+    float shineLeft = origin.x + scale * ltX - 0.5f * shineSize;
+    float shineTop = origin.y - scale * ltY + 0.5f * shineSize;
+    float shineBright = 0.1f * sin(shineProgress * (float)M_PI);
 
-    glm::vec2 verts[4] =
-    {
-      { origin.x + scale * (ltX - radius), origin.y - scale * (ltY - radius) },
-      { origin.x + scale * (ltX + radius), origin.y - scale * (ltY - radius) },
-      { origin.x + scale * (ltX - radius), origin.y - scale * (ltY + radius) },
-      { origin.x + scale * (ltX + radius), origin.y - scale * (ltY + radius) },
-    };
-
-    glm::vec2 uv[4] =
-    {
-      { pixSize, pixSize },
-      { 1.0f - pixSize, pixSize },
-      { pixSize, 1.0f - pixSize },
-      { 1.0f - pixSize, 1.0f - pixSize },
-    };
-
-    glm::vec3 colors(0.1f * sin(shineProgress * (float)M_PI));
-
-    addVertex(verts[0], uv[0], Globals::rowShineLightTexIndex, colors, 0.0f);
-    addVertex(verts[1], uv[1], Globals::rowShineLightTexIndex, colors, 0.0f);
-    addVertex(verts[2], uv[2], Globals::rowShineLightTexIndex, colors, 0.0f);
-    addVertex(verts[1], uv[1], Globals::rowShineLightTexIndex, colors, 0.0f);
-    addVertex(verts[2], uv[2], Globals::rowShineLightTexIndex, colors, 0.0f);
-    addVertex(verts[3], uv[3], Globals::rowShineLightTexIndex, colors, 0.0f);
+    buildTexturedRect(shineLeft, shineTop, shineSize, shineSize, Globals::rowShineLightTexIndex, glm::vec3(shineBright), 0.0f);
   }
 }
 
 void OpenGLRender::buildSidePanel(float x, float y, float width, float height, float cornerSize, glm::vec3 topColor, glm::vec3 bottomColor, glm::vec3 glowColor, float glowWidth)
 {
   glm::vec2 origin = glm::vec2(x, y);
-  const float pixSize = Globals::mainArrayTexturePixelSize * 2;
+  const float pixSize = Globals::mainArrayTexturePixelSize;
   const float tessSize = cornerSize;
   int xTess = int(width / tessSize);
   int yTess = int(height / tessSize);
@@ -1927,23 +1701,23 @@ void OpenGLRender::buildSidePanel(float x, float y, float width, float height, f
     { 1.0f - pixSize, 1.0f - pixSize },
   };
 
-  for (int i = 0; i < 6; i++)
+  for (int i = 0; i < 5; i++)
   {
-    addVertex(origin + borderVerts[i], borderUV[i], Globals::sidePanelGlowTexIndex, glowColor, 1.0f);
-    addVertex(origin + outerGlowVerts[i], outerGlowUV[i], Globals::sidePanelGlowTexIndex, glowColor, 1.0f);
-    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], Globals::sidePanelGlowTexIndex, glowColor, 1.0f);
+    addVertex(origin + borderVerts[i], borderUV[i], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
+    addVertex(origin + outerGlowVerts[i], outerGlowUV[i], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
+    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
 
-    addVertex(origin + outerGlowVerts[i], outerGlowUV[i], Globals::sidePanelGlowTexIndex, glowColor, 1.0f);
-    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], Globals::sidePanelGlowTexIndex, glowColor, 1.0f);
-    addVertex(origin + outerGlowVerts[i + 1], outerGlowUV[i + 1], Globals::sidePanelGlowTexIndex, glowColor, 1.0f);
+    addVertex(origin + outerGlowVerts[i], outerGlowUV[i], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
+    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
+    addVertex(origin + outerGlowVerts[i + 1], outerGlowUV[i + 1], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
 
-    addVertex(origin + borderVerts[i], borderUV[i], Globals::sidePanelGlowTexIndex, glowColor, 1.0f);
-    addVertex(origin + innerGlowVerts[i], innerGlowUV[i], Globals::sidePanelGlowTexIndex, glowColor, 1.0f);
-    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], Globals::sidePanelGlowTexIndex, glowColor, 1.0f);
+    addVertex(origin + borderVerts[i], borderUV[i], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
+    addVertex(origin + innerGlowVerts[i], innerGlowUV[i], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
+    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
 
-    addVertex(origin + innerGlowVerts[i], innerGlowUV[i], Globals::sidePanelGlowTexIndex, glowColor, 1.0f);
-    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], Globals::sidePanelGlowTexIndex, glowColor, 1.0f);
-    addVertex(origin + innerGlowVerts[i + 1], innerGlowUV[i + 1], Globals::sidePanelGlowTexIndex, glowColor, 1.0f);
+    addVertex(origin + innerGlowVerts[i], innerGlowUV[i], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
+    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
+    addVertex(origin + innerGlowVerts[i + 1], innerGlowUV[i + 1], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
   }
   return;
 }

@@ -33,7 +33,6 @@ private:
 
   GameLogic & gameLogic;
   InterfaceLogic & interfaceLogic;
-  std::vector<float> vertexBuffer;
   FT_Library ftLibrary;
   FT_Face ftFace;
   typedef std::map<int, Glyph> GlyphSizeMap;
@@ -44,7 +43,15 @@ private:
   Program figureProg;
   Shader figureVert;
   Shader figureFrag;
-  int vertexCount;
+
+  struct Vertex
+  {
+    glm::vec2 xy;
+    glm::vec3 uvw;
+    glm::vec4 rgba;
+  };
+
+  std::vector<Vertex> vertexBuffer;
 
   void loadGlyph(char ch, int size);
   void addVertex(const glm::vec2 & xy, const glm::vec2 & uv, int texIndex, const glm::vec3 & color, float alpha);
