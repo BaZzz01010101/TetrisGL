@@ -71,6 +71,8 @@
     <ClCompile Include="..\..\src\Control.cpp" />
     <ClCompile Include="..\..\src\Keys.cpp" />
     <ClCompile Include="..\..\src\InterfaceLogic.cpp" />
+    <ClCompile Include="..\..\src\Layout.cpp" />
+    <ClCompile Include="..\..\src\LayoutObject.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
     <ClCompile Include="..\..\src\MenuLogic.cpp" />
     <ClCompile Include="..\..\src\OpenGLRender.cpp" />
@@ -111,6 +113,8 @@
     <ClInclude Include="..\..\src\Control.h" />
     <ClInclude Include="..\..\src\Keys.h" />
     <ClInclude Include="..\..\src\InterfaceLogic.h" />
+    <ClInclude Include="..\..\src\Layout.h" />
+    <ClInclude Include="..\..\src\LayoutObject.h" />
     <ClInclude Include="..\..\src\MenuLogic.h" />
     <ClInclude Include="..\..\src\OpenGLRender.h" />
     <ClInclude Include="..\..\src\GameLogic.h" />

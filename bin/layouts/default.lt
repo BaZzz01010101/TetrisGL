@@ -1,0 +1,26 @@
+{
+	"BackgroundWidth" : 1.5,
+	"BackgroundHeight" : 2.0,
+
+	"Game" : 
+	{
+		"BackgroundTileWidth" : 0.03,
+		"BackgroundTileHeight" : 0.02,
+
+		"ScoreBarTopGap" : 0.01,
+    "ScoreBarLeftGap" : 0.01,
+    "ScoreBarRightGap" : 0.01,
+    "ScoreBarSeparatorGap" : 0.01,
+    "ScoreBarHeight" : 0.08,
+    "ScoreBarCaptionWidth" : 0.45,
+    "ScoreBarMenuButtonWidth" : 0.25
+
+
+	},
+
+	"Interface" :
+	{
+	
+	}
+
+}

@@ -21,6 +21,10 @@
 #include "SOIL2/SOIL2.h"
 #include "ft2build.h"
 #include "ReadOnly.h"
+#include "rapidjson/document.h"
+#include "rapidjson/filereadstream.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
 #include FT_FREETYPE_H
 
 #pragma warning(pop)
