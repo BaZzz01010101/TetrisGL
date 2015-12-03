@@ -16,8 +16,6 @@ private:
   bool vSync;
   int wndWidth;
   int wndHeight;
-  float mouseX;
-  float mouseY;
   std::map<int, Key> glfwKeyMap;
 
   void initGlfwKeyMap();

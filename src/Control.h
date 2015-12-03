@@ -12,6 +12,8 @@ public:
 
   void keyDown(Key key);
   void keyUp(Key key);
+  void mouseMove(float x, float y);
+  void mouseDown();
   void update();
 
 private:
@@ -25,7 +27,7 @@ private:
 
   struct KeyInternalState
   {
-    uint64_t keyNextRepeatCounter;
+    uint64_t keyNextRepeatCounter; 
     int pressCount;
     bool wasChanged;
   };
@@ -46,4 +48,7 @@ private:
   void updateLeaderboardKeyboard();
   void updateKeyStates();
   KeyState getKeyState(Key key) const;
+
+  float mouseX;
+  float mouseY;
 };

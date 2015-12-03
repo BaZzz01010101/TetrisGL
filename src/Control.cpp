@@ -2,6 +2,7 @@
 
 #include "Control.h"
 #include "Crosy.h"
+#include "Layout.h"
 
 
 Control::Control(GameLogic & gameLogic, InterfaceLogic & interfaceLogic) :
@@ -33,6 +34,26 @@ void Control::keyUp(Key key)
   KeyInternalState & internalKeyState = internalKeyStates[key];
   internalKeyState.keyNextRepeatCounter = 0;
   internalKeyState.wasChanged = true;
+}
+
+void Control::mouseMove(float x, float y)
+{
+  mouseX = x;
+  mouseY = y;
+}
+
+void Control::mouseDown()
+{
+  if (gameLogic.state == GameLogic::stPlaying)
+  {
+    LayoutObject * mouseOverObject = Layout::gameLayout.getObjectFromPoint(mouseX, mouseY);
+
+    if (mouseOverObject && mouseOverObject->name == "ScoreBarMenuButton")
+    {
+      gameLogic.pauseGame();
+      interfaceLogic.showInGameMenu();
+    }
+  }
 }
 
 void Control::update()

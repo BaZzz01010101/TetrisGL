@@ -1,5 +1,6 @@
 #include "static_headers.h"
 
+#include "Layout.h"
 #include "Globals.h"
 #include "Crosy.h"
 
@@ -36,11 +37,11 @@ int Globals::levelGoalBkTexIndex = 14;
 int Globals::levelBackShevronTexIndex = 15;
 int Globals::fontFirstTexIndex = 16;
 
-glm::vec2 Globals::bkTileSize(0.03f, 0.02f);
+//glm::vec2 Globals::bkTileSize(0.03f, 0.02f);
 glm::vec2 Globals::sidePanelBkTileSize(0.024f, 0.016f);
 int Globals::nextFiguresCount = 3;
 float Globals::rowsDeletionEffectTime = 0.8f;
-glm::vec2 Globals::gameBkPos(-0.75f, 1.0f);
+//glm::vec2 Globals::gameBkPos(-0.75f, 1.0f);
 glm::vec2 Globals::gameBkSize(1.5f, 2.0f);
 glm::vec2 Globals::glassPos(-0.45f, 0.85f);
 glm::vec2 Globals::glassSize(0.9f, 1.8f);
@@ -51,13 +52,13 @@ float Globals::scoreBarGaps = 0.01f;
 float Globals::scoreBarHeight = 0.08f;
 float Globals::scoreBarCaptionWidth = 0.45f;
 float Globals::scoreBarMenuWidth = 0.25f;
-float Globals::scoreBarValueWidth = Globals::gameBkSize.x - Globals::scoreBarCaptionWidth - Globals::scoreBarMenuWidth - 4.0f * Globals::scoreBarGaps;
+float Globals::scoreBarValueWidth = Layout::backgroundWidth - Globals::scoreBarCaptionWidth - Globals::scoreBarMenuWidth - 4.0f * Globals::scoreBarGaps;
 glm::vec3 Globals::levelPanelColor(0.2f, 0.45f, 0.8f);
 glm::vec3 Globals::goalPanelColor(0.2f, 0.45f, 0.8f);
 float Globals::menuTop = 0.5f;
-float Globals::menuRowWidth = 0.5f * Globals::gameBkSize.x;
-float Globals::menuRowHeight = 0.06f * Globals::gameBkSize.y;
-float Globals::menuRowInterval = 0.04f * Globals::gameBkSize.y;
+float Globals::menuRowWidth = 0.5f * gameBkSize.x;
+float Globals::menuRowHeight = 0.06f * gameBkSize.y;
+float Globals::menuRowInterval = 0.04f * gameBkSize.y;
 float Globals::menuRowGlowWidth = 0.03f;
 float Globals::menuRowCornerSize = 0.03f;
 float Globals::menuShowingTime = 0.4f;
@@ -67,8 +68,8 @@ glm::vec3 Globals::menuSelectedPanelColor(2.0f, 1.9f, 1.2f);
 glm::vec3 Globals::menuNormalTextColor(0.4f, 0.7f, 1.0f);
 glm::vec3 Globals::menuSelectedTextColor(1.0f, 0.9f, 0.4f);
 float Globals::settingsTop = 0.5f;
-float Globals::settingsWidth = 0.75f * Globals::gameBkSize.x;
-float Globals::settingsHeight = 0.5f * Globals::gameBkSize.y;
+float Globals::settingsWidth = 0.75f * Layout::backgroundWidth;
+float Globals::settingsHeight = 0.5f * Layout::backgroundHeight;
 float Globals::settingsGlowWidth = 0.05f;
 float Globals::settingsCornerSize = 0.08f;
 float Globals::settingsShowingTime = 0.4f;

@@ -31,11 +31,11 @@ public:
   static int levelBackShevronTexIndex;
   static int fontFirstTexIndex;
 
-  static glm::vec2 bkTileSize;
+  //static glm::vec2 bkTileSize;
   static glm::vec2 sidePanelBkTileSize;
   static int nextFiguresCount;
   static float rowsDeletionEffectTime;
-  static glm::vec2 gameBkPos;
+  //static glm::vec2 gameBkPos;
   static glm::vec2 gameBkSize;
   static glm::vec2 glassPos;
   static glm::vec2 glassSize;

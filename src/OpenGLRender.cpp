@@ -6,6 +6,7 @@
 #include "DropTrail.h"
 #include "Crosy.h"
 #include "Time.h"
+#include "Layout.h"
 
 OpenGLRender::OpenGLRender(GameLogic & gameLogic, InterfaceLogic & interfaceLogic) :
   figureVert(GL_VERTEX_SHADER),
@@ -172,7 +173,7 @@ void OpenGLRender::resize(int width, int height)
   this->width = width;
   this->height = height;
 
-  const float gameAspect = Globals::gameBkSize.x / Globals::gameBkSize.y;
+  const float gameAspect = Layout::backgroundWidth / Layout::backgroundHeight;
 
   if (!height || float(width) / height > gameAspect)
     glViewport((width - height) / 2, 0, height, height);
@@ -463,7 +464,8 @@ void OpenGLRender::buildBackground()
 {
   // add game base background to the mesh
 
-  glm::vec2 origin = Globals::gameBkPos;
+  glm::vec2 origin(Layout::backgroundLeft, Layout::backgroundTop);
+
   const int xTess = 6;
   const int yTess = 6;
 
@@ -472,20 +474,21 @@ void OpenGLRender::buildBackground()
   {
     glm::vec2 verts[4] =
     {
-      { Globals::gameBkSize.x * x / xTess,       -Globals::gameBkSize.y * y / yTess },
-      { Globals::gameBkSize.x * x / xTess,       -Globals::gameBkSize.y * (y + 1) / yTess },
-      { Globals::gameBkSize.x * (x + 1) / xTess, -Globals::gameBkSize.y * y / yTess },
-      { Globals::gameBkSize.x * (x + 1) / xTess, -Globals::gameBkSize.y * (y + 1) / yTess },
+      { Layout::backgroundWidth * x / xTess, -Layout::backgroundHeight* y / yTess },
+      { Layout::backgroundWidth * x / xTess, -Layout::backgroundHeight * (y + 1) / yTess },
+      { Layout::backgroundWidth * (x + 1) / xTess, -Layout::backgroundHeight * y / yTess },
+      { Layout::backgroundWidth * (x + 1) / xTess, -Layout::backgroundHeight * (y + 1) / yTess },
     };
 
-    const glm::vec2 tiledUV = Globals::gameBkSize / Globals::bkTileSize;
+    const float tiledU = Layout::backgroundWidth / Layout::gameBkTileWidth;
+    const float tiledV = Layout::backgroundHeight / Layout::gameBkTileHeight;
 
     glm::vec2 uv[4] =
     {
-      { tiledUV.x * x / xTess,        tiledUV.y * y / yTess },
-      { tiledUV.x * x / xTess,        tiledUV.y * (y + 1) / yTess },
-      { tiledUV.x * (x + 1) / xTess,  tiledUV.y * y / yTess },
-      { tiledUV.x * (x + 1) / xTess,  tiledUV.y * (y + 1) / yTess },
+      { tiledU * x / xTess,        tiledV * y / yTess },
+      { tiledU * x / xTess,        tiledV * (y + 1) / yTess },
+      { tiledU * (x + 1) / xTess,  tiledV * y / yTess },
+      { tiledU * (x + 1) / xTess,  tiledV * (y + 1) / yTess },
     };
 
     float fx0 = float(abs(xTess - 2 * x)) / xTess;
@@ -591,23 +594,51 @@ void OpenGLRender::buildBackground()
     addVertex(origin + verts[3], uv, Globals::emptyTexIndex, col[3], 1.0f);
   }
 
-  // add score to the mesh
+  // add score caption to the mesh
 
-  origin = Globals::gameBkPos + glm::vec2(Globals::scoreBarGaps, -Globals::scoreBarGaps);
-  buildRect(origin.x, origin.y, Globals::scoreBarCaptionWidth, Globals::scoreBarHeight, glm::vec3(0.0f), 0.6f);
-  buildTextMesh(origin.x + 0.5f * Globals::scoreBarCaptionWidth, origin.y - 0.5f * Globals::scoreBarHeight, "SCORE", Globals::midFontSize, 0.08f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
-  origin.x += Globals::scoreBarCaptionWidth + Globals::scoreBarGaps;
-  buildRect(origin.x, origin.y, Globals::scoreBarValueWidth, Globals::scoreBarHeight, glm::vec3(0.0f), 0.6f);
-  buildTextMesh(origin.x + 0.5f * Globals::scoreBarValueWidth, origin.y - 0.5f * Globals::scoreBarHeight, std::to_string(gameLogic.curScore).c_str(), Globals::bigFontSize, 0.08f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+  LayoutObject * scoreBarCaptionLayout = Layout::gameLayout.getChild("ScoreBarCaption");
+
+  if (scoreBarCaptionLayout)
+  {
+    float left = scoreBarCaptionLayout->getScreenLeft();
+    float top = scoreBarCaptionLayout->getScreenTop();
+    float width = scoreBarCaptionLayout->width;
+    float height = scoreBarCaptionLayout->height;
+    buildRect(left, top, width, height, glm::vec3(0.0f), 0.6f);
+    buildTextMesh(left + 0.5f * width, top - 0.5f * height, "SCORE", Globals::midFontSize, 0.08f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+  }
+
+  // add score value to the mesh
+
+  LayoutObject * scoreBarValueLayout = Layout::gameLayout.getChild("ScoreBarValue");
+
+  if (scoreBarValueLayout)
+  {
+    float left = scoreBarValueLayout->getScreenLeft();
+    float top = scoreBarValueLayout->getScreenTop();
+    float width = scoreBarValueLayout->width;
+    float height = scoreBarValueLayout->height;
+    buildRect(left, top, width, height, glm::vec3(0.0f), 0.6f);
+    buildTextMesh(left + 0.5f * width, top - 0.5f * height, std::to_string(gameLogic.curScore).c_str(), Globals::bigFontSize, 0.08f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+  }
 
   // add MENU button to mesh
 
-  origin.x += Globals::scoreBarValueWidth + Globals::scoreBarGaps;
-  glm::vec3 color(0.3f, 0.6f, 0.9f);
-  const float border = 0.01f;
-  buildRect(origin.x + 0.5f * border, origin.y - 0.5f * border, Globals::scoreBarMenuWidth - border, Globals::scoreBarHeight - border, color, 1.0f);
-  buildFrameRect(origin.x + 0.5f * border, origin.y - 0.5f * border, Globals::scoreBarMenuWidth - border, Globals::scoreBarHeight - border, border, glm::vec3(1.0f), 1.0f);
-  buildTextMesh(origin.x + 0.5f * Globals::scoreBarMenuWidth, origin.y - 0.5f * Globals::scoreBarHeight, "MENU", Globals::smallFontSize, 0.06f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+  LayoutObject * scoreBarMenuButtonLayout = Layout::gameLayout.getChild("ScoreBarMenuButton");
+
+  if (scoreBarMenuButtonLayout)
+  {
+    float left = scoreBarMenuButtonLayout->getScreenLeft();
+    float top = scoreBarMenuButtonLayout->getScreenTop();
+    float width = scoreBarMenuButtonLayout->width;
+    float height = scoreBarMenuButtonLayout->height;
+    const float border = 0.125f * height;
+    const float textHeight = 0.75f * height;
+    glm::vec3 color(0.3f, 0.6f, 0.9f);
+    buildRect(left + 0.5f * border, top - 0.5f * border, width - border, height - border, color, 1.0f);
+    buildFrameRect(left + 0.5f * border, top - 0.5f * border, width - border, height - border, border, glm::vec3(1.0f), 1.0f);
+    buildTextMesh(left + 0.5f * width, top - 0.5f * height, "MENU", Globals::smallFontSize, textHeight, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+  }
 
   // add hold figure panel to mesh
 
@@ -618,7 +649,7 @@ void OpenGLRender::buildBackground()
   };
 
   buildTextMesh(origin.x + 0.5f * Globals::holdNextBkSize, origin.y + 0.5f * Globals::defaultCaptionHeight, "HOLD", Globals::smallFontSize, 0.055f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
-  color = (gameLogic.holdFigure.color != Globals::Color::clNone) ? 
+  glm::vec3 color = (gameLogic.holdFigure.color != Globals::Color::clNone) ? 
     Globals::ColorValues[gameLogic.holdFigure.color] : 
     glm::vec3(0.5f);
   buildTexturedRect(origin.x, origin.y, Globals::holdNextBkSize, Globals::holdNextBkSize, Globals::holdFigureBkTexIndex, color, 1.0f);
@@ -1761,7 +1792,7 @@ void OpenGLRender::buildMenu()
         break;
       }
 
-      float x = Globals::gameBkPos.x - (Globals::menuRowWidth + Globals::menuRowGlowWidth) * rowProgress * rowProgress;
+      float x = Layout::backgroundLeft - (Globals::menuRowWidth + Globals::menuRowGlowWidth) * rowProgress * rowProgress;
       float y = Globals::menuTop - (Globals::menuRowHeight + Globals::menuRowInterval) * row;
       bool highlight = (row == menuLogic->selectedRow);
       glm::vec3 & panelColor = highlight ? Globals::menuSelectedPanelColor : Globals::menuNormalPanelColor;
@@ -1919,7 +1950,7 @@ void OpenGLRender::buildSettings()
 
   buildRect(-1.0f, 1.0f, 2.0f, 2.0f, glm::vec3(0.0f), 0.75f);
   float k = (1.0f - interfaceLogic.settingsLogic.transitionProgress) * (1.0f - interfaceLogic.settingsLogic.transitionProgress);
-  float x = Globals::gameBkPos.x - (Globals::settingsWidth + Globals::settingsWidth) * k;
+  float x = Layout::backgroundLeft - (Globals::settingsWidth + Globals::settingsWidth) * k;
   //buildSidePanel(x, Globals::settingsTop, Globals::settingsWidth, Globals::settingsHeight, Globals::settingsCornerSize, Globals::settingsTopBkColor, 0.1f * Globals::settingsTopBkColor, Globals::settingsTopBkColor, Globals::settingsGlowWidth);
   //buildTextMesh("Settings", Globals::bigFontSize, 0.15f, glm::vec3(0.0f), 0.6f, x + 0.05f + 0.01f, Globals::settingsTop - 0.14f - 0.01f, otLeft);
   //buildTextMesh("Settings", Globals::bigFontSize, 0.15f, Globals::settingsCaptionColor, 1.0f, x + 0.05f, Globals::settingsTop - 0.14f, otLeft);

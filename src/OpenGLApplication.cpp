@@ -3,6 +3,7 @@
 #include "OpenGLApplication.h"
 #include "Crosy.h"
 #include "Time.h"
+#include "Layout.h"
 
 #pragma warning(disable : 4100)
 
@@ -35,9 +36,9 @@ bool OpenGLApplication::init()
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-  const int defaultWinWidth = 640;
-  const int defaultWinHeight = 480;
-  wnd = glfwCreateWindow(defaultWinWidth, defaultWinHeight, "glTetris", NULL, NULL);
+  wndWidth = 640;
+  wndHeight = 480;
+  wnd = glfwCreateWindow(wndWidth, wndHeight, "glTetris", NULL, NULL);
 
   if (!wnd)
     return false;
@@ -60,7 +61,9 @@ bool OpenGLApplication::init()
   glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
   assert(!checkGlErrors());
 
-  render.init(defaultWinWidth, defaultWinHeight);
+  Layout::load("default");
+
+  render.init(wndWidth, wndHeight);
   fps.init();
 
   return true;
@@ -140,7 +143,9 @@ void OpenGLApplication::OnKeyClick(GLFWwindow * wnd, int key, int scancode, int 
 
 void OpenGLApplication::OnMouseClick(GLFWwindow * wnd, int button, int action, int mods)
 {
+  OpenGLApplication & app = *reinterpret_cast<OpenGLApplication *>(glfwGetWindowUserPointer(wnd));
 
+  app.control.mouseDown();
 }
 
 void OpenGLApplication::OnMouseMove(GLFWwindow* wnd, double xpos, double ypos)
@@ -149,17 +154,19 @@ void OpenGLApplication::OnMouseMove(GLFWwindow* wnd, double xpos, double ypos)
 
   if (app.wndWidth && app.wndHeight)
   {
-    const float gameAspect = Globals::gameBkSize.x / Globals::gameBkSize.y;
+    const float gameAspect = Layout::backgroundWidth / Layout::backgroundHeight;
 
     if (float(app.wndWidth) / app.wndHeight > gameAspect)
     {
-      app.mouseX = float((xpos - (app.wndWidth - app.wndHeight) / 2) / app.wndHeight * 2.0f - 1.0f);
-      app.mouseY = float(1.0f - ypos / app.wndHeight * 2.0f);
+      float mouseX = float((xpos - (app.wndWidth - app.wndHeight) / 2) / app.wndHeight * 2.0f - 1.0f);
+      float mouseY = float(1.0f - ypos / app.wndHeight * 2.0f);
+      app.control.mouseMove(mouseX, mouseY);
     }
     else
     {
-      app.mouseX = float(xpos * gameAspect / app.wndWidth * 2.0f - 1.0f);
-      app.mouseY = float(1.0f - (ypos - (app.wndHeight - app.wndWidth / gameAspect) / 2.0f) / (app.wndWidth / gameAspect) * 2.0f);
+      float mouseX = float(xpos * gameAspect / app.wndWidth * 2.0f - 1.0f);
+      float mouseY = float(1.0f - (ypos - (app.wndHeight - app.wndWidth / gameAspect) / 2.0f) / (app.wndWidth / gameAspect) * 2.0f);
+      app.control.mouseMove(mouseX, mouseY);
     }
   }
 }
@@ -287,4 +294,6 @@ void OpenGLApplication::initGlfwKeyMap()
   glfwKeyMap[GLFW_KEY_RIGHT_ALT] = KB_RIGHT_ALT;
   glfwKeyMap[GLFW_KEY_RIGHT_SUPER] = KB_RIGHT_SUPER;
   glfwKeyMap[GLFW_KEY_MENU] = KB_MENU;
+
+  glfwKeyMap[GLFW_MOUSE_BUTTON_LEFT] = MOUSE_LEFT;
 }
