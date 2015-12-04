@@ -525,73 +525,82 @@ void OpenGLRender::buildBackground()
 
   // add glass background to the mesh
 
-  origin = Globals::glassPos;
+  LayoutObject * glassLayout = Layout::gameLayout.getChild("Glass");
 
-  for (int y = 0, yTess = 6; y < yTess; y++)
-  for (int x = 0, xTess = 6; x < xTess; x++)
+  if (glassLayout)
   {
-    glm::vec2 verts[4] =
+
+    origin.x = glassLayout->getGlobalLeft();
+    origin.y = glassLayout->getGlobalTop();
+    const float glassWidth = glassLayout->width;
+    const float glassHeight = glassLayout->height;
+
+    for (int y = 0, yTess = 6; y < yTess; y++)
+    for (int x = 0, xTess = 6; x < xTess; x++)
     {
-      { Globals::glassSize.x * x / xTess, -Globals::glassSize.y * y / yTess },
-      { Globals::glassSize.x * x / xTess, -Globals::glassSize.y * (y + 1) / yTess },
-      { Globals::glassSize.x * (x + 1) / xTess, -Globals::glassSize.y * y / yTess },
-      { Globals::glassSize.x * (x + 1) / xTess, -Globals::glassSize.y * (y + 1) / yTess },
-    };
+      glm::vec2 verts[4] =
+      {
+        { glassWidth * x / xTess, -glassHeight * y / yTess },
+        { glassWidth * x / xTess, -glassHeight * (y + 1) / yTess },
+        { glassWidth * (x + 1) / xTess, -glassHeight * y / yTess },
+        { glassWidth * (x + 1) / xTess, -glassHeight * (y + 1) / yTess },
+      };
 
-    float fx0 = float(abs(xTess - 2 * x)) / xTess;
-    float fy0 = float(abs(xTess / 4 - y)) / yTess;
-    float fx1 = float(abs(xTess - 2 * (x + 1))) / xTess;
-    float fy1 = float(abs(xTess / 4 - (y + 1))) / yTess;
+      const float fx0 = float(abs(xTess - 2 * x)) / xTess;
+      const float fy0 = float(abs(xTess / 4 - y)) / yTess;
+      const float fx1 = float(abs(xTess - 2 * (x + 1))) / xTess;
+      const float fy1 = float(abs(xTess / 4 - (y + 1))) / yTess;
 
-    float light[4] =
-    {
-      sqrtf(fx0 * fx0 + fy0 * fy0) / M_SQRT2,
-      sqrtf(fx0 * fx0 + fy1 * fy1) / M_SQRT2,
-      sqrtf(fx1 * fx1 + fy0 * fy0) / M_SQRT2,
-      sqrtf(fx1 * fx1 + fy1 * fy1) / M_SQRT2,
-    };
+      float light[4] =
+      {
+        sqrtf(fx0 * fx0 + fy0 * fy0) / M_SQRT2,
+        sqrtf(fx0 * fx0 + fy1 * fy1) / M_SQRT2,
+        sqrtf(fx1 * fx1 + fy0 * fy0) / M_SQRT2,
+        sqrtf(fx1 * fx1 + fy1 * fy1) / M_SQRT2,
+      };
 
-    double a = 0.0f;
-    static double freq = (double)Crosy::getPerformanceFrequency();
+      double a = 0.0f;
+      static double freq = (double)Crosy::getPerformanceFrequency();
 
-    if (freq)
-      a = double(Crosy::getPerformanceCounter()) / freq / 300.0f;
+      if (freq)
+        a = double(Crosy::getPerformanceCounter()) / freq / 300.0f;
 
-    const float rMin = 0.1f;
-    const float gMin = 0.1f;
-    const float bMin = 0.2f;
-    const float rMax = 0.3f;
-    const float gMax = 0.3f;
-    const float bMax = 0.5f;
-    const float darkMul = 0.25f;
-    const float darkDiff = (float)M_PI / 20.0f;
-    const float gDiff = (float)M_PI / 3.0f;
-    const float bDiff = 2.0f * (float)M_PI / 3.0f;
+      const float rMin = 0.1f;
+      const float gMin = 0.1f;
+      const float bMin = 0.2f;
+      const float rMax = 0.3f;
+      const float gMax = 0.3f;
+      const float bMax = 0.5f;
+      const float darkMul = 0.25f;
+      const float darkDiff = (float)M_PI / 20.0f;
+      const float gDiff = (float)M_PI / 3.0f;
+      const float bDiff = 2.0f * (float)M_PI / 3.0f;
 
-    glm::vec3 lightColor(rMin + (rMax - rMin) * abs(sin(a)),
-                         gMin + (gMax - gMin) * abs(sin(a + gDiff)),
-                         bMin + (bMax - bMin) * abs(sin(a + bDiff)));
+      glm::vec3 lightColor(rMin + (rMax - rMin) * abs(sin(a)),
+        gMin + (gMax - gMin) * abs(sin(a + gDiff)),
+        bMin + (bMax - bMin) * abs(sin(a + bDiff)));
 
-    glm::vec3 darkColor(darkMul * (rMin + (rMax - rMin) * abs(sin(a + darkDiff))),
-                        darkMul * (gMin + (gMax - gMin) * abs(sin(a + gDiff + darkDiff))),
-                        darkMul * (bMin + (bMax - bMin) * abs(sin(a + bDiff + darkDiff))));
+      glm::vec3 darkColor(darkMul * (rMin + (rMax - rMin) * abs(sin(a + darkDiff))),
+        darkMul * (gMin + (gMax - gMin) * abs(sin(a + gDiff + darkDiff))),
+        darkMul * (bMin + (bMax - bMin) * abs(sin(a + bDiff + darkDiff))));
 
-    glm::vec3 col[4] =
-    {
-      darkColor + (lightColor - darkColor) * light[0],
-      darkColor + (lightColor - darkColor) * light[1],
-      darkColor + (lightColor - darkColor) * light[2],
-      darkColor + (lightColor - darkColor) * light[3],
-    };
+      glm::vec3 col[4] =
+      {
+        darkColor + (lightColor - darkColor) * light[0],
+        darkColor + (lightColor - darkColor) * light[1],
+        darkColor + (lightColor - darkColor) * light[2],
+        darkColor + (lightColor - darkColor) * light[3],
+      };
 
-    glm::vec2 uv(0.5f, 0.5f);
+      glm::vec2 uv(0.5f, 0.5f);
 
-    addVertex(origin + verts[0], uv, Globals::emptyTexIndex, col[0], 1.0f);
-    addVertex(origin + verts[1], uv, Globals::emptyTexIndex, col[1], 1.0f);
-    addVertex(origin + verts[2], uv, Globals::emptyTexIndex, col[2], 1.0f);
-    addVertex(origin + verts[1], uv, Globals::emptyTexIndex, col[1], 1.0f);
-    addVertex(origin + verts[2], uv, Globals::emptyTexIndex, col[2], 1.0f);
-    addVertex(origin + verts[3], uv, Globals::emptyTexIndex, col[3], 1.0f);
+      addVertex(origin + verts[0], uv, Globals::emptyTexIndex, col[0], 1.0f);
+      addVertex(origin + verts[1], uv, Globals::emptyTexIndex, col[1], 1.0f);
+      addVertex(origin + verts[2], uv, Globals::emptyTexIndex, col[2], 1.0f);
+      addVertex(origin + verts[1], uv, Globals::emptyTexIndex, col[1], 1.0f);
+      addVertex(origin + verts[2], uv, Globals::emptyTexIndex, col[2], 1.0f);
+      addVertex(origin + verts[3], uv, Globals::emptyTexIndex, col[3], 1.0f);
+    }
   }
 
   // add score caption to the mesh
@@ -600,12 +609,12 @@ void OpenGLRender::buildBackground()
 
   if (scoreBarCaptionLayout)
   {
-    float left = scoreBarCaptionLayout->getScreenLeft();
-    float top = scoreBarCaptionLayout->getScreenTop();
-    float width = scoreBarCaptionLayout->width;
-    float height = scoreBarCaptionLayout->height;
+    const float left = scoreBarCaptionLayout->getGlobalLeft();
+    const float top = scoreBarCaptionLayout->getGlobalTop();
+    const float width = scoreBarCaptionLayout->width;
+    const float height = scoreBarCaptionLayout->height;
     buildRect(left, top, width, height, glm::vec3(0.0f), 0.6f);
-    buildTextMesh(left + 0.5f * width, top - 0.5f * height, "SCORE", Globals::midFontSize, 0.08f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+    buildTextMesh(left, top, width, height, "SCORE", Globals::midFontSize, 0.08f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
   }
 
   // add score value to the mesh
@@ -614,12 +623,12 @@ void OpenGLRender::buildBackground()
 
   if (scoreBarValueLayout)
   {
-    float left = scoreBarValueLayout->getScreenLeft();
-    float top = scoreBarValueLayout->getScreenTop();
-    float width = scoreBarValueLayout->width;
-    float height = scoreBarValueLayout->height;
+    const float left = scoreBarValueLayout->getGlobalLeft();
+    const float top = scoreBarValueLayout->getGlobalTop();
+    const float width = scoreBarValueLayout->width;
+    const float height = scoreBarValueLayout->height;
     buildRect(left, top, width, height, glm::vec3(0.0f), 0.6f);
-    buildTextMesh(left + 0.5f * width, top - 0.5f * height, std::to_string(gameLogic.curScore).c_str(), Globals::bigFontSize, 0.08f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+    buildTextMesh(left, top, width, height, std::to_string(gameLogic.curScore).c_str(), Globals::bigFontSize, 0.08f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
   }
 
   // add MENU button to mesh
@@ -628,73 +637,139 @@ void OpenGLRender::buildBackground()
 
   if (scoreBarMenuButtonLayout)
   {
-    float left = scoreBarMenuButtonLayout->getScreenLeft();
-    float top = scoreBarMenuButtonLayout->getScreenTop();
-    float width = scoreBarMenuButtonLayout->width;
-    float height = scoreBarMenuButtonLayout->height;
+    const float left = scoreBarMenuButtonLayout->getGlobalLeft();
+    const float top = scoreBarMenuButtonLayout->getGlobalTop();
+    const float width = scoreBarMenuButtonLayout->width;
+    const float height = scoreBarMenuButtonLayout->height;
     const float border = 0.125f * height;
     const float textHeight = 0.75f * height;
     glm::vec3 color(0.3f, 0.6f, 0.9f);
     buildRect(left + 0.5f * border, top - 0.5f * border, width - border, height - border, color, 1.0f);
     buildFrameRect(left + 0.5f * border, top - 0.5f * border, width - border, height - border, border, glm::vec3(1.0f), 1.0f);
-    buildTextMesh(left + 0.5f * width, top - 0.5f * height, "MENU", Globals::smallFontSize, textHeight, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+    buildTextMesh(left, top, width, height, "MENU", Globals::smallFontSize, textHeight, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
   }
 
   // add hold figure panel to mesh
 
-  origin = 
-  { 
-    Globals::glassPos.x - Globals::holdNextBkHorzGap - Globals::holdNextBkSize, 
-    Globals::glassPos.y - Globals::defaultCaptionHeight 
-  };
+  LayoutObject * holdPanelCaptionLayout = Layout::gameLayout.getChild("HoldPanelCaption");
 
-  buildTextMesh(origin.x + 0.5f * Globals::holdNextBkSize, origin.y + 0.5f * Globals::defaultCaptionHeight, "HOLD", Globals::smallFontSize, 0.055f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
-  glm::vec3 color = (gameLogic.holdFigure.color != Globals::Color::clNone) ? 
-    Globals::ColorValues[gameLogic.holdFigure.color] : 
-    glm::vec3(0.5f);
-  buildTexturedRect(origin.x, origin.y, Globals::holdNextBkSize, Globals::holdNextBkSize, Globals::holdFigureBkTexIndex, color, 1.0f);
+  if (holdPanelCaptionLayout)
+  {
+    const float left = holdPanelCaptionLayout->getGlobalLeft();
+    const float top = holdPanelCaptionLayout->getGlobalTop();
+    const float width = holdPanelCaptionLayout->width;
+    const float height = holdPanelCaptionLayout->height;
+    buildTextMesh(left, top, width, height, "HOLD", Globals::smallFontSize, height, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+  }
+
+  LayoutObject * holdPanelLayout = Layout::gameLayout.getChild("HoldPanel");
+
+  if (holdPanelLayout)
+  {
+    const float left = holdPanelLayout->getGlobalLeft();
+    const float top = holdPanelLayout->getGlobalTop();
+    const float width = holdPanelLayout->width;
+    const float height = holdPanelLayout->height;
+    const glm::vec3 color = (gameLogic.holdFigure.color != Globals::Color::clNone) ?
+      Globals::ColorValues[gameLogic.holdFigure.color] : glm::vec3(0.5f);
+    buildTexturedRect(left, top, width, height, Globals::holdFigureBkTexIndex, color, 1.0f);
+  }
 
   // add next figure panel to mesh
 
-  origin.x += Globals::holdNextBkSize + Globals::glassSize.x + 2.0f * Globals::holdNextBkHorzGap;
-  buildTextMesh(origin.x + 0.5f * Globals::holdNextBkSize, origin.y + 0.5f * Globals::defaultCaptionHeight, "NEXT", Globals::smallFontSize, 0.055f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
-  color = (gameLogic.nextFigures[0].color != Globals::Color::clNone) ? 
-    Globals::ColorValues[gameLogic.nextFigures[0].color] : 
-    glm::vec3(0.5f);
-  buildTexturedRect(origin.x, origin.y, Globals::holdNextBkSize, Globals::holdNextBkSize, Globals::nextFigureBkTexIndex, color, 1.0f);
+  LayoutObject * nextPanelCaptionLayout = Layout::gameLayout.getChild("NextPanelCaption");
 
-  // add level and goal panels to mesh
-
-  origin =
+  if (nextPanelCaptionLayout)
   {
-    Globals::glassPos.x - Globals::holdNextBkHorzGap - Globals::holdNextBkSize,
-    Globals::glassPos.y - 0.4f * Globals::glassSize.y
-  };
+    const float left = nextPanelCaptionLayout->getGlobalLeft();
+    const float top = nextPanelCaptionLayout->getGlobalTop();
+    const float width = nextPanelCaptionLayout->width;
+    const float height = nextPanelCaptionLayout->height;
+    buildTextMesh(left, top, width, height, "NEXT   ", Globals::smallFontSize, height, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+  }
 
-  buildTextMesh(origin.x + 0.5f * Globals::holdNextBkSize, origin.y - 0.5f * Globals::defaultCaptionHeight, "LEVEL", Globals::smallFontSize, 0.055f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
-  origin.y -= Globals::defaultCaptionHeight;
-  buildTexturedRect(origin.x, origin.y, Globals::holdNextBkSize, 0.6f * Globals::holdNextBkSize, Globals::levelGoalBkTexIndex, Globals::levelPanelColor, 1.0f);
-  buildTextMesh(origin.x + 0.5f * Globals::holdNextBkSize, origin.y - 0.3f * Globals::holdNextBkSize, std::to_string(gameLogic.curLevel).c_str(), Globals::bigFontSize, 0.11f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+  LayoutObject * nextPanelLayout = Layout::gameLayout.getChild("NextPanel");
 
-  origin.y -= Globals::holdNextBkSize;
-  buildTextMesh(origin.x + 0.5f * Globals::holdNextBkSize, origin.y - 0.5f * Globals::defaultCaptionHeight, "GOAL", Globals::smallFontSize, 0.055f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
-  origin.y -= Globals::defaultCaptionHeight;
-  buildTexturedRect(origin.x, origin.y, Globals::holdNextBkSize, 0.6f * Globals::holdNextBkSize, Globals::levelGoalBkTexIndex, Globals::goalPanelColor, 1.0f);
-  buildTextMesh(origin.x + 0.5f * Globals::holdNextBkSize, origin.y - 0.3f * Globals::holdNextBkSize, std::to_string(gameLogic.curGoal).c_str(), Globals::bigFontSize, 0.11f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+  if (nextPanelLayout)
+  {
+    const float left = nextPanelLayout->getGlobalLeft();
+    const float top = nextPanelLayout->getGlobalTop();
+    const float width = nextPanelLayout->width;
+    const float height = nextPanelLayout->height;
+    glm::vec3 color = (gameLogic.nextFigures[0].color != Globals::Color::clNone) ?
+      Globals::ColorValues[gameLogic.nextFigures[0].color] : glm::vec3(0.5f);
+    buildTexturedRect(left, top, width, height, Globals::nextFigureBkTexIndex, color, 1.0f);
+  }
+
+  // add level panel to mesh
+
+  LayoutObject * levelPanelCaptionLayout = Layout::gameLayout.getChild("LevelPanelCaption");
+
+  if (levelPanelCaptionLayout)
+  {
+    const float left = levelPanelCaptionLayout->getGlobalLeft();
+    const float top = levelPanelCaptionLayout->getGlobalTop();
+    const float width = levelPanelCaptionLayout->width;
+    const float height = levelPanelCaptionLayout->height;
+    buildTextMesh(left, top, width, height, "LEVEL", Globals::smallFontSize, height, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+  }
+
+  LayoutObject * levelPanelLayout = Layout::gameLayout.getChild("LevelPanel");
+
+  if (levelPanelLayout)
+  {
+    const float left = levelPanelLayout->getGlobalLeft();
+    const float top = levelPanelLayout->getGlobalTop();
+    const float width = levelPanelLayout->width;
+    const float height = levelPanelLayout->height;
+    buildTexturedRect(left, top, width, height, Globals::levelGoalBkTexIndex, Globals::levelPanelColor, 1.0f);
+    buildTextMesh(left, top, width, height, std::to_string(gameLogic.curLevel).c_str(), Globals::bigFontSize, 0.11f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+  }
+
+  // add goal panel to mesh
+
+  LayoutObject * goalPanelCaptionLayout = Layout::gameLayout.getChild("GoalPanelCaption");
+
+  if (goalPanelCaptionLayout)
+  {
+    const float left = goalPanelCaptionLayout->getGlobalLeft();
+    const float top = goalPanelCaptionLayout->getGlobalTop();
+    const float width = goalPanelCaptionLayout->width;
+    const float height = goalPanelCaptionLayout->height;
+    buildTextMesh(left, top, width, height, "GOAL", Globals::smallFontSize, height, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+  }
+
+  LayoutObject * goalPanelLayout = Layout::gameLayout.getChild("GoalPanel");
+
+  if (goalPanelLayout)
+  {
+    const float left = goalPanelLayout->getGlobalLeft();
+    const float top = goalPanelLayout->getGlobalTop();
+    const float width = goalPanelLayout->width;
+    const float height = goalPanelLayout->height;
+    buildTexturedRect(left, top, width, height, Globals::levelGoalBkTexIndex, Globals::goalPanelColor, 1.0f);
+    buildTextMesh(left, top, width, height, std::to_string(gameLogic.curGoal).c_str(), Globals::bigFontSize, 0.11f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+  }
 }
 
 void OpenGLRender::buidGlassShadow()
 {
+  LayoutObject * glassLayout = Layout::gameLayout.getChild("Glass");
+
+  if (!glassLayout)
+    return;
+
   const float pixSize = Globals::mainArrayTexturePixelSize;
+  const float scale = glassLayout->width / gameLogic.glassWidth;
+  const glm::vec2 glassPos(glassLayout->getGlobalLeft(), glassLayout->getGlobalTop());
   const float shadowWidth = 0.15f;
   const glm::vec3 zeroCol(0.0f, 0.0f, 0.0f);
-  const float scale = Globals::glassSize.x / gameLogic.glassWidth;
 
   for (int y = 0; y < gameLogic.glassHeight; y++)
   for (int x = 0; x < gameLogic.glassWidth; x++)
   {
     const Cell * cell = gameLogic.getGlassCell(x, y);
-    glm::vec2 origin = Globals::glassPos;
+    glm::vec2 origin = glassPos;
     
     if (gameLogic.getRowElevation(y))
       origin.y += scale * gameLogic.getRowCurrentElevation(y);
@@ -800,14 +875,20 @@ void OpenGLRender::buidGlassShadow()
 
 void OpenGLRender::buidGlassBlocks()
 {
+  LayoutObject * glassLayout = Layout::gameLayout.getChild("Glass");
+
+  if (!glassLayout)
+    return;
+
   const float pixSize = Globals::mainArrayTexturePixelSize;
-  const float scale = Globals::glassSize.x / gameLogic.glassWidth;
+  const float scale = glassLayout->width / gameLogic.glassWidth;
+  const glm::vec2 glassPos(glassLayout->getGlobalLeft(), glassLayout->getGlobalTop());
 
   for (int y = 0; y < gameLogic.glassHeight; y++)
   for (int x = 0; x < gameLogic.glassWidth; x++)
   {
     const Cell * cell = gameLogic.getGlassCell(x, y);
-    glm::vec2 origin = Globals::glassPos;
+    glm::vec2 origin = glassPos;
     
     if (gameLogic.getRowElevation(y))
       origin.y += scale * gameLogic.getRowCurrentElevation(y);
@@ -884,17 +965,23 @@ void OpenGLRender::buidGlassBlocks()
 
 void OpenGLRender::biuldGlassGlow()
 {
+  LayoutObject * glassLayout = Layout::gameLayout.getChild("Glass");
+
+  if (!glassLayout)
+    return;
+
   const float pixSize = Globals::mainArrayTexturePixelSize;
+  const float scale = glassLayout->width / gameLogic.glassWidth;
+  const glm::vec2 glassPos(glassLayout->getGlobalLeft(), glassLayout->getGlobalTop());
   const float glowWidth = 0.5f;
   const float glowMinAlpha = 0.01f;
   const float glowMaxAlpha = 0.25f;
-  const float scale = Globals::glassSize.x / gameLogic.glassWidth;
 
   for (int y = 0; y < gameLogic.glassHeight; y++)
   for (int x = 0; x < gameLogic.glassWidth; x++)
   {
     const Cell * cell = gameLogic.getGlassCell(x, y);
-    glm::vec2 origin = Globals::glassPos;
+    glm::vec2 origin = glassPos;
 
     if (gameLogic.getRowElevation(y))
       origin.y += scale * gameLogic.getRowCurrentElevation(y);
@@ -1086,8 +1173,22 @@ void OpenGLRender::biuldGlassGlow()
 
 void OpenGLRender::buildFigureBlocks()
 {
+  LayoutObject * holdPanelLayout = Layout::gameLayout.getChild("HoldPanel");
+  LayoutObject * nextPanelLayout = Layout::gameLayout.getChild("NextPanel");
+
+  if (!holdPanelLayout || !nextPanelLayout)
+    return;
+
   const float pixSize = Globals::mainArrayTexturePixelSize;
-  const float scale = Globals::holdNextBkSize * 0.75f / 4.0f;
+  const float scale = Layout::holdNextFigureScale;
+  const float holdPanelLeft = holdPanelLayout->getGlobalLeft();
+  const float holdPanelTop = holdPanelLayout->getGlobalTop();
+  const float holdPanelWidth = holdPanelLayout->width;
+  const float holdPanelHeight = holdPanelLayout->height;
+  const float nextPanelLeft = nextPanelLayout->getGlobalLeft();
+  const float nextPanelTop = nextPanelLayout->getGlobalTop();
+  const float nextPanelWidth = nextPanelLayout->width;
+  const float nextPanelHeight = nextPanelLayout->height;
 
   for (int i = (gameLogic.haveHold ? -1 : 0); i < Globals::nextFiguresCount; i++)
   {
@@ -1148,13 +1249,13 @@ void OpenGLRender::buildFigureBlocks()
 
       if (i < 0)
       {
-        origin.x = Globals::glassPos.x - Globals::holdNextBkHorzGap - 0.5f * Globals::holdNextBkSize - scale * 0.5f * figureWidth - scale * figureLeftGap;
-        origin.y = Globals::glassPos.y - Globals::defaultCaptionHeight - 0.5f * Globals::holdNextBkSize + 0.5f * scale * figureHeight + scale * figureTopGap;
+        origin.x = holdPanelLeft + 0.5f * holdPanelWidth - scale * 0.5f * figureWidth - scale * figureLeftGap;
+        origin.y = holdPanelTop - 0.5f * holdPanelHeight + 0.5f * scale * figureHeight + scale * figureTopGap;
       }
       else
       {
-        origin.x = Globals::glassPos.x + Globals::glassSize.x + Globals::holdNextBkHorzGap + 0.5f * Globals::holdNextBkSize - scale * 0.5f * float(figureWidth) - scale * float(figureLeftGap);
-        origin.y = Globals::glassPos.y - Globals::defaultCaptionHeight - 0.5f * Globals::holdNextBkSize + scale * 0.5f * figureHeight + scale * figureTopGap - i * Globals::holdNextBkSize;
+        origin.x = nextPanelLeft + 0.5f * nextPanelWidth - scale * 0.5f * float(figureWidth) - scale * float(figureLeftGap);
+        origin.y = nextPanelTop - 0.5f * nextPanelHeight + scale * 0.5f * figureHeight + scale * figureTopGap - i * nextPanelHeight;
       }
 
       for (int y = 0; y < figure->dim; y++)
@@ -1234,11 +1335,26 @@ void OpenGLRender::buildFigureBlocks()
 
 void OpenGLRender::buildFigureGlow()
 {
+  LayoutObject * holdPanelLayout = Layout::gameLayout.getChild("HoldPanel");
+  LayoutObject * nextPanelLayout = Layout::gameLayout.getChild("NextPanel");
+
+  if (!holdPanelLayout || !nextPanelLayout)
+    return;
+
   const float pixSize = Globals::mainArrayTexturePixelSize;
+  const float scale = Layout::holdNextFigureScale;
+  const float holdPanelLeft = holdPanelLayout->getGlobalLeft();
+  const float holdPanelTop = holdPanelLayout->getGlobalTop();
+  const float holdPanelWidth = holdPanelLayout->width;
+  const float holdPanelHeight = holdPanelLayout->height;
+  const float nextPanelLeft = nextPanelLayout->getGlobalLeft();
+  const float nextPanelTop = nextPanelLayout->getGlobalTop();
+  const float nextPanelWidth = nextPanelLayout->width;
+  const float nextPanelHeight = nextPanelLayout->height;
+
   const float glowWidth = 0.3f;
   const float glowMinAlpha = 0.01f;
   const float glowMaxAlpha = 0.25f;
-  const float scale = Globals::holdNextBkSize * 0.75f / 4.0f;
 
   for (int i = -1; i < Globals::nextFiguresCount; i++)
   {
@@ -1299,13 +1415,13 @@ void OpenGLRender::buildFigureGlow()
 
       if (i < 0)
       {
-        origin.x = Globals::glassPos.x - Globals::holdNextBkHorzGap - 0.5f * Globals::holdNextBkSize - scale * 0.5f * figureWidth - scale * figureLeftGap;
-        origin.y = Globals::glassPos.y - Globals::defaultCaptionHeight - 0.5f * Globals::holdNextBkSize + 0.5f * scale * figureHeight + scale * figureTopGap;
+        origin.x = holdPanelLeft + 0.5f * holdPanelWidth - scale * 0.5f * figureWidth - scale * figureLeftGap;
+        origin.y = holdPanelTop - 0.5f * holdPanelHeight + 0.5f * scale * figureHeight + scale * figureTopGap;
       }
       else
       {
-        origin.x = Globals::glassPos.x + Globals::glassSize.x + Globals::holdNextBkHorzGap + 0.5f * Globals::holdNextBkSize - scale * 0.5f * float(figureWidth) - scale * float(figureLeftGap);
-        origin.y = Globals::glassPos.y - Globals::defaultCaptionHeight - 0.5f * Globals::holdNextBkSize + scale * 0.5f * figureHeight + scale * figureTopGap - i * Globals::holdNextBkSize;
+        origin.x = nextPanelLeft + 0.5f * nextPanelWidth - scale * 0.5f * float(figureWidth) - scale * float(figureLeftGap);
+        origin.y = nextPanelTop - 0.5f * nextPanelHeight + scale * 0.5f * figureHeight + scale * figureTopGap - i * nextPanelHeight;
       }
 
       for (int y = 0; y < figure->dim; y++)
@@ -1502,15 +1618,21 @@ void OpenGLRender::buildFigureGlow()
 
 void OpenGLRender::buildDropTrails()
 {
-  const glm::vec2 origin = Globals::glassPos;
-  const float scale = Globals::glassSize.x / gameLogic.glassWidth;
+  LayoutObject * glassLayout = Layout::gameLayout.getChild("Glass");
+
+  if (!glassLayout)
+    return;
+
+  const float left = glassLayout->getGlobalLeft();
+  const float top = glassLayout->getGlobalTop();
+  const float scale = glassLayout->width / gameLogic.glassWidth;
 
   for (GameLogic::DropTrailsIterator dropTrailIt = gameLogic.getDropTrailsBegin(), end = gameLogic.getDropTrailsEnd(); dropTrailIt != end; ++dropTrailIt)
   {
     float trailProgress = dropTrailIt->getTrailProgress();
     float trailOpSqProgress = 1.0f - trailProgress * trailProgress;
-    float trailLeft = origin.x + scale * dropTrailIt->x - scale * 0.25f;
-    float trailTop = origin.y - scale * (dropTrailIt->y - dropTrailIt->height * trailOpSqProgress);
+    float trailLeft = left + scale * dropTrailIt->x - scale * 0.25f;
+    float trailTop = top - scale * (dropTrailIt->y - dropTrailIt->height * trailOpSqProgress);
     float trailWidth = scale * 1.5f;
     float trailHeight = scale * (0.1f + 1.1f * dropTrailIt->height * trailOpSqProgress);
     glm::vec3 color = Globals::ColorValues[dropTrailIt->color] * trailOpSqProgress;
@@ -1525,15 +1647,21 @@ void OpenGLRender::buildDropTrails()
       color = (0.5f + Globals::ColorValues[dropTrailIt->color]) * dropTrailIt->sparkles[spInd].alpha * trailOpSqProgress;
 
       if (sparkleX < gameLogic.glassWidth - sparkleSize && sparkleY > 0.0f)
-        buildTexturedRect(origin.x + sparkleX, origin.y - sparkleY, sparkleSize, sparkleSize, Globals::dropSparkleTexIndex, color, 0.0f);
+        buildTexturedRect(left + sparkleX, top - sparkleY, sparkleSize, sparkleSize, Globals::dropSparkleTexIndex, color, 0.0f);
     }
   }
 }
 
 void OpenGLRender::buildRowFlashes()
 {
-  const glm::vec2 origin = Globals::glassPos;
-  const float scale = Globals::glassSize.x / gameLogic.glassWidth;
+  LayoutObject * glassLayout = Layout::gameLayout.getChild("Glass");
+
+  if (!glassLayout)
+    return;
+
+  const float left = glassLayout->getGlobalLeft();
+  const float top = glassLayout->getGlobalTop();
+  const float scale = glassLayout->width / gameLogic.glassWidth;
   const float pixSize = Globals::mainArrayTexturePixelSize;
 
   float overallProgress = glm::clamp(float(Time::timer - gameLogic.rowsDeleteTimer) / Globals::rowsDeletionEffectTime, 0.0f, 1.0f);
@@ -1545,8 +1673,8 @@ void OpenGLRender::buildRowFlashes()
   for (GameLogic::DeletedRowsIterator delRowIt = gameLogic.getDeletedRowsBegin(), end = gameLogic.getDeletedRowsEnd(); delRowIt != end; ++delRowIt)
   {
     int row = *delRowIt;
-    float flashLeft = origin.x - scale * dx;
-    float flashTop = origin.y + scale * (dy - row);
+    float flashLeft = left - scale * dx;
+    float flashTop = top + scale * (dy - row);
     float flashWidth = scale * (gameLogic.glassWidth + 2.0f * dx);
     float flashHeight = scale * (1.0f + 2.0f * dy);
     glm::vec3 color(flashBright);
@@ -1591,9 +1719,9 @@ void OpenGLRender::buildRowFlashes()
 
       glm::vec2 verts[3] =
       {
-        { origin.x + scale * ltX, origin.y - scale * ltY },
-        { origin.x + scale * (gapX + rayEndDX), origin.y - scale * (gapY1 + rayEndDY1) },
-        { origin.x + scale * (gapX + rayEndDX), origin.y - scale * (gapY2 + rayEndDY2) },
+        { left + scale * ltX, top - scale * ltY },
+        { left + scale * (gapX + rayEndDX), top - scale * (gapY1 + rayEndDY1) },
+        { left + scale * (gapX + rayEndDX), top - scale * (gapY2 + rayEndDY2) },
       };
 
       addVertex(verts[0], uv[0], Globals::rowShineRayTexIndex, colors0, 0.0f);
@@ -1602,8 +1730,8 @@ void OpenGLRender::buildRowFlashes()
     }
 
     float shineSize = 3.5f;
-    float shineLeft = origin.x + scale * ltX - 0.5f * shineSize;
-    float shineTop = origin.y - scale * ltY + 0.5f * shineSize;
+    float shineLeft = left + scale * ltX - 0.5f * shineSize;
+    float shineTop = top - scale * ltY + 0.5f * shineSize;
     float shineBright = 0.1f * sin(shineProgress * (float)M_PI);
 
     buildTexturedRect(shineLeft, shineTop, shineSize, shineSize, Globals::rowShineLightTexIndex, glm::vec3(shineBright), 0.0f);
@@ -1792,17 +1920,16 @@ void OpenGLRender::buildMenu()
         break;
       }
 
-      float x = Layout::backgroundLeft - (Globals::menuRowWidth + Globals::menuRowGlowWidth) * rowProgress * rowProgress;
-      float y = Globals::menuTop - (Globals::menuRowHeight + Globals::menuRowInterval) * row;
+      float left = Layout::backgroundLeft - (Globals::menuRowWidth + Globals::menuRowGlowWidth) * rowProgress * rowProgress;
+      float top = Globals::menuTop - (Globals::menuRowHeight + Globals::menuRowInterval) * row;
       bool highlight = (row == menuLogic->selectedRow);
       glm::vec3 & panelColor = highlight ? Globals::menuSelectedPanelColor : Globals::menuNormalPanelColor;
-      buildSidePanel(x, y, Globals::menuRowWidth, Globals::menuRowHeight, Globals::menuRowCornerSize, panelColor, 0.1f * panelColor, panelColor, Globals::menuRowGlowWidth);
-      x += 0.2f * Globals::menuRowWidth;
-      y -= 0.5f * Globals::menuRowHeight;
+      buildSidePanel(left, top, Globals::menuRowWidth, Globals::menuRowHeight, Globals::menuRowCornerSize, panelColor, 0.1f * panelColor, panelColor, Globals::menuRowGlowWidth);
+      left += 0.2f * Globals::menuRowWidth;
       const float textHeight = 0.08f;
       glm::vec3 & textColor = highlight ? Globals::menuSelectedTextColor : Globals::menuNormalTextColor;
       const char * text = menuLogic->getText(row);
-      buildTextMesh(x, y, text, Globals::midFontSize, textHeight, textColor, 1.0f, haLeft, vaCenter);
+      buildTextMesh(left, top, Globals::menuRowWidth, Globals::menuRowHeight, text, Globals::midFontSize, textHeight, textColor, 1.0f, haLeft, vaCenter);
     }
   }
 }
@@ -1857,7 +1984,7 @@ void OpenGLRender::loadGlyph(char ch, int size)
   assert(!checkGlErrors());
 }
 
-void OpenGLRender::buildTextMesh(float originX, float originY, const char * str, int fontSize, float scale, glm::vec3 color, float alpha, HorzAllign horzAllign, VertAllign vertAllign)
+void OpenGLRender::buildTextMesh(float left, float top, float width, float height, const char * str, int fontSize, float scale, glm::vec3 color, float alpha, HorzAllign horzAllign, VertAllign vertAllign)
 {
   float penX = 0;
   char leftChar = 0;
@@ -1917,17 +2044,17 @@ void OpenGLRender::buildTextMesh(float originX, float originY, const char * str,
   }
 
   float meshWidth = verts.back().x - verts.front().x;
-  glm::vec2 origin(originX, originY - scale * ftFace->ascender / ftFace->height);
+  glm::vec2 origin(left, top - scale * ftFace->ascender / ftFace->height);
 
   if (horzAllign == haRight)
-    origin.x -= meshWidth;
+    origin.x += width - meshWidth;
   else if (horzAllign == haCenter)
-    origin.x -= 0.5f * meshWidth;
+    origin.x += 0.5f * (width - meshWidth);
 
   if (vertAllign == vaBottom)
-    origin.y += scale;
+    origin.y -= height - scale;
   else if (vertAllign == vaCenter)
-    origin.y += 0.5f * scale;
+    origin.y -= 0.5f * (height - scale);
 
   for (int i = 0, cnt = (int)strlen(str); i < cnt; i++)
   {
@@ -1956,8 +2083,8 @@ void OpenGLRender::buildSettings()
   //buildTextMesh("Settings", Globals::bigFontSize, 0.15f, Globals::settingsCaptionColor, 1.0f, x + 0.05f, Globals::settingsTop - 0.14f, otLeft);
 
   buildSidePanel(x, Globals::settingsTop, Globals::settingsWidth, Globals::settingsHeight, Globals::settingsCornerSize, Globals::settingsTopBkColor, 0.1f * Globals::settingsTopBkColor, Globals::settingsTopBkColor, Globals::settingsGlowWidth);
-  buildTextMesh(x + 0.05f + 0.007f, Globals::settingsTop - 0.08f - 0.007f, "SETTINGS", Globals::midFontSize, 0.08f, glm::vec3(0.0f), 0.6f, haLeft, vaTop);
-  buildTextMesh(x + 0.05f, Globals::settingsTop - 0.08f, "SETTINGS", Globals::midFontSize, 0.08f, Globals::settingsCaptionColor, 1.0f, haLeft, vaTop);
+  //buildTextMesh(x + 0.05f + 0.007f, Globals::settingsTop - 0.08f - 0.007f, "SETTINGS", Globals::midFontSize, 0.08f, glm::vec3(0.0f), 0.6f, haLeft, vaTop);
+  //buildTextMesh(x + 0.05f, Globals::settingsTop - 0.08f, "SETTINGS", Globals::midFontSize, 0.08f, Globals::settingsCaptionColor, 1.0f, haLeft, vaTop);
   
 
   const float panelHorzGaps = 0.05f;
@@ -1984,12 +2111,11 @@ void OpenGLRender::buildSettings()
 
   //buildTextMesh("CLOSE", Globals::bigFontSize, 0.05f, glm::vec3(0.5f), 1.0f, x + Globals::settingsWidth - 0.05f, Globals::settingsTop - Globals::settingsHeight + 0.05f, otRight);
   
-  //  buildRect(panelLeft + 0.01f, panelTop - 0.04f, Globals::settingsWidth - 0.2f - 0.02f, 0.05, glm::vec3(0.75f), 1.0f);
-  buildTextMesh(panelLeft + 0.03f, panelTop - 0.045f, "SOUND", Globals::smallFontSize, 0.035f, glm::vec3(0.75f), 1.0f, haLeft, vaCenter);
+  //buildTextMesh(panelLeft + 0.03f, panelTop - 0.045f, "SOUND", Globals::smallFontSize, 0.035f, glm::vec3(0.75f), 1.0f, haLeft, vaCenter);
   buildProgressBar(panelLeft + 0.35f * Globals::settingsWidth, panelTop - 0.02f, panelWidth - 0.35f * Globals::settingsWidth - 0.02f, 0.03f, glm::vec3(0.75f), glm::vec3(0.25f), 1.0f, 0.75f);
 
   buildRect(panelLeft + 0.01f, panelTop - 0.04f - 0.025f, panelWidth - 0.02f, 0.05f, glm::vec3(0.75f), 1.0f);
-  buildTextMesh(panelLeft + 0.03f, panelTop - 0.045f - 0.055f, "MUSIC", Globals::smallFontSize, 0.035f, glm::vec3(0.25f), 1.0f, haLeft, vaCenter);
+  //buildTextMesh(panelLeft + 0.03f, panelTop - 0.045f - 0.055f, "MUSIC", Globals::smallFontSize, 0.035f, glm::vec3(0.25f), 1.0f, haLeft, vaCenter);
   buildProgressBar(panelLeft + 0.35f * Globals::settingsWidth, panelTop - 0.02f - 0.055f, panelWidth - 0.35f * Globals::settingsWidth - 0.02f, 0.03f, glm::vec3(0.75f), glm::vec3(0.25f), 1.0f, 0.75f);
 
   return;

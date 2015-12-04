@@ -38,14 +38,14 @@ LayoutObject * LayoutObject::getChild(const char * name)
   return &childIt->second;
 }
 
-float LayoutObject::getScreenLeft() const
+float LayoutObject::getGlobalLeft() const
 {
-   return parent ? parent->getScreenLeft() + left : left;
+   return parent ? parent->getGlobalLeft() + left : left;
 }
 
-float LayoutObject::getScreenTop() const
+float LayoutObject::getGlobalTop() const
 {
-  return parent ? parent->getScreenTop() - top: top;
+  return parent ? parent->getGlobalTop() + top: top;
 }
 
 LayoutObject * LayoutObject::getObjectFromPoint(float x, float y)
@@ -58,8 +58,8 @@ LayoutObject * LayoutObject::getObjectFromPoint(float x, float y)
       return object;
   }
 
-  const float left = getScreenLeft();
-  const float top = getScreenTop();
+  const float left = getGlobalLeft();
+  const float top = getGlobalTop();
   const float right = left + width;
   const float bottom = top - height;
 

@@ -13,9 +13,23 @@
     "ScoreBarSeparatorGap" : 0.01,
     "ScoreBarHeight" : 0.08,
     "ScoreBarCaptionWidth" : 0.45,
-    "ScoreBarMenuButtonWidth" : 0.25
+    "ScoreBarMenuButtonWidth" : 0.25,
 
+    "GlassWidth" : 0.9,
+    "GlassHeight" : 1.8,
+    "GlassTop" : -0.15,
 
+    "InfoPanelsHorzGapFromGlass" : 0.04,
+    "InfoPanelsWidth" : 0.2,
+    "HoldNextCaptionsTop" : -0.15,
+    "HoldNextPanelsTop" : -0.19,
+    "LevelCaptionTop" : -0.75,
+    "LevelPanelTop" : -0.8,
+    "GoalCaptionTop" : -0.95,
+    "GoalPanelTop" : -1.0,
+    "InfoPanelsCaptionHeight" : 0.05,
+    "HoldNextPanelsHeight" : 0.2,
+    "LevelGoalPanelsHeight" : 0.12
 	},
 
 	"Interface" :

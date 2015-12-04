@@ -21,7 +21,7 @@ public:
   void clear();
   LayoutObject & addChild(const char * name, float left, float top, float width, float height);
   LayoutObject * getChild(const char * name);
-  float getScreenLeft() const;
-  float getScreenTop() const;
+  float getGlobalLeft() const;
+  float getGlobalTop() const;
   LayoutObject * getObjectFromPoint(float x, float y);
 };

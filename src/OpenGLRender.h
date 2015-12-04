@@ -76,6 +76,6 @@ private:
   void buildRowFlashes();
   void buildSidePanel(float x, float y, float width, float height, float cornerSize, glm::vec3 topColor, glm::vec3 bottomColor, glm::vec3 glowColor, float glowWidth);
   void buildMenu();
-  void buildTextMesh(float originX, float originY, const char * str, int fontSize, float scale, glm::vec3 color, float alpha, HorzAllign horzAllign = haLeft, VertAllign vertAllign = vaTop);
+  void buildTextMesh(float left, float top, float width, float height, const char * str, int fontSize, float scale, glm::vec3 color, float alpha, HorzAllign horzAllign = haLeft, VertAllign vertAllign = vaTop);
   void buildSettings();
 };
