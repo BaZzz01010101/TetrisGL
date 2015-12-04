@@ -308,12 +308,12 @@ void OpenGLRender::sendToDevice()
   }
 }
 
-void OpenGLRender::buildRect(float x, float y, float width, float height, glm::vec3 color, float alpha)
+void OpenGLRender::buildRect(float left, float top, float width, float height, glm::vec3 color, float alpha)
 {
-  const glm::vec2 verts0(x, y);
-  const glm::vec2 verts1(x + width, y);
-  const glm::vec2 verts2(x, y - height);
-  const glm::vec2 verts3(x + width, y - height);
+  const glm::vec2 verts0(left, top);
+  const glm::vec2 verts1(left + width, top);
+  const glm::vec2 verts2(left, top - height);
+  const glm::vec2 verts3(left + width, top - height);
   const glm::vec2 uv(0.5f);
 
   addVertex(verts0, uv, Globals::emptyTexIndex, color, alpha);
@@ -324,13 +324,13 @@ void OpenGLRender::buildRect(float x, float y, float width, float height, glm::v
   addVertex(verts3, uv, Globals::emptyTexIndex, color, alpha);
 }
 
-void OpenGLRender::buildTexturedRect(float x, float y, float width, float height, int texIndex, glm::vec3 color, float alpha)
+void OpenGLRender::buildTexturedRect(float left, float top, float width, float height, int texIndex, glm::vec3 color, float alpha)
 {
   const float pixSize = Globals::mainArrayTexturePixelSize;
-  const glm::vec2 verts0(x, y);
-  const glm::vec2 verts1(x + width, y);
-  const glm::vec2 verts2(x, y - height);
-  const glm::vec2 verts3(x + width, y - height);
+  const glm::vec2 verts0(left, top);
+  const glm::vec2 verts1(left + width, top);
+  const glm::vec2 verts2(left, top - height);
+  const glm::vec2 verts3(left + width, top - height);
   const glm::vec2 uv0(pixSize, pixSize);
   const glm::vec2 uv1(1.0f - pixSize, pixSize);
   const glm::vec2 uv2(pixSize, 1.0f - pixSize);
@@ -344,12 +344,12 @@ void OpenGLRender::buildTexturedRect(float x, float y, float width, float height
   addVertex(verts3, uv3, texIndex, color, alpha);
 }
 
-void OpenGLRender::buildVertGradientRect(float x, float y, float width, float height, glm::vec3 topColor, float topAlpha, glm::vec3 bottomColor, float bottomAlpha)
+void OpenGLRender::buildVertGradientRect(float left, float top, float width, float height, glm::vec3 topColor, float topAlpha, glm::vec3 bottomColor, float bottomAlpha)
 {
-  glm::vec2 verts0(x, y);
-  glm::vec2 verts1(x + width, y);
-  glm::vec2 verts2(x, y - height);
-  glm::vec2 verts3(x + width, y - height);
+  glm::vec2 verts0(left, top);
+  glm::vec2 verts1(left + width, top);
+  glm::vec2 verts2(left, top - height);
+  glm::vec2 verts3(left + width, top - height);
   const glm::vec2 uv(0.5f);
 
   addVertex(verts0, uv, Globals::emptyTexIndex, topColor, topAlpha);
@@ -407,21 +407,21 @@ void OpenGLRender::buildLine(float x0, float y0, float x1, float y1, float width
   }
 }
 
-void OpenGLRender::buildFrameRect(float x, float y, float width, float height, float borderWidth, glm::vec3 borderColor, float borderAlpha)
+void OpenGLRender::buildFrameRect(float left, float top, float width, float height, float borderWidth, glm::vec3 borderColor, float borderAlpha)
 {
   const float pixSize = Globals::mainArrayTexturePixelSize;
   const float W_2 = 0.5f * borderWidth;
 
   glm::vec2 verts[8] =
   {
-    { x - W_2, y + W_2 },
-    { x + W_2, y - W_2 },
-    { x + width + W_2, y + W_2 },
-    { x + width - W_2, y - W_2 },
-    { x + width + W_2, y - height - W_2 },
-    { x + width - W_2, y - height + W_2 },
-    { x - W_2, y - height - W_2 },
-    { x + W_2, y - height + W_2 },
+    { left - W_2, top + W_2 },
+    { left + W_2, top - W_2 },
+    { left + width + W_2, top + W_2 },
+    { left + width - W_2, top - W_2 },
+    { left + width + W_2, top - height - W_2 },
+    { left + width - W_2, top - height + W_2 },
+    { left - W_2, top - height - W_2 },
+    { left + W_2, top - height + W_2 },
 
   };
 
@@ -449,15 +449,15 @@ void OpenGLRender::buildFrameRect(float x, float y, float width, float height, f
   }
 }
 
-void OpenGLRender::buildProgressBar(float x, float y, float width, float height, glm::vec3 bkColor, glm::vec3 fgColor, float alpha, float progress)
+void OpenGLRender::buildProgressBar(float left, float top, float width, float height, glm::vec3 bkColor, glm::vec3 fgColor, float alpha, float progress)
 {
   const float borderWidth = 0.005f;
   const float gapWidth = 0.008f;
 
-  buildRect(x, y, width, height, bkColor, alpha);
-  buildFrameRect(x, y, width, height, borderWidth, fgColor, alpha);
-  buildFrameRect(x + gapWidth, y - gapWidth, (width - 2.0f * gapWidth) * progress, height - 2.0f * gapWidth, borderWidth, fgColor, alpha);
-  buildRect(x + gapWidth, y - gapWidth, (width - 2.0f * gapWidth) * progress, height - 2.0f * gapWidth, fgColor, alpha);
+  buildRect(left, top, width, height, bkColor, alpha);
+  buildFrameRect(left, top, width, height, borderWidth, fgColor, alpha);
+  buildFrameRect(left + gapWidth, top - gapWidth, (width - 2.0f * gapWidth) * progress, height - 2.0f * gapWidth, borderWidth, fgColor, alpha);
+  buildRect(left + gapWidth, top - gapWidth, (width - 2.0f * gapWidth) * progress, height - 2.0f * gapWidth, fgColor, alpha);
 }
 
 void OpenGLRender::buildBackground()
@@ -1738,9 +1738,9 @@ void OpenGLRender::buildRowFlashes()
   }
 }
 
-void OpenGLRender::buildSidePanel(float x, float y, float width, float height, float cornerSize, glm::vec3 topColor, glm::vec3 bottomColor, glm::vec3 glowColor, float glowWidth)
+void OpenGLRender::buildSidePanel(float left, float top, float width, float height, float cornerSize, glm::vec3 topColor, glm::vec3 bottomColor, glm::vec3 glowColor, float glowWidth)
 {
-  glm::vec2 origin = glm::vec2(x, y);
+  glm::vec2 origin = glm::vec2(left, top);
   const float pixSize = Globals::mainArrayTexturePixelSize;
   const float tessSize = cornerSize;
   int xTess = int(width / tessSize);
