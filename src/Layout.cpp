@@ -26,7 +26,7 @@ LayoutObject Layout::gameLayout("GameBackground", NULL, backgroundLeft, backgrou
 void Layout::load(const char * name)
 {
   rapidjson::Document doc;
-  std::string fileName = Crosy::getExePath() + "/layouts/" + name + ".lt";
+  std::string fileName = Crosy::getExePath() + "/layouts/" + name + ".json";
   FILE * file = fopen(fileName.c_str(), "rb");
   assert(file);
   char buf[65536];
