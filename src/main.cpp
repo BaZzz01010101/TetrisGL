@@ -12,8 +12,7 @@ int main()
   srand((unsigned int)Crosy::getPerformanceCounter());
 
   InterfaceLogic::init();
-  GameLogic gameLogic;
-  std::unique_ptr<Application> application = std::unique_ptr<OpenGLApplication>(new OpenGLApplication(gameLogic));
+  std::unique_ptr<Application> application = std::make_unique<OpenGLApplication>();
 
   if(!application->init())
     return 1;

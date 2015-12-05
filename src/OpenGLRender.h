@@ -11,7 +11,7 @@ class OpenGLRender
 public:
   bool showWireframe;
 
-  OpenGLRender(GameLogic & gameLogic);
+  OpenGLRender();
   ~OpenGLRender();
 
   void init(int width, int height);
@@ -31,7 +31,6 @@ private:
     FT_Glyph_Metrics metrics;
   };
 
-  GameLogic & gameLogic;
   FT_Library ftLibrary;
   FT_Face ftFace;
   typedef std::map<int, Glyph> GlyphSizeMap;

@@ -4,8 +4,7 @@
 
 int Application::createCounter = 0;
 
-Application::Application(GameLogic & gameLogic) :
-  gameLogic(gameLogic)
+Application::Application()
 {
   assert(createCounter == 0);
   ++createCounter;

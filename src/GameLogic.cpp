@@ -4,21 +4,30 @@
 #include "Crosy.h"
 #include "Time.h"
 
-GameLogic::GameLogic() :
-  maxLevel(20),
-  state(stStopped),
-  nextFigures(1),
-  haveHold(false),
-  justHolded(false),
-  haveFallingRows(false),
-  rowsDeleteTimer(-1.0)
-{
-}
+ReadOnly<GameLogic::State, GameLogic> GameLogic::state = stStopped;
+ReadOnly<int, GameLogic> GameLogic::glassWidth = 10;
+ReadOnly<int, GameLogic> GameLogic::glassHeight = 20;
+ReadOnly<int, GameLogic> GameLogic::curFigureX = 0;
+ReadOnly<int, GameLogic> GameLogic::curFigureY = 0;
+ReadOnly<int, GameLogic> GameLogic::curScore = 0;
+ReadOnly<int, GameLogic> GameLogic::curGoal = 0;
+ReadOnly<int, GameLogic> GameLogic::curLevel = 0;
+ReadOnly<bool, GameLogic> GameLogic::haveHold = false;
+ReadOnly<bool, GameLogic> GameLogic::haveFallingRows = false;
+ReadOnly<double, GameLogic> GameLogic::rowsDeleteTimer = -1.0;
 
-
-GameLogic::~GameLogic()
-{
-}
+Figure GameLogic::holdFigure;
+Figure GameLogic::curFigure;
+const int GameLogic::maxLevel = 20;
+double GameLogic::lastStepTimer = -1.0f;
+bool  GameLogic::justHolded = false;
+std::vector<Cell> GameLogic::glass;
+std::vector<Figure> GameLogic::nextFigures(1);
+std::vector<int> GameLogic::rowElevation;
+std::vector<float> GameLogic::rowCurrentElevation;
+std::list<DropTrail> GameLogic::dropTrails;
+std::vector<int> GameLogic::deletedRows;
+std::set<GameLogic::CellCoord> GameLogic::deletedRowGaps;
 
 void GameLogic::initGame()
 {
@@ -98,7 +107,7 @@ void GameLogic::gameUpdate()
   deleteObsoleteEffects();
 }
 
-float GameLogic::getStepTime() const
+float GameLogic::getStepTime()
 {
   const float maxStepTime = 1.0f;
   const float minStepTime = 0.0f;
@@ -414,7 +423,7 @@ void GameLogic::deleteObsoleteEffects()
   }
 }
 
-int GameLogic::getRowElevation(int y) const
+int GameLogic::getRowElevation(int y)
 {
   assert(y >= 0);
   assert(y < glassHeight);
@@ -422,7 +431,7 @@ int GameLogic::getRowElevation(int y) const
   return (y >= 0 && y < glassHeight) ? rowElevation[y] : 0;
 }
 
-float GameLogic::getRowCurrentElevation(int y) const
+float GameLogic::getRowCurrentElevation(int y) 
 {
   assert(y >= 0);
   assert(y < glassHeight);
@@ -430,7 +439,7 @@ float GameLogic::getRowCurrentElevation(int y) const
   return (y >= 0 && y < glassHeight) ? rowCurrentElevation[y] : 0.0f;
 }
 
-const Cell * GameLogic::getGlassCell(int x, int y) const
+const Cell * GameLogic::getGlassCell(int x, int y) 
 {
   if (x < 0 || y < 0 || x >= glassWidth || y >= glassHeight)
     return NULL;
@@ -452,7 +461,7 @@ const Cell * GameLogic::getGlassCell(int x, int y) const
   return cell;
 }
 
-const Cell * GameLogic::getFigureCell(Figure & figure, int x, int y) const
+const Cell * GameLogic::getFigureCell(Figure & figure, int x, int y) 
 {
   if (x < 0 || y < 0 || x >= figure.dim || y >= figure.dim)
     return NULL;

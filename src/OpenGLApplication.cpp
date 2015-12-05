@@ -7,10 +7,9 @@
 
 #pragma warning(disable : 4100)
 
-OpenGLApplication::OpenGLApplication(GameLogic & gameLogic) :
-  Application(gameLogic),
-  render(gameLogic),
-  control(gameLogic)
+OpenGLApplication::OpenGLApplication() :
+  render(),
+  control()
 {
   initGlfwKeyMap();
 }
@@ -78,14 +77,14 @@ void OpenGLApplication::run()
     Time::update();
     control.update();
     
-    if(gameLogic.update() == GameLogic::resGameOver)
+    if(GameLogic::update() == GameLogic::resGameOver)
       InterfaceLogic::showMainMenu();
 
     switch (InterfaceLogic::update())
     {
-    case InterfaceLogic::resNewGame:      gameLogic.newGame();      break;
-    case InterfaceLogic::resContinueGame: gameLogic.continueGame(); break;
-    case InterfaceLogic::resStopGame:     gameLogic.stopGame();     break;
+    case InterfaceLogic::resNewGame:      GameLogic::newGame();      break;
+    case InterfaceLogic::resContinueGame: GameLogic::continueGame(); break;
+    case InterfaceLogic::resStopGame:     GameLogic::stopGame();     break;
     case InterfaceLogic::resCloseApp:     exitFlag = true;          break;
     case InterfaceLogic::resNone: break;
     default: assert(0);

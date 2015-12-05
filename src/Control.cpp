@@ -5,8 +5,7 @@
 #include "Layout.h"
 
 
-Control::Control(GameLogic & gameLogic) :
-  gameLogic(gameLogic),
+Control::Control() :
   freq(Crosy::getPerformanceFrequency()),
   repeatDelay(uint64_t(0.2 * freq)),
   repeatInterval(uint64_t(freq / 30))
@@ -43,13 +42,13 @@ void Control::mouseMove(float x, float y)
 
 void Control::mouseDown()
 {
-  if (gameLogic.state == GameLogic::stPlaying)
+  if (GameLogic::state == GameLogic::stPlaying)
   {
     LayoutObject * mouseOverObject = Layout::gameLayout.getObjectFromPoint(mouseX, mouseY);
 
     if (mouseOverObject && mouseOverObject->name == "ScoreBarMenuButton")
     {
-      gameLogic.pauseGame();
+      GameLogic::pauseGame();
       InterfaceLogic::showInGameMenu();
     }
   }
@@ -111,7 +110,7 @@ void Control::updateKeyboard()
 
 void Control::updateGameKeyboard()
 {
-  if (gameLogic.state != GameLogic::stPlaying)
+  if (GameLogic::state != GameLogic::stPlaying)
     return;
 
   for (Key key = KB_NONE; key < KEY_COUNT; key++)
@@ -120,7 +119,7 @@ void Control::updateGameKeyboard()
 
     if (key == KB_ESCAPE && keyState.pressCount)
     {
-      gameLogic.pauseGame();
+      GameLogic::pauseGame();
       InterfaceLogic::showInGameMenu();
     }
     else
@@ -134,11 +133,11 @@ void Control::updateGameKeyboard()
         for (int i = 0, cnt = keyState.pressCount + keyState.repeatCount; i < cnt; i++)
           switch (action)
         {
-          case moveLeft:    gameLogic.shiftCurrentFigureLeft();   break;
-          case moveRight:   gameLogic.shiftCurrentFigureRight();  break;
-          case rotateLeft:  gameLogic.rotateCurrentFigureLeft();  break;
-          case rotateRight: gameLogic.rotateCurrentFigureRight(); break;
-          case fastDown:    gameLogic.fastDownCurrentFigure();    break;
+          case moveLeft:    GameLogic::shiftCurrentFigureLeft();   break;
+          case moveRight:   GameLogic::shiftCurrentFigureRight();  break;
+          case rotateLeft:  GameLogic::rotateCurrentFigureLeft();  break;
+          case rotateRight: GameLogic::rotateCurrentFigureRight(); break;
+          case fastDown:    GameLogic::fastDownCurrentFigure();    break;
           default: break;
         }
 
@@ -146,8 +145,8 @@ void Control::updateGameKeyboard()
         for (int i = 0, cnt = keyState.pressCount; i < cnt; i++)
           switch (action)
         {
-          case dropDown: gameLogic.dropCurrentFigure(); break;
-          case swapHold: gameLogic.holdCurrentFigure(); break;
+          case dropDown: GameLogic::dropCurrentFigure(); break;
+          case swapHold: GameLogic::holdCurrentFigure(); break;
           default: break;
         }
       }

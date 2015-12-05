@@ -25,7 +25,7 @@ private:
   static void OnMouseMove(GLFWwindow* wnd, double xpos, double ypos);
 
 public:
-  OpenGLApplication(GameLogic & gameLogic);
+  OpenGLApplication();
   virtual ~OpenGLApplication();
 
   bool init();

@@ -7,7 +7,7 @@
 class Control
 {
 public:
-  Control(GameLogic & gameLogic);
+  Control();
   ~Control();
 
   void keyDown(Key key);
@@ -32,7 +32,6 @@ private:
     bool wasChanged;
   };
 
-  GameLogic & gameLogic;
   Bindings bindings;
   const uint64_t freq;
   const uint64_t repeatDelay;
