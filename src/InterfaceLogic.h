@@ -7,38 +7,39 @@ class InterfaceLogic
 public:
   enum State { stHidden, stMainMenu, stInGameMenu, stSettings, stLeaderboard, stQuitConfirmation, stRestartConfirmation, stExitToMainConfirmation, stSaveConfirmation };
   enum Result { resNone, resNewGame, resContinueGame, resStopGame, resCloseApp };
-  MenuLogic mainMenu;
-  MenuLogic inGameMenu;
-  MenuLogic quitConfirmationMenu;
-  MenuLogic restartConfirmationMenu;
-  MenuLogic exitToMainConfirmationMenu;
-  MenuLogic saveSettingsMenu;
-  SettingsLogic settingsLogic;
-  ReadOnly<State, InterfaceLogic> state;
-  ReadOnly<float, InterfaceLogic> menuShadeProgress;
+  static MenuLogic mainMenu;
+  static MenuLogic inGameMenu;
+  static MenuLogic quitConfirmationMenu;
+  static MenuLogic restartConfirmationMenu;
+  static MenuLogic exitToMainConfirmationMenu;
+  static MenuLogic saveSettingsMenu;
+  static SettingsLogic settingsLogic;
+  static ReadOnly<State, InterfaceLogic> state;
+  static ReadOnly<float, InterfaceLogic> menuShadeProgress;
 
+  static void init();
+  static Result update();
+  static void showMainMenu();
+  static void showInGameMenu();
+
+private:
   InterfaceLogic();
   ~InterfaceLogic();
 
-  Result update();
-  void showMainMenu();
-  void showInGameMenu();
+  static std::vector<State> statesStack;
+  static State prevState;
+  static Result result;
 
-private:
-  std::vector<State> statesStack;
-  State prevState;
-  Result result;
-
-  void mainMenuUpdate();
-  void inGameMenuUpdate();
-  void settingsUpdate();
-  void leaderboardUpdate();
-  void quitConfirmationUpdate();
-  void restartConfirmationUpdate();
-  void exitToMainConfirmationUpdate();
-  State goNextState(State nextState);
-  State goPreviousState();
-  void closeInterface(Result result);
-  void exitToMainMenu();
+  static void mainMenuUpdate();
+  static void inGameMenuUpdate();
+  static void settingsUpdate();
+  static void leaderboardUpdate();
+  static void quitConfirmationUpdate();
+  static void restartConfirmationUpdate();
+  static void exitToMainConfirmationUpdate();
+  static State goNextState(State nextState);
+  static State goPreviousState();
+  static void closeInterface(Result result);
+  static void exitToMainMenu();
 };
 

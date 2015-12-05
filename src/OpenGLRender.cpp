@@ -8,12 +8,11 @@
 #include "Time.h"
 #include "Layout.h"
 
-OpenGLRender::OpenGLRender(GameLogic & gameLogic, InterfaceLogic & interfaceLogic) :
+OpenGLRender::OpenGLRender(GameLogic & gameLogic) :
   figureVert(GL_VERTEX_SHADER),
   figureFrag(GL_FRAGMENT_SHADER),
   showWireframe(false),
-  gameLogic(gameLogic),
-  interfaceLogic(interfaceLogic)
+  gameLogic(gameLogic)
 {
 }
 
@@ -1885,13 +1884,13 @@ void OpenGLRender::buildMenu()
 {
   MenuLogic * menuLogic = NULL;
 
-  switch (interfaceLogic.state)
+  switch (InterfaceLogic::state)
   {
-  case InterfaceLogic::stMainMenu:                menuLogic = &interfaceLogic.mainMenu;                    break;
-  case InterfaceLogic::stInGameMenu:              menuLogic = &interfaceLogic.inGameMenu;                  break;
-  case InterfaceLogic::stQuitConfirmation:        menuLogic = &interfaceLogic.quitConfirmationMenu;        break;
-  case InterfaceLogic::stRestartConfirmation:     menuLogic = &interfaceLogic.restartConfirmationMenu;     break;
-  case InterfaceLogic::stExitToMainConfirmation:  menuLogic = &interfaceLogic.exitToMainConfirmationMenu;  break;
+  case InterfaceLogic::stMainMenu:                menuLogic = &InterfaceLogic::mainMenu;                    break;
+  case InterfaceLogic::stInGameMenu:              menuLogic = &InterfaceLogic::inGameMenu;                  break;
+  case InterfaceLogic::stQuitConfirmation:        menuLogic = &InterfaceLogic::quitConfirmationMenu;        break;
+  case InterfaceLogic::stRestartConfirmation:     menuLogic = &InterfaceLogic::restartConfirmationMenu;     break;
+  case InterfaceLogic::stExitToMainConfirmation:  menuLogic = &InterfaceLogic::exitToMainConfirmationMenu;  break;
   case InterfaceLogic::stSettings: break;
   case InterfaceLogic::stLeaderboard: break;
   case InterfaceLogic::stHidden: break;
@@ -1900,7 +1899,7 @@ void OpenGLRender::buildMenu()
 
   if (menuLogic)
   {
-    buildRect(-1.0f, 1.0f, 2.0f, 2.0f, glm::vec3(0.0f), 0.75f * interfaceLogic.menuShadeProgress);
+    buildRect(-1.0f, 1.0f, 2.0f, 2.0f, glm::vec3(0.0f), 0.75f * InterfaceLogic::menuShadeProgress);
 
     for (int row = 0, cnt = menuLogic->rowCount; row < cnt; row++)
     {
@@ -2069,14 +2068,14 @@ void OpenGLRender::buildTextMesh(float left, float top, float width, float heigh
 
 void OpenGLRender::buildSettings()
 {
-  if (interfaceLogic.state != InterfaceLogic::stSettings)
+  if (InterfaceLogic::state != InterfaceLogic::stSettings)
     return;
 
   //Globals::settingsWidth = float(0.75f * Globals::gameBkSize.x + 0.5f * sin(2 * M_PI * glm::fract(Time::timer * 0.25f)));
   //Globals::settingsHeight = float(0.5f * Globals::gameBkSize.y + 0.2f * cos(2 * M_PI * glm::fract(Time::timer * 0.25f)));
 
   buildRect(-1.0f, 1.0f, 2.0f, 2.0f, glm::vec3(0.0f), 0.75f);
-  float k = (1.0f - interfaceLogic.settingsLogic.transitionProgress) * (1.0f - interfaceLogic.settingsLogic.transitionProgress);
+  float k = (1.0f - InterfaceLogic::settingsLogic.transitionProgress) * (1.0f - InterfaceLogic::settingsLogic.transitionProgress);
   float x = Layout::backgroundLeft - (Globals::settingsWidth + Globals::settingsWidth) * k;
   //buildSidePanel(x, Globals::settingsTop, Globals::settingsWidth, Globals::settingsHeight, Globals::settingsCornerSize, Globals::settingsTopBkColor, 0.1f * Globals::settingsTopBkColor, Globals::settingsTopBkColor, Globals::settingsGlowWidth);
   //buildTextMesh("Settings", Globals::bigFontSize, 0.15f, glm::vec3(0.0f), 0.6f, x + 0.05f + 0.01f, Globals::settingsTop - 0.14f - 0.01f, otLeft);

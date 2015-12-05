@@ -5,9 +5,8 @@
 #include "Layout.h"
 
 
-Control::Control(GameLogic & gameLogic, InterfaceLogic & interfaceLogic) :
+Control::Control(GameLogic & gameLogic) :
   gameLogic(gameLogic),
-  interfaceLogic(interfaceLogic),
   freq(Crosy::getPerformanceFrequency()),
   repeatDelay(uint64_t(0.2 * freq)),
   repeatInterval(uint64_t(freq / 30))
@@ -51,7 +50,7 @@ void Control::mouseDown()
     if (mouseOverObject && mouseOverObject->name == "ScoreBarMenuButton")
     {
       gameLogic.pauseGame();
-      interfaceLogic.showInGameMenu();
+      InterfaceLogic::showInGameMenu();
     }
   }
 }
@@ -94,14 +93,14 @@ void Control::updateKeyStates()
 
 void Control::updateKeyboard()
 {
-  switch (interfaceLogic.state)
+  switch (InterfaceLogic::state)
   {
   case InterfaceLogic::stHidden:                  updateGameKeyboard();                                           break;
-  case InterfaceLogic::stMainMenu:                updateMenuKeyboard(interfaceLogic.mainMenu);                    break;
-  case InterfaceLogic::stInGameMenu:              updateMenuKeyboard(interfaceLogic.inGameMenu);                  break;
-  case InterfaceLogic::stQuitConfirmation:        updateMenuKeyboard(interfaceLogic.quitConfirmationMenu);        break;
-  case InterfaceLogic::stRestartConfirmation:     updateMenuKeyboard(interfaceLogic.restartConfirmationMenu);     break;
-  case InterfaceLogic::stExitToMainConfirmation:  updateMenuKeyboard(interfaceLogic.exitToMainConfirmationMenu);  break;
+  case InterfaceLogic::stMainMenu:                updateMenuKeyboard(InterfaceLogic::mainMenu);                    break;
+  case InterfaceLogic::stInGameMenu:              updateMenuKeyboard(InterfaceLogic::inGameMenu);                  break;
+  case InterfaceLogic::stQuitConfirmation:        updateMenuKeyboard(InterfaceLogic::quitConfirmationMenu);        break;
+  case InterfaceLogic::stRestartConfirmation:     updateMenuKeyboard(InterfaceLogic::restartConfirmationMenu);     break;
+  case InterfaceLogic::stExitToMainConfirmation:  updateMenuKeyboard(InterfaceLogic::exitToMainConfirmationMenu);  break;
   case InterfaceLogic::stSettings:                updateSettingsKeyboard();                                       break;
   case InterfaceLogic::stLeaderboard:             updateLeaderboardKeyboard();                                    break;
   default:                                        assert(0);                                                      break;
@@ -122,7 +121,7 @@ void Control::updateGameKeyboard()
     if (key == KB_ESCAPE && keyState.pressCount)
     {
       gameLogic.pauseGame();
-      interfaceLogic.showInGameMenu();
+      InterfaceLogic::showInGameMenu();
     }
     else
     {
@@ -182,7 +181,7 @@ void Control::updateMenuKeyboard(MenuLogic & menu)
 
 void Control::updateSettingsKeyboard()
 {
-  if (interfaceLogic.settingsLogic.state != SettingsLogic::stVisible)
+  if (InterfaceLogic::settingsLogic.state != SettingsLogic::stVisible)
     return;
 
   for (Key key = KB_NONE; key < KEY_COUNT; key++)
@@ -197,7 +196,7 @@ void Control::updateSettingsKeyboard()
       case KB_ENTER:
       case KB_KP_ENTER:
       case KB_SPACE:  break;
-      case KB_ESCAPE: interfaceLogic.settingsLogic.escape();  break;
+      case KB_ESCAPE: InterfaceLogic::settingsLogic.escape();  break;
       default: break;
     }
   }
