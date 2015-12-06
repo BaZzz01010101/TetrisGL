@@ -63,6 +63,7 @@ public:
   static DeletedRowGapsIterator getDeletedRowGapsBegin() { return deletedRowGaps.begin(); }
   static DeletedRowGapsIterator getDeletedRowGapsEnd() { return deletedRowGaps.end(); }
 
+  static void init();
   static int getRowElevation(int y);
   static float getRowCurrentElevation(int y);
   static const Cell * getGlassCell(int x, int y);
@@ -81,7 +82,7 @@ private:
   GameLogic();
   ~GameLogic();
 
-  static void initGame();
+  static void resetGame();
   static void gameUpdate();
   static float getStepTime();
   static void shiftFigureConveyor();

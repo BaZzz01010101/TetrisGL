@@ -6,20 +6,20 @@ class ReadOnly
 friend C;
 
 private:
-  T val;
-  ReadOnly & operator =(const T & rval) { val = rval; return *this; }
-  ReadOnly & operator =(const ReadOnly & rval) { val = rval.val; return *this; }
+  T value;
+  ReadOnly & operator =(const T & rval) { value = rval; return *this; }
+  ReadOnly & operator =(const ReadOnly & rval) { value = rval.value; return *this; }
 
-  ReadOnly operator ++(int) { return ReadOnly<T, C>(val++); }
-  ReadOnly & operator ++() { ++this->val; return *this; }
-  ReadOnly operator --(int) { return ReadOnly<T, C>(val--); }
-  ReadOnly & operator --() { --this->val; return *this; }
-  ReadOnly & operator +=(const T & rval) { this->val += rval; return *this; }
-  ReadOnly & operator -=(const T & rval) { this->val -= rval; return *this; }
+  ReadOnly operator ++(int) { return ReadOnly<T, C>(value++); }
+  ReadOnly & operator ++() { ++this->value; return *this; }
+  ReadOnly operator --(int) { return ReadOnly<T, C>(value--); }
+  ReadOnly & operator --() { --this->value; return *this; }
+  ReadOnly & operator +=(const T & rval) { this->value += rval; return *this; }
+  ReadOnly & operator -=(const T & rval) { this->value -= rval; return *this; }
 
 public:
-  inline operator const T&() const { return val; }
+  inline operator const T&() const { return value; }
   inline ReadOnly() {};
-  ReadOnly(const T & val) : val(val) {};
+  ReadOnly(const T & value) : value(value) {};
 };
 

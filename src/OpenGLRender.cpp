@@ -668,7 +668,7 @@ void OpenGLRender::buildBackground()
     const float top = holdPanelLayout->getGlobalTop();
     const float width = holdPanelLayout->width;
     const float height = holdPanelLayout->height;
-    const glm::vec3 color = (GameLogic::holdFigure.color != Globals::Color::clNone) ?
+    const glm::vec3 color = (GameLogic::state != GameLogic::stStopped && GameLogic::holdFigure.color != Globals::Color::clNone) ?
       Globals::ColorValues[GameLogic::holdFigure.color] : glm::vec3(0.5f);
     buildTexturedRect(left, top, width, height, Globals::holdFigureBkTexIndex, color, 1.0f);
   }
@@ -694,7 +694,7 @@ void OpenGLRender::buildBackground()
     const float top = nextPanelLayout->getGlobalTop();
     const float width = nextPanelLayout->width;
     const float height = nextPanelLayout->height;
-    glm::vec3 color = (GameLogic::nextFigures[0].color != Globals::Color::clNone) ?
+    glm::vec3 color = (GameLogic::state != GameLogic::stStopped && GameLogic::nextFigures[0].color != Globals::Color::clNone) ?
       Globals::ColorValues[GameLogic::nextFigures[0].color] : glm::vec3(0.5f);
     buildTexturedRect(left, top, width, height, Globals::nextFigureBkTexIndex, color, 1.0f);
   }
@@ -1882,21 +1882,37 @@ void OpenGLRender::buildSidePanel(float left, float top, float width, float heig
 void OpenGLRender::buildMenu()
 {
   MenuLogic * menuLogic = NULL;
+  LayoutObject * menuLayout = NULL;
 
   switch (InterfaceLogic::state)
   {
-  case InterfaceLogic::stMainMenu:                menuLogic = &InterfaceLogic::mainMenu;                    break;
-  case InterfaceLogic::stInGameMenu:              menuLogic = &InterfaceLogic::inGameMenu;                  break;
-  case InterfaceLogic::stQuitConfirmation:        menuLogic = &InterfaceLogic::quitConfirmationMenu;        break;
-  case InterfaceLogic::stRestartConfirmation:     menuLogic = &InterfaceLogic::restartConfirmationMenu;     break;
-  case InterfaceLogic::stExitToMainConfirmation:  menuLogic = &InterfaceLogic::exitToMainConfirmationMenu;  break;
+  case InterfaceLogic::stMainMenu:                
+    menuLogic = &InterfaceLogic::mainMenu;                    
+    menuLayout = &Layout::mainMenuLayout;
+    break;
+  case InterfaceLogic::stInGameMenu:              
+    menuLogic = &InterfaceLogic::inGameMenu;                  
+    menuLayout = &Layout::inGameMenuLayout;
+    break;
+  case InterfaceLogic::stQuitConfirmation:        
+    menuLogic = &InterfaceLogic::quitConfirmationMenu;        
+    menuLayout = &Layout::quitConfirmationMenuLayout;
+    break;
+  case InterfaceLogic::stRestartConfirmation:     
+    menuLogic = &InterfaceLogic::restartConfirmationMenu;     
+    menuLayout = &Layout::restartConfirmationMenuLayout;
+    break;
+  case InterfaceLogic::stExitToMainConfirmation:  
+    menuLogic = &InterfaceLogic::exitToMainConfirmationMenu;  
+    menuLayout = &Layout::exitToMainConfirmationMenuLayout;
+    break;
   case InterfaceLogic::stSettings: break;
   case InterfaceLogic::stLeaderboard: break;
   case InterfaceLogic::stHidden: break;
   default: assert(0);
   }
 
-  if (menuLogic)
+  if (menuLogic && menuLayout)
   {
     buildRect(-1.0f, 1.0f, 2.0f, 2.0f, glm::vec3(0.0f), 0.75f * InterfaceLogic::menuShadeProgress);
 
@@ -1917,17 +1933,16 @@ void OpenGLRender::buildMenu()
         rowProgress = 1.0f - menuLogic->transitionProgress;
         break;
       }
-
-      float left = Layout::backgroundLeft - (Globals::menuRowWidth + Globals::menuRowGlowWidth) * rowProgress * rowProgress;
-      float top = Globals::menuTop - (Globals::menuRowHeight + Globals::menuRowInterval) * row;
+      LayoutObject::Rect menuRowRect = menuLayout->getCellGlobalRect(row, 0);
+      menuRowRect.left -= (menuRowRect.width + Layout::menuRowGlowWidth) * rowProgress * rowProgress;
       bool highlight = (row == menuLogic->selectedRow);
       glm::vec3 & panelColor = highlight ? Globals::menuSelectedPanelColor : Globals::menuNormalPanelColor;
-      buildSidePanel(left, top, Globals::menuRowWidth, Globals::menuRowHeight, Globals::menuRowCornerSize, panelColor, 0.1f * panelColor, panelColor, Globals::menuRowGlowWidth);
-      left += 0.2f * Globals::menuRowWidth;
+      buildSidePanel(menuRowRect.left, menuRowRect.top, menuRowRect.width, menuRowRect.height, Layout::menuRowCornerSize, panelColor, 0.1f * panelColor, panelColor, Layout::menuRowGlowWidth);
+      menuRowRect.left += Layout::menuRowTextOffset;
       const float textHeight = 0.08f;
       glm::vec3 & textColor = highlight ? Globals::menuSelectedTextColor : Globals::menuNormalTextColor;
       const char * text = menuLogic->getText(row);
-      buildTextMesh(left, top, Globals::menuRowWidth, Globals::menuRowHeight, text, Globals::midFontSize, textHeight, textColor, 1.0f, haLeft, vaCenter);
+      buildTextMesh(menuRowRect.left, menuRowRect.top, menuRowRect.width, menuRowRect.height, text, Globals::midFontSize, Layout::menuFontHeight, textColor, 1.0f, haLeft, vaCenter);
     }
   }
 }

@@ -1,6 +1,7 @@
 #include "static_headers.h"
 
 #include "Layout.h"
+#include "InterfaceLogic.h"
 #include "Crosy.h"
 
 const float Layout::screenLeft = -1.0f;
@@ -15,6 +16,10 @@ ReadOnly<float, Layout> Layout::backgroundTop = Layout::screenTop - 0.5f * (scre
 ReadOnly<float, Layout> Layout::gameBkTileWidth = 0.03f;
 ReadOnly<float, Layout> Layout::gameBkTileHeight = 0.02f;
 ReadOnly<float, Layout> Layout::holdNextFigureScale = 0.0375f;
+ReadOnly<float, Layout> Layout::menuRowGlowWidth = 0.03f;
+ReadOnly<float, Layout> Layout::menuRowCornerSize = 0.03f;
+ReadOnly<float, Layout> Layout::menuRowTextOffset = 0.15f;
+ReadOnly<float, Layout> Layout::menuFontHeight = 0.08f;
 
 float Layout::scoreBarTopGap = 0.01f;
 float Layout::scoreBarLeftGap = 0.01f;
@@ -40,7 +45,18 @@ float Layout::infoPanelsCaptionHeight = 0.05f;
 float Layout::holdNextPanelsHeight = 0.2f;
 float Layout::levelGoalPanelsHeight = 0.12f;
 
-LayoutObject Layout::gameLayout("GameBackground", NULL, backgroundLeft, backgroundTop, backgroundWidth, backgroundHeight);
+float Layout::menuTop = -0.5f;
+float Layout::menuRowWidth = 0.75f;
+float Layout::menuRowHeight = 0.12f;
+float Layout::menuRowInterval = 0.08f;
+
+LayoutObject Layout::gameLayout("Game", NULL, backgroundLeft, backgroundTop, backgroundWidth, backgroundHeight);
+LayoutObject Layout::mainMenuLayout("MainMenu", NULL, backgroundLeft, backgroundTop, backgroundWidth, backgroundHeight);
+LayoutObject Layout::inGameMenuLayout("InGameMenu", NULL, backgroundLeft, backgroundTop, backgroundWidth, backgroundHeight);
+LayoutObject Layout::quitConfirmationMenuLayout("QuitConfirmationMenu", NULL, backgroundLeft, backgroundTop, backgroundWidth, backgroundHeight);
+LayoutObject Layout::restartConfirmationMenuLayout("RestartConfirmationMenu", NULL, backgroundLeft, backgroundTop, backgroundWidth, backgroundHeight);
+LayoutObject Layout::exitToMainConfirmationMenuLayout("ExitToMainConfirmationMenu", NULL, backgroundLeft, backgroundTop, backgroundWidth, backgroundHeight);
+LayoutObject Layout::saveSettingsMenuLayout("SaveSettingsMenu", NULL, backgroundLeft, backgroundTop, backgroundWidth, backgroundHeight);
 
 void Layout::load(const char * name)
 {
@@ -67,37 +83,52 @@ void Layout::load(const char * name)
   assert(doc.HasMember("Game"));
   if (doc.HasMember("Game"))
   {
-    rapidjson::Value & game = doc["Game"];
+    rapidjson::Value & gameSection = doc["Game"];
 
-    loadValue(game, "BackgroundTileWidth", &gameBkTileWidth.val);
-    loadValue(game, "BackgroundTileHeight", &gameBkTileHeight.val);
+    loadValue(gameSection, "BackgroundTileWidth", &gameBkTileWidth.value);
+    loadValue(gameSection, "BackgroundTileHeight", &gameBkTileHeight.value);
 
-    loadValue(game, "ScoreBarTopGap", &scoreBarTopGap);
-    loadValue(game, "ScoreBarLeftGap", &scoreBarLeftGap);
-    loadValue(game, "ScoreBarRightGap", &scoreBarRightGap);
-    loadValue(game, "ScoreBarSeparatorGap", &scoreBarSeparatorGap);
-    loadValue(game, "ScoreBarHeight", &scoreBarHeight);
-    loadValue(game, "ScoreBarCaptionWidth", &scoreBarCaptionWidth);
-    loadValue(game, "ScoreBarMenuButtonWidth", &scoreBarMenuButtonWidth);
+    loadValue(gameSection, "ScoreBarTopGap", &scoreBarTopGap);
+    loadValue(gameSection, "ScoreBarLeftGap", &scoreBarLeftGap);
+    loadValue(gameSection, "ScoreBarRightGap", &scoreBarRightGap);
+    loadValue(gameSection, "ScoreBarSeparatorGap", &scoreBarSeparatorGap);
+    loadValue(gameSection, "ScoreBarHeight", &scoreBarHeight);
+    loadValue(gameSection, "ScoreBarCaptionWidth", &scoreBarCaptionWidth);
+    loadValue(gameSection, "ScoreBarMenuButtonWidth", &scoreBarMenuButtonWidth);
 
-    loadValue(game, "GlassWidth", &glassWidth);
-    loadValue(game, "GlassHeight", &glassHeight);
-    loadValue(game, "GlassTop", &glassTop);
+    loadValue(gameSection, "GlassWidth", &glassWidth);
+    loadValue(gameSection, "GlassHeight", &glassHeight);
+    loadValue(gameSection, "GlassTop", &glassTop);
 
-    loadValue(game, "InfoPanelsHorzGapFromGlass", &infoPanelsHorzGapFromGlass);
-    loadValue(game, "InfoPanelsWidth", &infoPanelsWidth);
-    loadValue(game, "HoldNextCaptionsTop", &holdNextCaptionsTop);
-    loadValue(game, "HoldNextPanelsTop", &holdNextPanelsTop);
-    loadValue(game, "LevelCaptionTop", &levelCaptionTop);
-    loadValue(game, "LevelPanelTop", &levelPanelTop);
-    loadValue(game, "GoalCaptionTop", &goalCaptionTop);
-    loadValue(game, "GoalPanelTop", &goalPanelTop);
-    loadValue(game, "InfoPanelsCaptionHeight", &infoPanelsCaptionHeight);
-    loadValue(game, "HoldNextPanelsHeight", &holdNextPanelsHeight);
-    loadValue(game, "LevelGoalPanelsHeight", &levelGoalPanelsHeight);
+    loadValue(gameSection, "InfoPanelsHorzGapFromGlass", &infoPanelsHorzGapFromGlass);
+    loadValue(gameSection, "InfoPanelsWidth", &infoPanelsWidth);
+    loadValue(gameSection, "HoldNextCaptionsTop", &holdNextCaptionsTop);
+    loadValue(gameSection, "HoldNextPanelsTop", &holdNextPanelsTop);
+    loadValue(gameSection, "LevelCaptionTop", &levelCaptionTop);
+    loadValue(gameSection, "LevelPanelTop", &levelPanelTop);
+    loadValue(gameSection, "GoalCaptionTop", &goalCaptionTop);
+    loadValue(gameSection, "GoalPanelTop", &goalPanelTop);
+    loadValue(gameSection, "InfoPanelsCaptionHeight", &infoPanelsCaptionHeight);
+    loadValue(gameSection, "HoldNextPanelsHeight", &holdNextPanelsHeight);
+    loadValue(gameSection, "LevelGoalPanelsHeight", &levelGoalPanelsHeight);
 
     holdNextFigureScale = 0.25f * 0.75f * glm::min(holdNextPanelsHeight, infoPanelsWidth);
 
+  }
+
+  assert(doc.HasMember("Interface"));
+  if (doc.HasMember("Interface"))
+  {
+    rapidjson::Value & intrfaceSection = doc["Interface"];
+
+    loadValue(intrfaceSection, "MenuTop", &menuTop);
+    loadValue(intrfaceSection, "MenuRowWidth", &menuRowWidth);
+    loadValue(intrfaceSection, "MenuRowHeight", &menuRowHeight);
+    loadValue(intrfaceSection, "MenuRowInterval", &menuRowInterval);
+    loadValue(intrfaceSection, "MenuRowGlowWidth", &menuRowGlowWidth.value);
+    loadValue(intrfaceSection, "MenuRowCornerSize", &menuRowCornerSize.value);
+    loadValue(intrfaceSection, "MenuRowTextOffset", &menuRowTextOffset.value);
+    loadValue(intrfaceSection, "MenuFontHeight", &menuFontHeight.value);
   }
 
   gameLayout.clear();
@@ -123,6 +154,35 @@ void Layout::load(const char * name)
   gameLayout.addChild("GoalPanelCaption", leftSidePanelsLeft, goalCaptionTop, infoPanelsWidth, infoPanelsCaptionHeight);
   gameLayout.addChild("GoalPanel", leftSidePanelsLeft, goalPanelTop, infoPanelsWidth, levelGoalPanelsHeight);
 
+  mainMenuLayout.addColumn(0.0f, menuRowWidth);
+
+  for (int i = 0; i < InterfaceLogic::mainMenu.rowCount; i++)
+    mainMenuLayout.addRow(i ? menuRowInterval : -menuTop, menuRowHeight);
+
+  inGameMenuLayout.addColumn(0.0f, menuRowWidth);
+
+  for (int i = 0; i < InterfaceLogic::inGameMenu.rowCount; i++)
+    inGameMenuLayout.addRow(i ? menuRowInterval : -menuTop, menuRowHeight);
+
+  quitConfirmationMenuLayout.addColumn(0.0f, menuRowWidth);
+
+  for (int i = 0; i < InterfaceLogic::quitConfirmationMenu.rowCount; i++)
+    quitConfirmationMenuLayout.addRow(i ? menuRowInterval : -menuTop, menuRowHeight);
+
+  restartConfirmationMenuLayout.addColumn(0.0f, menuRowWidth);
+
+  for (int i = 0; i < InterfaceLogic::restartConfirmationMenu.rowCount; i++)
+    restartConfirmationMenuLayout.addRow(i ? menuRowInterval : -menuTop, menuRowHeight);
+
+  exitToMainConfirmationMenuLayout.addColumn(0.0f, menuRowWidth);
+
+  for (int i = 0; i < InterfaceLogic::exitToMainConfirmationMenu.rowCount; i++)
+    exitToMainConfirmationMenuLayout.addRow(i ? menuRowInterval : -menuTop, menuRowHeight);
+
+  saveSettingsMenuLayout.addColumn(0.0f, menuRowWidth);
+
+  for (int i = 0; i < InterfaceLogic::saveSettingsMenu.rowCount; i++)
+    saveSettingsMenuLayout.addRow(i ? menuRowInterval : -menuTop, menuRowHeight);
 }
 
 void Layout::loadValue(rapidjson::Value & source, const char * name, float * result)

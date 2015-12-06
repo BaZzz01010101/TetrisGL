@@ -6,16 +6,15 @@
 ReadOnly<InterfaceLogic::State, InterfaceLogic> InterfaceLogic::state = stMainMenu;
 InterfaceLogic::State InterfaceLogic::prevState = stMainMenu;
 InterfaceLogic::Result InterfaceLogic::result = resNone;
-MenuLogic InterfaceLogic::mainMenu = MenuLogic::resNone;
-MenuLogic InterfaceLogic::inGameMenu = MenuLogic::resContinue;
-MenuLogic InterfaceLogic::quitConfirmationMenu = MenuLogic::resBack;
-MenuLogic InterfaceLogic::restartConfirmationMenu = MenuLogic::resBack;
-MenuLogic InterfaceLogic::exitToMainConfirmationMenu = MenuLogic::resBack;
-MenuLogic InterfaceLogic::saveSettingsMenu = MenuLogic::resBack;
+MenuLogic InterfaceLogic::mainMenu(MenuLogic::resNone);
+MenuLogic InterfaceLogic::inGameMenu(MenuLogic::resContinue);
+MenuLogic InterfaceLogic::quitConfirmationMenu(MenuLogic::resBack);
+MenuLogic InterfaceLogic::restartConfirmationMenu(MenuLogic::resBack);
+MenuLogic InterfaceLogic::exitToMainConfirmationMenu(MenuLogic::resBack);
+MenuLogic InterfaceLogic::saveSettingsMenu(MenuLogic::resBack);
 SettingsLogic InterfaceLogic::settingsLogic;
 ReadOnly<float, InterfaceLogic> InterfaceLogic::menuShadeProgress = 1.0f;
 std::vector<InterfaceLogic::State> InterfaceLogic::statesStack;
-
 
 void InterfaceLogic::init()
 {

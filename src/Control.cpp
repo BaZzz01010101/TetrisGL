@@ -38,6 +38,22 @@ void Control::mouseMove(float x, float y)
 {
   mouseX = x;
   mouseY = y;
+
+  if (InterfaceLogic::state != InterfaceLogic::stHidden)
+  {
+    int row, col;
+
+    switch (InterfaceLogic::state)
+    {
+    case InterfaceLogic::stMainMenu:
+      if (InterfaceLogic::mainMenu.state == MenuLogic::stVisible &&
+      Layout::mainMenuLayout.getCellFromPoint(x, y, &row, &col))
+        InterfaceLogic::mainMenu.select(row);
+      break;
+    default:
+      break;
+    }
+  }
 }
 
 void Control::mouseDown()
@@ -50,6 +66,22 @@ void Control::mouseDown()
     {
       GameLogic::pauseGame();
       InterfaceLogic::showInGameMenu();
+    }
+  }
+
+  if (InterfaceLogic::state != InterfaceLogic::stHidden)
+  {
+    int row, col;
+
+    switch (InterfaceLogic::state)
+    {
+    case InterfaceLogic::stMainMenu:
+      if (InterfaceLogic::mainMenu.state == MenuLogic::stVisible && 
+      Layout::mainMenuLayout.getCellFromPoint(mouseX, mouseY, &row, &col))
+        InterfaceLogic::mainMenu.enter(row);
+      break;
+    default:
+      break;
     }
   }
 }

@@ -34,6 +34,11 @@ private:
   static float holdNextPanelsHeight;
   static float levelGoalPanelsHeight;
 
+  static float menuTop;
+  static float menuRowWidth;
+  static float menuRowHeight;
+  static float menuRowInterval;
+
   static void loadValue(rapidjson::Value & source, const char * name, float * result);
 
   Layout();
@@ -47,6 +52,17 @@ public:
   static ReadOnly<float, Layout> gameBkTileWidth;
   static ReadOnly<float, Layout> gameBkTileHeight;
   static ReadOnly<float, Layout> holdNextFigureScale;
+  static ReadOnly<float, Layout> menuRowGlowWidth;
+  static ReadOnly<float, Layout> menuRowCornerSize;
+  static ReadOnly<float, Layout> menuRowTextOffset;
+  static ReadOnly<float, Layout> menuFontHeight;
+
   static LayoutObject gameLayout;
+  static LayoutObject mainMenuLayout;
+  static LayoutObject inGameMenuLayout;
+  static LayoutObject quitConfirmationMenuLayout;
+  static LayoutObject restartConfirmationMenuLayout;
+  static LayoutObject exitToMainConfirmationMenuLayout;
+  static LayoutObject saveSettingsMenuLayout;
   static void load(const char * name);
 };

@@ -34,6 +34,15 @@
 
 	"Interface" :
 	{
+		"MenuTop" : -0.5,
+		"MenuRowWidth" : 0.75,
+		"MenuRowHeight" : 0.12,
+		"MenuRowInterval" : 0.08,
+		"MenuRowGlowWidth" : 0.03,
+		"MenuRowCornerSize" : 0.03,
+		"MenuRowTextOffset" : 0.15,
+		"MenuFontHeight" : 0.08
+
 	
 	}
 

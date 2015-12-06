@@ -22,17 +22,23 @@ const int GameLogic::maxLevel = 20;
 double GameLogic::lastStepTimer = -1.0f;
 bool  GameLogic::justHolded = false;
 std::vector<Cell> GameLogic::glass;
-std::vector<Figure> GameLogic::nextFigures(1);
+std::vector<Figure> GameLogic::nextFigures;
 std::vector<int> GameLogic::rowElevation;
 std::vector<float> GameLogic::rowCurrentElevation;
 std::list<DropTrail> GameLogic::dropTrails;
 std::vector<int> GameLogic::deletedRows;
 std::set<GameLogic::CellCoord> GameLogic::deletedRowGaps;
 
-void GameLogic::initGame()
+void GameLogic::init()
 {
-  glassWidth = 10;
-  glassHeight = 20;
+  glassWidth = 15;
+  glassHeight = 30;
+
+  resetGame();
+}
+
+void GameLogic::resetGame()
+{
   curLevel = 1;
   curScore = 0;
   curGoal = 5;
@@ -57,7 +63,7 @@ GameLogic::Result GameLogic::update()
   switch (state)
   {
   case stInit:
-    initGame();
+    resetGame();
     state = stPlaying;
     break;
 
