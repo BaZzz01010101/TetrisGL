@@ -4,10 +4,10 @@
 #include "Crosy.h"
 
 double Time::freq = (double)Crosy::getPerformanceFrequency();
-ReadOnly<uint64_t, Time> Time::counter = Crosy::getPerformanceCounter();
-ReadOnly<uint64_t, Time> Time::counterDelta = 0;
-ReadOnly<double, Time> Time::timer = freq > 0.0 ? double(counter) / freq : 0.0;
-ReadOnly<float, Time> Time::timerDelta = 0.0f;
+uint64_t Time::counter = Crosy::getPerformanceCounter();
+uint64_t Time::counterDelta = 0;
+double Time::timer = freq > 0.0 ? double(counter) / freq : 0.0;
+float Time::timerDelta = 0.0f;
 
 void Time::update()
 {

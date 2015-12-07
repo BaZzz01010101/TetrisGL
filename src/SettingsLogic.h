@@ -6,9 +6,9 @@ public:
   enum State { stHidden, stShowing, stVisible, stSaveConfirmation, stHiding };
   enum Result { resNone, resSaveConfirmation, resClose };
 
-  ReadOnly<State, SettingsLogic> state;
-  ReadOnly<Result, SettingsLogic> result;
-  ReadOnly<float, SettingsLogic> transitionProgress;
+  State state;
+  Result result;
+  float transitionProgress;
 
   SettingsLogic();
   ~SettingsLogic();

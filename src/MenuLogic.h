@@ -6,11 +6,11 @@ public:
   enum State { stHidden, stShowing, stVisible, stHiding };
   enum Result { resNone, resNewGame, resSettings, resLeaderboard, resQuitConfirmation, resQuit, resContinue, resRestartConfirmation, resRestart, resExitToMainConfirmation, resExitToMain, resSave, resDontSave, resBack };
 
-  ReadOnly<State, MenuLogic> state;
-  ReadOnly<Result, MenuLogic> result;
-  ReadOnly<float, MenuLogic> transitionProgress;
-  ReadOnly<int, MenuLogic> rowCount;
-  ReadOnly<int, MenuLogic> selectedRow;
+  State state;
+  Result result;
+  float transitionProgress;
+  int rowCount;
+  int selectedRow;
 
   MenuLogic(Result escapeResult);
   ~MenuLogic();

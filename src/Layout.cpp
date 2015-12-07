@@ -9,17 +9,17 @@ const float Layout::screenTop = 1.0f;
 const float Layout::screenWidth = 2.0f;
 const float Layout::screenHeight = 2.0f;
 
-ReadOnly<float, Layout> Layout::backgroundWidth = 1.5f;
-ReadOnly<float, Layout> Layout::backgroundHeight = 2.0f;
-ReadOnly<float, Layout> Layout::backgroundLeft = Layout::screenLeft + 0.5f * (screenWidth - backgroundWidth);
-ReadOnly<float, Layout> Layout::backgroundTop = Layout::screenTop - 0.5f * (screenHeight - backgroundHeight);
-ReadOnly<float, Layout> Layout::gameBkTileWidth = 0.03f;
-ReadOnly<float, Layout> Layout::gameBkTileHeight = 0.02f;
-ReadOnly<float, Layout> Layout::holdNextFigureScale = 0.0375f;
-ReadOnly<float, Layout> Layout::menuRowGlowWidth = 0.03f;
-ReadOnly<float, Layout> Layout::menuRowCornerSize = 0.03f;
-ReadOnly<float, Layout> Layout::menuRowTextOffset = 0.15f;
-ReadOnly<float, Layout> Layout::menuFontHeight = 0.08f;
+float Layout::backgroundWidth = 1.5f;
+float Layout::backgroundHeight = 2.0f;
+float Layout::backgroundLeft = Layout::screenLeft + 0.5f * (screenWidth - backgroundWidth);
+float Layout::backgroundTop = Layout::screenTop - 0.5f * (screenHeight - backgroundHeight);
+float Layout::gameBkTileWidth = 0.03f;
+float Layout::gameBkTileHeight = 0.02f;
+float Layout::holdNextFigureScale = 0.0375f;
+float Layout::menuRowGlowWidth = 0.03f;
+float Layout::menuRowCornerSize = 0.03f;
+float Layout::menuRowTextOffset = 0.15f;
+float Layout::menuFontHeight = 0.08f;
 
 float Layout::scoreBarTopGap = 0.01f;
 float Layout::scoreBarLeftGap = 0.01f;
@@ -85,8 +85,8 @@ void Layout::load(const char * name)
   {
     rapidjson::Value & gameSection = doc["Game"];
 
-    loadValue(gameSection, "BackgroundTileWidth", &gameBkTileWidth.value);
-    loadValue(gameSection, "BackgroundTileHeight", &gameBkTileHeight.value);
+    loadValue(gameSection, "BackgroundTileWidth", &gameBkTileWidth);
+    loadValue(gameSection, "BackgroundTileHeight", &gameBkTileHeight);
 
     loadValue(gameSection, "ScoreBarTopGap", &scoreBarTopGap);
     loadValue(gameSection, "ScoreBarLeftGap", &scoreBarLeftGap);
@@ -125,10 +125,10 @@ void Layout::load(const char * name)
     loadValue(intrfaceSection, "MenuRowWidth", &menuRowWidth);
     loadValue(intrfaceSection, "MenuRowHeight", &menuRowHeight);
     loadValue(intrfaceSection, "MenuRowInterval", &menuRowInterval);
-    loadValue(intrfaceSection, "MenuRowGlowWidth", &menuRowGlowWidth.value);
-    loadValue(intrfaceSection, "MenuRowCornerSize", &menuRowCornerSize.value);
-    loadValue(intrfaceSection, "MenuRowTextOffset", &menuRowTextOffset.value);
-    loadValue(intrfaceSection, "MenuFontHeight", &menuFontHeight.value);
+    loadValue(intrfaceSection, "MenuRowGlowWidth", &menuRowGlowWidth);
+    loadValue(intrfaceSection, "MenuRowCornerSize", &menuRowCornerSize);
+    loadValue(intrfaceSection, "MenuRowTextOffset", &menuRowTextOffset);
+    loadValue(intrfaceSection, "MenuFontHeight", &menuFontHeight);
   }
 
   gameLayout.clear();

@@ -9,10 +9,10 @@ private:
   ~Time();
 
 public:
-  static ReadOnly<uint64_t, Time> counter;
-  static ReadOnly<uint64_t, Time> counterDelta;
-  static ReadOnly<double, Time> timer;
-  static ReadOnly<float, Time> timerDelta;
+  static uint64_t counter;
+  static uint64_t counterDelta;
+  static double timer;
+  static float timerDelta;
   static void update();
 };
 

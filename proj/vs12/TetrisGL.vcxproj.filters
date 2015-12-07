@@ -111,6 +111,9 @@
     <ClCompile Include="..\..\src\LayoutObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Palette.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\Crosy.h">
@@ -230,9 +233,6 @@
     <ClInclude Include="Header.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\ReadOnly.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\SettingsLogic.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -240,6 +240,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\LayoutObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Palette.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

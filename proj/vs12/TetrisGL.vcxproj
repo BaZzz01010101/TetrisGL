@@ -63,6 +63,7 @@
     <ClCompile Include="..\..\src\Application.cpp" />
     <ClCompile Include="..\..\src\Cell.cpp" />
     <ClCompile Include="..\..\src\Bindings.cpp" />
+    <ClCompile Include="..\..\src\Palette.cpp" />
     <ClCompile Include="..\..\src\Crosy.cpp" />
     <ClCompile Include="..\..\src\DropTrail.cpp" />
     <ClCompile Include="..\..\src\Figure.cpp" />
@@ -105,6 +106,7 @@
     <ClInclude Include="..\..\src\Application.h" />
     <ClInclude Include="..\..\src\Cell.h" />
     <ClInclude Include="..\..\src\Bindings.h" />
+    <ClInclude Include="..\..\src\Palette.h" />
     <ClInclude Include="..\..\src\Crosy.h" />
     <ClInclude Include="..\..\src\DropTrail.h" />
     <ClInclude Include="..\..\src\Figure.h" />
@@ -120,7 +122,6 @@
     <ClInclude Include="..\..\src\GameLogic.h" />
     <ClInclude Include="..\..\src\OpenGLApplication.h" />
     <ClInclude Include="..\..\src\Program.h" />
-    <ClInclude Include="..\..\src\ReadOnly.h" />
     <ClInclude Include="..\..\src\SettingsLogic.h" />
     <ClInclude Include="..\..\src\Shader.h" />
     <ClInclude Include="..\..\src\DropSparkle.h" />
@@ -210,6 +211,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <ForcedIncludeFiles>
       </ForcedIncludeFiles>
+      <BrowseInformation>true</BrowseInformation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -217,6 +219,9 @@
       <SubSystem>Console</SubSystem>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
     </Link>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

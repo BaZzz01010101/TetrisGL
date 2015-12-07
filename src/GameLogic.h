@@ -14,21 +14,21 @@ class GameLogic
 public:
   enum State { stInit, stPlaying, stPaused, stGameOver, stStopped };
   enum Result { resNone, resGameOver };
-  static ReadOnly<State, GameLogic> state;
+  static State state;
   static std::vector<Cell> glass;
   static std::vector<Figure> nextFigures;
   static Figure holdFigure;
   static Figure curFigure;
-  static ReadOnly<int, GameLogic> glassWidth;
-  static ReadOnly<int, GameLogic> glassHeight;
-  static ReadOnly<int, GameLogic> curFigureX;
-  static ReadOnly<int, GameLogic> curFigureY;
-  static ReadOnly<int, GameLogic> curScore;
-  static ReadOnly<int, GameLogic> curGoal;
-  static ReadOnly<int, GameLogic> curLevel;
-  static ReadOnly<bool, GameLogic> haveHold;
-  static ReadOnly<bool, GameLogic> haveFallingRows;
-  static ReadOnly<double, GameLogic> rowsDeleteTimer;
+  static int glassWidth;
+  static int glassHeight;
+  static int curFigureX;
+  static int curFigureY;
+  static int curScore;
+  static int curGoal;
+  static int curLevel;
+  static bool haveHold;
+  static bool haveFallingRows;
+  static double rowsDeleteTimer;
 
   struct CellCoord
   {

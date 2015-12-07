@@ -4,17 +4,17 @@
 #include "Crosy.h"
 #include "Time.h"
 
-ReadOnly<GameLogic::State, GameLogic> GameLogic::state = stStopped;
-ReadOnly<int, GameLogic> GameLogic::glassWidth = 10;
-ReadOnly<int, GameLogic> GameLogic::glassHeight = 20;
-ReadOnly<int, GameLogic> GameLogic::curFigureX = 0;
-ReadOnly<int, GameLogic> GameLogic::curFigureY = 0;
-ReadOnly<int, GameLogic> GameLogic::curScore = 0;
-ReadOnly<int, GameLogic> GameLogic::curGoal = 0;
-ReadOnly<int, GameLogic> GameLogic::curLevel = 0;
-ReadOnly<bool, GameLogic> GameLogic::haveHold = false;
-ReadOnly<bool, GameLogic> GameLogic::haveFallingRows = false;
-ReadOnly<double, GameLogic> GameLogic::rowsDeleteTimer = -1.0;
+GameLogic::State GameLogic::state = stStopped;
+int GameLogic::glassWidth = 10;
+int GameLogic::glassHeight = 20;
+int GameLogic::curFigureX = 0;
+int GameLogic::curFigureY = 0;
+int GameLogic::curScore = 0;
+int GameLogic::curGoal = 0;
+int GameLogic::curLevel = 0;
+bool GameLogic::haveHold = false;
+bool GameLogic::haveFallingRows = false;
+double GameLogic::rowsDeleteTimer = -1.0;
 
 Figure GameLogic::holdFigure;
 Figure GameLogic::curFigure;
@@ -31,8 +31,8 @@ std::set<GameLogic::CellCoord> GameLogic::deletedRowGaps;
 
 void GameLogic::init()
 {
-  glassWidth = 15;
-  glassHeight = 30;
+  glassWidth = 10;
+  glassHeight = 20;
 
   resetGame();
 }

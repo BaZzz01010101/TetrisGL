@@ -33,10 +33,10 @@ public:
   };
 
   std::string name;
-  ReadOnly<float, LayoutObject> left;
-  ReadOnly<float, LayoutObject> top;
-  ReadOnly<float, LayoutObject> width;
-  ReadOnly<float, LayoutObject> height;
+  float left;
+  float top;
+  float width;
+  float height;
 
   LayoutObject(const char * name, LayoutObject * parent, float left, float top, float width, float height);
   ~LayoutObject();

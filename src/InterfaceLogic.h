@@ -14,8 +14,8 @@ public:
   static MenuLogic exitToMainConfirmationMenu;
   static MenuLogic saveSettingsMenu;
   static SettingsLogic settingsLogic;
-  static ReadOnly<State, InterfaceLogic> state;
-  static ReadOnly<float, InterfaceLogic> menuShadeProgress;
+  static State state;
+  static float menuShadeProgress;
 
   static void init();
   static Result update();

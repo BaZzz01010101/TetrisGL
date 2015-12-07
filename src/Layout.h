@@ -45,17 +45,17 @@ private:
   ~Layout();
 
 public:
-  static ReadOnly<float, Layout> backgroundLeft;
-  static ReadOnly<float, Layout> backgroundTop;
-  static ReadOnly<float, Layout> backgroundWidth;
-  static ReadOnly<float, Layout> backgroundHeight;
-  static ReadOnly<float, Layout> gameBkTileWidth;
-  static ReadOnly<float, Layout> gameBkTileHeight;
-  static ReadOnly<float, Layout> holdNextFigureScale;
-  static ReadOnly<float, Layout> menuRowGlowWidth;
-  static ReadOnly<float, Layout> menuRowCornerSize;
-  static ReadOnly<float, Layout> menuRowTextOffset;
-  static ReadOnly<float, Layout> menuFontHeight;
+  static float backgroundLeft;
+  static float backgroundTop;
+  static float backgroundWidth;
+  static float backgroundHeight;
+  static float gameBkTileWidth;
+  static float gameBkTileHeight;
+  static float holdNextFigureScale;
+  static float menuRowGlowWidth;
+  static float menuRowCornerSize;
+  static float menuRowTextOffset;
+  static float menuFontHeight;
 
   static LayoutObject gameLayout;
   static LayoutObject mainMenuLayout;
