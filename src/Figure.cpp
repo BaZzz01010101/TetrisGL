@@ -9,7 +9,7 @@ Figure::Figure() :
   specificRotatedFlag(false),
   type(typeNone),
   dim(0),
-  color(Globals::Color::clNone)
+  color(Cell::Color::clNone)
 {
   id = Figure::nextId++;
 }
@@ -23,7 +23,7 @@ void Figure::buildRandomFigure()
 void Figure::buildFigure(Type type)
 {
   char * cdata = NULL;
-  color = Globals::Color::clNone;
+  color = Cell::Color::clNone;
   this->type = type;
 
   switch (type)
@@ -31,43 +31,43 @@ void Figure::buildFigure(Type type)
   case typeI:
     haveSpecificRotation = true;
     dim = 4;
-    color = Globals::Color::clCyan;
+    color = Cell::Color::clCyan;
     cdata = "0000111100000000";
     break;
   case typeJ:
     haveSpecificRotation = false;
     dim = 3;
-    color = Globals::Color::clBlue;
+    color = Cell::Color::clBlue;
     cdata = "100111000";
     break;
   case typeL:
     haveSpecificRotation = false;
     dim = 3;
-    color = Globals::Color::clOrange;
+    color = Cell::Color::clOrange;
     cdata = "001111000";
     break;
   case typeO:
     haveSpecificRotation = false;
     dim = 2;
-    color = Globals::Color::clYellow;
+    color = Cell::Color::clYellow;
     cdata = "1111";
     break;
   case typeS:
     haveSpecificRotation = true;
     dim = 3;
-    color = Globals::Color::clGreen;
+    color = Cell::Color::clGreen;
     cdata = "011110000";
     break;
   case typeT:
     haveSpecificRotation = false;
     dim = 3;
-    color = Globals::Color::clPurple;
+    color = Cell::Color::clPurple;
     cdata = "010111000";
     break;
   case typeZ:
     haveSpecificRotation = true;
     dim = 3;
-    color = Globals::Color::clRed;
+    color = Cell::Color::clRed;
     cdata = "110011000";
     break;
   default: 
@@ -79,7 +79,7 @@ void Figure::buildFigure(Type type)
   cells.clear();
 
   for (const char * ptr = cdata, *end = cdata + dim * dim; ptr < end; ptr++)
-    cells.push_back(*ptr == '1' ? Cell(nextId, color) : Cell(0, Globals::Color::clNone));
+    cells.push_back(*ptr == '1' ? Cell(nextId, color) : Cell(0, Cell::Color::clNone));
 
   nextId++;
 }
@@ -165,7 +165,7 @@ void Figure::swap(Figure & figure1, Figure & figure2)
   figure1.dim = figure2.dim;
   figure2.dim = tmp_dim;
 
-  Globals::Color tmp_color = figure1.color;
+  Cell::Color tmp_color = figure1.color;
   figure1.color = figure2.color;
   figure2.color = tmp_color;
 }
@@ -176,6 +176,6 @@ void Figure::clear()
   specificRotatedFlag = false;
   type = typeNone;
   dim = 0;
-  color = Globals::Color::clNone;
+  color = Cell::Color::clNone;
   cells.clear();
 }

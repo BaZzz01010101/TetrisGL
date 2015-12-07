@@ -15,7 +15,7 @@ public:
   int id;
   Type type;
   int dim;
-  Globals::Color color;
+  Cell::Color color;
   std::vector<Cell> cells;
 
   Figure();

@@ -90,6 +90,6 @@ private:
   static bool tryToPlaceCurrentFigure();
   static void checkGlassRows();
   static void proceedFallingRows();
-  static void createDropTrail(int x, int y, int height, Globals::Color color);
+  static void createDropTrail(int x, int y, int height, Cell::Color color);
   static void deleteObsoleteEffects();
 };

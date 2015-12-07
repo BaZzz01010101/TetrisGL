@@ -4,16 +4,16 @@
 #include "Globals.h"
 #include "Crosy.h"
 
-glm::vec3 Globals::ColorValues[7] =
-{
-  { 1.00f, 0.05f, 0.05f },
-  { 1.00f, 0.35f, 0.00f },
-  { 0.85f, 0.60f, 0.00f },
-  { 0.05f, 0.55f, 0.10f },
-  { 0.05f, 0.60f, 1.00f },
-  { 0.10f, 0.20f, 0.90f },
-  { 0.40f, 0.10f, 0.80f }
-};
+//glm::vec3 Globals::ColorValues[7] =
+//{
+//  { 1.00f, 0.05f, 0.05f },
+//  { 1.00f, 0.35f, 0.00f },
+//  { 0.85f, 0.60f, 0.00f },
+//  { 0.05f, 0.55f, 0.10f },
+//  { 0.05f, 0.60f, 1.00f },
+//  { 0.10f, 0.20f, 0.90f },
+//  { 0.40f, 0.10f, 0.80f }
+//};
 
 std::string Globals::glErrorMessage;
 GLuint Globals::mainArrayTextureId = 0;
@@ -53,20 +53,20 @@ float Globals::rowsDeletionEffectTime = 0.8f;
 //float Globals::scoreBarCaptionWidth = 0.45f;
 //float Globals::scoreBarMenuWidth = 0.25f;
 //float Globals::scoreBarValueWidth = Layout::backgroundWidth - Globals::scoreBarCaptionWidth - Globals::scoreBarMenuWidth - 4.0f * Globals::scoreBarGaps;
-glm::vec3 Globals::levelPanelColor(0.2f, 0.45f, 0.8f);
-glm::vec3 Globals::goalPanelColor(0.2f, 0.45f, 0.8f);
-float Globals::menuTop = 0.5f;
-float Globals::menuRowWidth = 0.75f;
-float Globals::menuRowHeight = 0.12f;
-float Globals::menuRowInterval = 0.08f;
-float Globals::menuRowGlowWidth = 0.03f;
-float Globals::menuRowCornerSize = 0.03f;
+//glm::vec3 Globals::levelPanelColor(0.2f, 0.45f, 0.8f);
+//glm::vec3 Globals::goalPanelColor(0.2f, 0.45f, 0.8f);
+//float Globals::menuTop = 0.5f;
+//float Globals::menuRowWidth = 0.75f;
+//float Globals::menuRowHeight = 0.12f;
+//float Globals::menuRowInterval = 0.08f;
+//float Globals::menuRowGlowWidth = 0.03f;
+//float Globals::menuRowCornerSize = 0.03f;
 float Globals::menuShowingTime = 0.4f;
 float Globals::menuHidingTime = 0.3f;
-glm::vec3 Globals::menuNormalPanelColor(0.4f, 0.7f, 1.2f);
-glm::vec3 Globals::menuSelectedPanelColor(2.0f, 1.9f, 1.2f);
-glm::vec3 Globals::menuNormalTextColor(0.4f, 0.7f, 1.0f);
-glm::vec3 Globals::menuSelectedTextColor(1.0f, 0.9f, 0.4f);
+//glm::vec3 Globals::menuNormalPanelColor(0.4f, 0.7f, 1.2f);
+//glm::vec3 Globals::menuSelectedPanelColor(2.0f, 1.9f, 1.2f);
+//glm::vec3 Globals::menuNormalTextColor(0.4f, 0.7f, 1.0f);
+//glm::vec3 Globals::menuSelectedTextColor(1.0f, 0.9f, 0.4f);
 float Globals::settingsTop = 0.5f;
 float Globals::settingsWidth = 0.75f * Layout::backgroundWidth;
 float Globals::settingsHeight = 0.5f * Layout::backgroundHeight;

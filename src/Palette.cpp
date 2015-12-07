@@ -8,6 +8,7 @@ glm::vec3 Palette::gameBackgroundInner = glm::vec3(0.3f, 0.6f, 1.0f);
 glm::vec3 Palette::glassBackgroundMin = glm::vec3(0.1f, 0.1f, 0.2f);
 glm::vec3 Palette::glassBackgroundMax = glm::vec3(0.3f, 0.3f, 0.5f);
 glm::vec3 Palette::scoreBarBackground = glm::vec3(0.0f, 0.0f, 0.0f);
+float Palette::scoreBarBackgroundAlpha = 0.6f;
 glm::vec3 Palette::scoreBarMenuButtonBackground = glm::vec3(0.3f, 0.6f, 0.9f);
 glm::vec3 Palette::scoreBarText = glm::vec3(1.0f, 1.0f, 1.0f);
 glm::vec3 Palette::scoreBarMenuButtonText = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -21,26 +22,19 @@ glm::vec3 Palette::levelPanelText = glm::vec3(1.0f, 1.0f, 1.0f);
 glm::vec3 Palette::goalCaptionText = glm::vec3(1.0f, 1.0f, 1.0f);
 glm::vec3 Palette::goalPanelBackground = glm::vec3(0.2f, 0.45f, 0.8f);
 glm::vec3 Palette::goalPanelText = glm::vec3(1.0f, 1.0f, 1.0f);
-glm::vec3 Palette::figureRed = glm::vec3(1.0f, 0.05f, 0.05f);
-glm::vec3 Palette::figureOrange = glm::vec3(1.0f, 0.35f, 0.0f);
-glm::vec3 Palette::figureYellow = glm::vec3(0.85f, 0.6f, 0.0f);
-glm::vec3 Palette::figureGreen = glm::vec3(0.05f, 0.55f, 0.1f);
-glm::vec3 Palette::figureCyan = glm::vec3(0.05f, 0.6f, 1.0f);
-glm::vec3 Palette::figureBlue = glm::vec3(0.1f, 0.2f, 0.9f);
-glm::vec3 Palette::figurePurple = glm::vec3(0.4f, 0.1f, 0.8f);
+glm::vec3 Palette::figureShadow = glm::vec3(0.0f, 0.0f, 0.0f);
 
-glm::vec3 Palette::figureColorArray[Figure::Color::COLOR_COUNT] =
+glm::vec3 Palette::cellColorArray[Cell::Color::COLOR_COUNT] =
 {
-  figureRed,
-  figureOrange,
-  figureYellow,
-  figureGreen,
-  figureCyan,
-  figureBlue,
-  figurePurple,
+  { 1.0f, 0.05f, 0.05f },
+  { 1.0f, 0.35f, 0.0f },
+  { 0.85f, 0.6f, 0.0f },
+  { 0.05f, 0.55f, 0.1f },
+  { 0.05f, 0.6f, 1.0f },
+  { 0.1f, 0.2f, 0.9f },
+  { 0.4f, 0.1f, 0.8f },
 };
 
-glm::vec3 Palette::figureShadow = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 Palette::menuNormalRowBackgroundTop = glm::vec3(0.4f, 0.7f, 1.2f);
 glm::vec3 Palette::menuNormalRowBackgroundBottom = glm::vec3(0.04f, 0.07f, 0.12f);
 glm::vec3 Palette::menuSelectedRowBackgroundTop = glm::vec3(2.0f, 1.9f, 1.2f);
@@ -73,6 +67,7 @@ void Palette::load(const char * name)
   loadValue(doc, "GlassBackgroundMin", &glassBackgroundMin);
   loadValue(doc, "GlassBackgroundMax", &glassBackgroundMax);
   loadValue(doc, "ScoreBarBackground", &scoreBarBackground);
+  loadValue(doc, "ScoreBarBackgroundAlpha", &scoreBarBackgroundAlpha);
   loadValue(doc, "ScoreBarMenuButtonBackground", &scoreBarMenuButtonBackground);
   loadValue(doc, "ScoreBarText", &scoreBarText);
   loadValue(doc, "ScoreBarMenuButtonText", &scoreBarMenuButtonText);
@@ -86,14 +81,16 @@ void Palette::load(const char * name)
   loadValue(doc, "GoalCaptionText", &goalCaptionText);
   loadValue(doc, "GoalPanelBackground", &goalPanelBackground);
   loadValue(doc, "GoalPanelText", &goalPanelText);
-  loadValue(doc, "FigureRed", &figureColorArray[Figure::Color::clRed]);
-  loadValue(doc, "FigureOrange", &figureColorArray[Figure::Color::clOrange]);
-  loadValue(doc, "FigureYellow", &figureColorArray[Figure::Color::clYellow]);
-  loadValue(doc, "FigureGreen", &figureColorArray[Figure::Color::clGreen]);
-  loadValue(doc, "FigureCyan", &figureColorArray[Figure::Color::clCyan]);
-  loadValue(doc, "FigureBlue", &figureColorArray[Figure::Color::clBlue]);
-  loadValue(doc, "FigurePurple", &figureColorArray[Figure::Color::clPurple]);
   loadValue(doc, "FigureShadow", &figureShadow);
+
+  loadValue(doc, "CellRed", &cellColorArray[Cell::Color::clRed]);
+  loadValue(doc, "CellOrange", &cellColorArray[Cell::Color::clOrange]);
+  loadValue(doc, "CellYellow", &cellColorArray[Cell::Color::clYellow]);
+  loadValue(doc, "CellGreen", &cellColorArray[Cell::Color::clGreen]);
+  loadValue(doc, "CellCyan", &cellColorArray[Cell::Color::clCyan]);
+  loadValue(doc, "CellBlue", &cellColorArray[Cell::Color::clBlue]);
+  loadValue(doc, "CellPurple", &cellColorArray[Cell::Color::clPurple]);
+
   loadValue(doc, "MenuNormalRowBackgroundTop", &menuNormalRowBackgroundTop);
   loadValue(doc, "MenuNormalRowBackgroundBottom", &menuNormalRowBackgroundBottom);
   loadValue(doc, "MenuSelectedRowBackgroundTop", &menuSelectedRowBackgroundTop);
@@ -102,12 +99,14 @@ void Palette::load(const char * name)
   loadValue(doc, "MenuSelectedRowText", &menuSelectedRowText);
   loadValue(doc, "MenuNormalRowGlow", &menuNormalRowGlow);
   loadValue(doc, "MenuSelectedRowGlow", &menuSelectedRowGlow);
+
   loadValue(doc, "FigureGlowOuterBright", &figureGlowOuterBright);
   loadValue(doc, "FigureGlowInnerBright", &figureGlowInnerBright);
   loadValue(doc, "DeletedRowFlashBright", &deletedRowFlashBright);
   loadValue(doc, "DeletedRowRaysBright", &deletedRowRaysBright);
   loadValue(doc, "DeletedRowShineBright", &deletedRowShineBright);
   loadValue(doc, "GlassBackgroundInnerBright", &glassBackgroundInnerBright);
+
 
 }
 

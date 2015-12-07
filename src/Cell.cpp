@@ -4,12 +4,12 @@
 
 Cell::Cell() :
   figureId(0),
-  color(Globals::Color::clNone)
+  color(Color::clNone)
 {
 
 }
 
-Cell::Cell(int figureId, Globals::Color color) :
+Cell::Cell(int figureId, Color color) :
   figureId(figureId),
   color(color)
 {
@@ -19,7 +19,7 @@ Cell::Cell(int figureId, Globals::Color color) :
 void Cell::clear()
 {
   figureId = 0;
-  color = Globals::Color::clNone;
+  color = Color::clNone;
 }
 
 Cell & Cell::operator = (const Cell & cell)

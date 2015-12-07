@@ -7,6 +7,7 @@
 #include "Crosy.h"
 #include "Time.h"
 #include "Layout.h"
+#include "Palette.h"
 
 OpenGLRender::OpenGLRender() :
   figureVert(GL_VERTEX_SHADER),
@@ -494,6 +495,7 @@ void OpenGLRender::buildBackground()
     float fx1 = float(abs(xTess - 2 * (x + 1))) / xTess;
     float fy1 = float(y + 1) / yTess;
 
+    //TODO rename 'light', 'lightColor' and 'darkColor'
     float light[4] =
     {
       1.0f - sqrtf(fx0 * fx0 + fy0 * fy0) / M_SQRT2,
@@ -502,8 +504,8 @@ void OpenGLRender::buildBackground()
       1.0f - sqrtf(fx1 * fx1 + fy1 * fy1) / M_SQRT2,
     };
 
-    glm::vec3 darkColor(0.05f, 0.1f, 0.2f);
-    glm::vec3 lightColor(0.3f, 0.6f, 1.0f);
+    const glm::vec3 & lightColor = Palette::gameBackgroundInner;
+    const glm::vec3 & darkColor = Palette::gameBackgroundOuter;
 
     glm::vec3 col[4] =
     {
@@ -549,6 +551,7 @@ void OpenGLRender::buildBackground()
       const float fx1 = float(abs(xTess - 2 * (x + 1))) / xTess;
       const float fy1 = float(abs(xTess / 4 - (y + 1))) / yTess;
 
+      //TODO rename 'light'
       float light[4] =
       {
         sqrtf(fx0 * fx0 + fy0 * fy0) / M_SQRT2,
@@ -563,17 +566,18 @@ void OpenGLRender::buildBackground()
       if (freq)
         a = double(Crosy::getPerformanceCounter()) / freq / 300.0f;
 
-      const float rMin = 0.1f;
-      const float gMin = 0.1f;
-      const float bMin = 0.2f;
-      const float rMax = 0.3f;
-      const float gMax = 0.3f;
-      const float bMax = 0.5f;
-      const float darkMul = 0.25f;
+      const float rMin = Palette::glassBackgroundMin.r;
+      const float gMin = Palette::glassBackgroundMin.g;
+      const float bMin = Palette::glassBackgroundMin.b;
+      const float rMax = Palette::glassBackgroundMax.r;
+      const float gMax = Palette::glassBackgroundMax.g;
+      const float bMax = Palette::glassBackgroundMax.b;
+      const float darkMul = Palette::glassBackgroundInnerBright;
       const float darkDiff = (float)M_PI / 20.0f;
       const float gDiff = (float)M_PI / 3.0f;
       const float bDiff = 2.0f * (float)M_PI / 3.0f;
 
+      //TODO rename lightColor and darkColor
       glm::vec3 lightColor(rMin + (rMax - rMin) * abs(sin(a)),
         gMin + (gMax - gMin) * abs(sin(a + gDiff)),
         bMin + (bMax - bMin) * abs(sin(a + bDiff)));
@@ -611,8 +615,8 @@ void OpenGLRender::buildBackground()
     const float top = scoreBarCaptionLayout->getGlobalTop();
     const float width = scoreBarCaptionLayout->width;
     const float height = scoreBarCaptionLayout->height;
-    buildRect(left, top, width, height, glm::vec3(0.0f), 0.6f);
-    buildTextMesh(left, top, width, height, "SCORE", Globals::midFontSize, 0.08f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+    buildRect(left, top, width, height, Palette::scoreBarBackground, Palette::scoreBarBackgroundAlpha);
+    buildTextMesh(left, top, width, height, "SCORE", Globals::midFontSize, height, Palette::scoreBarText, 1.0f, haCenter, vaCenter);
   }
 
   // add score value to the mesh
@@ -626,7 +630,7 @@ void OpenGLRender::buildBackground()
     const float width = scoreBarValueLayout->width;
     const float height = scoreBarValueLayout->height;
     buildRect(left, top, width, height, glm::vec3(0.0f), 0.6f);
-    buildTextMesh(left, top, width, height, std::to_string(GameLogic::curScore).c_str(), Globals::bigFontSize, 0.08f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+    buildTextMesh(left, top, width, height, std::to_string(GameLogic::curScore).c_str(), Globals::bigFontSize, height, Palette::scoreBarText, 1.0f, haCenter, vaCenter);
   }
 
   // add MENU button to mesh
@@ -641,10 +645,9 @@ void OpenGLRender::buildBackground()
     const float height = scoreBarMenuButtonLayout->height;
     const float border = 0.125f * height;
     const float textHeight = 0.75f * height;
-    glm::vec3 color(0.3f, 0.6f, 0.9f);
-    buildRect(left + 0.5f * border, top - 0.5f * border, width - border, height - border, color, 1.0f);
-    buildFrameRect(left + 0.5f * border, top - 0.5f * border, width - border, height - border, border, glm::vec3(1.0f), 1.0f);
-    buildTextMesh(left, top, width, height, "MENU", Globals::smallFontSize, textHeight, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+    buildRect(left + 0.5f * border, top - 0.5f * border, width - border, height - border, Palette::scoreBarMenuButtonBackground, 1.0f);
+    buildFrameRect(left + 0.5f * border, top - 0.5f * border, width - border, height - border, border, Palette::scoreBarMenuButtonText, 1.0f);
+    buildTextMesh(left, top, width, height, "MENU", Globals::smallFontSize, textHeight, Palette::scoreBarMenuButtonText, 1.0f, haCenter, vaCenter);
   }
 
   // add hold figure panel to mesh
@@ -657,7 +660,7 @@ void OpenGLRender::buildBackground()
     const float top = holdPanelCaptionLayout->getGlobalTop();
     const float width = holdPanelCaptionLayout->width;
     const float height = holdPanelCaptionLayout->height;
-    buildTextMesh(left, top, width, height, "HOLD", Globals::smallFontSize, height, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+    buildTextMesh(left, top, width, height, "HOLD", Globals::smallFontSize, height, Palette::holdCaptionText, 1.0f, haCenter, vaCenter);
   }
 
   LayoutObject * holdPanelLayout = Layout::gameLayout.getChild("HoldPanel");
@@ -668,8 +671,8 @@ void OpenGLRender::buildBackground()
     const float top = holdPanelLayout->getGlobalTop();
     const float width = holdPanelLayout->width;
     const float height = holdPanelLayout->height;
-    const glm::vec3 color = (GameLogic::state != GameLogic::stStopped && GameLogic::holdFigure.color != Globals::Color::clNone) ?
-      Globals::ColorValues[GameLogic::holdFigure.color] : glm::vec3(0.5f);
+    const glm::vec3 & color = (GameLogic::state != GameLogic::stStopped && GameLogic::holdFigure.color != Cell::Color::clNone) ?
+      Palette::cellColorArray[GameLogic::holdFigure.color] : Palette::holdEmptyPanel;
     buildTexturedRect(left, top, width, height, Globals::holdFigureBkTexIndex, color, 1.0f);
   }
 
@@ -683,7 +686,7 @@ void OpenGLRender::buildBackground()
     const float top = nextPanelCaptionLayout->getGlobalTop();
     const float width = nextPanelCaptionLayout->width;
     const float height = nextPanelCaptionLayout->height;
-    buildTextMesh(left, top, width, height, "NEXT   ", Globals::smallFontSize, height, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+    buildTextMesh(left, top, width, height, "NEXT   ", Globals::smallFontSize, height, Palette::nextCaptionText, 1.0f, haCenter, vaCenter);
   }
 
   LayoutObject * nextPanelLayout = Layout::gameLayout.getChild("NextPanel");
@@ -694,8 +697,8 @@ void OpenGLRender::buildBackground()
     const float top = nextPanelLayout->getGlobalTop();
     const float width = nextPanelLayout->width;
     const float height = nextPanelLayout->height;
-    glm::vec3 color = (GameLogic::state != GameLogic::stStopped && GameLogic::nextFigures[0].color != Globals::Color::clNone) ?
-      Globals::ColorValues[GameLogic::nextFigures[0].color] : glm::vec3(0.5f);
+    const glm::vec3 & color = (GameLogic::state != GameLogic::stStopped && GameLogic::nextFigures[0].color != Cell::Color::clNone) ?
+      Palette::cellColorArray[GameLogic::nextFigures[0].color] : Palette::nextEmptyPanel;
     buildTexturedRect(left, top, width, height, Globals::nextFigureBkTexIndex, color, 1.0f);
   }
 
@@ -709,7 +712,7 @@ void OpenGLRender::buildBackground()
     const float top = levelPanelCaptionLayout->getGlobalTop();
     const float width = levelPanelCaptionLayout->width;
     const float height = levelPanelCaptionLayout->height;
-    buildTextMesh(left, top, width, height, "LEVEL", Globals::smallFontSize, height, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+    buildTextMesh(left, top, width, height, "LEVEL", Globals::smallFontSize, height, Palette::levelCaptionText, 1.0f, haCenter, vaCenter);
   }
 
   LayoutObject * levelPanelLayout = Layout::gameLayout.getChild("LevelPanel");
@@ -720,8 +723,8 @@ void OpenGLRender::buildBackground()
     const float top = levelPanelLayout->getGlobalTop();
     const float width = levelPanelLayout->width;
     const float height = levelPanelLayout->height;
-    buildTexturedRect(left, top, width, height, Globals::levelGoalBkTexIndex, Globals::levelPanelColor, 1.0f);
-    buildTextMesh(left, top, width, height, std::to_string(GameLogic::curLevel).c_str(), Globals::bigFontSize, 0.11f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+    buildTexturedRect(left, top, width, height, Globals::levelGoalBkTexIndex, Palette::levelPanelBackground, 1.0f);
+    buildTextMesh(left, top, width, height, std::to_string(GameLogic::curLevel).c_str(), Globals::bigFontSize, 0.11f, Palette::levelPanelText, 1.0f, haCenter, vaCenter);
   }
 
   // add goal panel to mesh
@@ -734,7 +737,7 @@ void OpenGLRender::buildBackground()
     const float top = goalPanelCaptionLayout->getGlobalTop();
     const float width = goalPanelCaptionLayout->width;
     const float height = goalPanelCaptionLayout->height;
-    buildTextMesh(left, top, width, height, "GOAL", Globals::smallFontSize, height, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+    buildTextMesh(left, top, width, height, "GOAL", Globals::smallFontSize, height, Palette::goalCaptionText, 1.0f, haCenter, vaCenter);
   }
 
   LayoutObject * goalPanelLayout = Layout::gameLayout.getChild("GoalPanel");
@@ -745,8 +748,8 @@ void OpenGLRender::buildBackground()
     const float top = goalPanelLayout->getGlobalTop();
     const float width = goalPanelLayout->width;
     const float height = goalPanelLayout->height;
-    buildTexturedRect(left, top, width, height, Globals::levelGoalBkTexIndex, Globals::goalPanelColor, 1.0f);
-    buildTextMesh(left, top, width, height, std::to_string(GameLogic::curGoal).c_str(), Globals::bigFontSize, 0.11f, glm::vec3(1.0f), 1.0f, haCenter, vaCenter);
+    buildTexturedRect(left, top, width, height, Globals::levelGoalBkTexIndex, Palette::goalPanelBackground, 1.0f);
+    buildTextMesh(left, top, width, height, std::to_string(GameLogic::curGoal).c_str(), Globals::bigFontSize, 0.11f, Palette::goalPanelText, 1.0f, haCenter, vaCenter);
   }
 }
 
@@ -761,8 +764,7 @@ void OpenGLRender::buidGlassShadow()
   const float scale = glassLayout->width / GameLogic::glassWidth;
   const glm::vec2 glassPos(glassLayout->getGlobalLeft(), glassLayout->getGlobalTop());
   const float shadowWidth = 0.15f;
-  const glm::vec3 zeroCol(0.0f, 0.0f, 0.0f);
-
+  
   for (int y = 0; y < GameLogic::glassHeight; y++)
   for (int x = 0; x < GameLogic::glassWidth; x++)
   {
@@ -815,12 +817,12 @@ void OpenGLRender::buidGlassShadow()
           verts[3].x += shadowWidth;
         }
 
-        addVertex(origin + scale * verts[0], uv[0], Globals::shadowTexIndex, zeroCol, 1.0f);
-        addVertex(origin + scale * verts[1], uv[1], Globals::shadowTexIndex, zeroCol, 1.0f);
-        addVertex(origin + scale * verts[2], uv[2], Globals::shadowTexIndex, zeroCol, 1.0f);
-        addVertex(origin + scale * verts[1], uv[1], Globals::shadowTexIndex, zeroCol, 1.0f);
-        addVertex(origin + scale * verts[2], uv[2], Globals::shadowTexIndex, zeroCol, 1.0f);
-        addVertex(origin + scale * verts[3], uv[3], Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(origin + scale * verts[0], uv[0], Globals::shadowTexIndex, Palette::figureShadow, 1.0f);
+        addVertex(origin + scale * verts[1], uv[1], Globals::shadowTexIndex, Palette::figureShadow, 1.0f);
+        addVertex(origin + scale * verts[2], uv[2], Globals::shadowTexIndex, Palette::figureShadow, 1.0f);
+        addVertex(origin + scale * verts[1], uv[1], Globals::shadowTexIndex, Palette::figureShadow, 1.0f);
+        addVertex(origin + scale * verts[2], uv[2], Globals::shadowTexIndex, Palette::figureShadow, 1.0f);
+        addVertex(origin + scale * verts[3], uv[3], Globals::shadowTexIndex, Palette::figureShadow, 1.0f);
       }
 
       if (rightCell && rightCell->figureId != cell->figureId)
@@ -860,12 +862,12 @@ void OpenGLRender::buidGlassShadow()
           verts[3].y -= shadowWidth;
         }
 
-        addVertex(origin + scale * verts[0], uv[0], Globals::shadowTexIndex, zeroCol, 1.0f);
-        addVertex(origin + scale * verts[1], uv[1], Globals::shadowTexIndex, zeroCol, 1.0f);
-        addVertex(origin + scale * verts[2], uv[2], Globals::shadowTexIndex, zeroCol, 1.0f);
-        addVertex(origin + scale * verts[1], uv[1], Globals::shadowTexIndex, zeroCol, 1.0f);
-        addVertex(origin + scale * verts[2], uv[2], Globals::shadowTexIndex, zeroCol, 1.0f);
-        addVertex(origin + scale * verts[3], uv[3], Globals::shadowTexIndex, zeroCol, 1.0f);
+        addVertex(origin + scale * verts[0], uv[0], Globals::shadowTexIndex, Palette::figureShadow, 1.0f);
+        addVertex(origin + scale * verts[1], uv[1], Globals::shadowTexIndex, Palette::figureShadow, 1.0f);
+        addVertex(origin + scale * verts[2], uv[2], Globals::shadowTexIndex, Palette::figureShadow, 1.0f);
+        addVertex(origin + scale * verts[1], uv[1], Globals::shadowTexIndex, Palette::figureShadow, 1.0f);
+        addVertex(origin + scale * verts[2], uv[2], Globals::shadowTexIndex, Palette::figureShadow, 1.0f);
+        addVertex(origin + scale * verts[3], uv[3], Globals::shadowTexIndex, Palette::figureShadow, 1.0f);
       }
     }
   }
@@ -948,7 +950,7 @@ void OpenGLRender::buidGlassBlocks()
           { x + dx, -y - 0.5f },
         };
 
-        const glm::vec3 color = Globals::ColorValues[cell->color];
+        const glm::vec3 & color = Palette::cellColorArray[cell->color];
 
         addVertex(origin + scale * verts[0], segmentUvArray[vertSegmentType][0], Globals::blockTemplateTexIndex, color, 1.0f);
         addVertex(origin + scale * verts[1], segmentUvArray[vertSegmentType][1], Globals::blockTemplateTexIndex, color, 1.0f);
@@ -1004,7 +1006,9 @@ void OpenGLRender::biuldGlassGlow()
       bool haveBottomCell = bottomCell && bottomCell->figureId == cell->figureId;
       bool haveBottomLeftCell = bottomLeftCell && bottomLeftCell->figureId == cell->figureId;
 
-      const glm::vec3 color = Globals::ColorValues[cell->color];
+      const glm::vec3 & glowColor = Palette::cellColorArray[cell->color];
+      const glm::vec3 glowInnerColor = glowColor * Palette::figureGlowInnerBright;
+      const glm::vec3 glowOuterColor = glowColor * Palette::figureGlowOuterBright;
 
       if (leftCell && leftCell->figureId != cell->figureId)
       {
@@ -1038,12 +1042,12 @@ void OpenGLRender::biuldGlassGlow()
           verts[3].y -= glowWidth;
         }
 
-        addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
-        addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
+        addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
+        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
+        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
+        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
+        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
+        addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
       }
 
       if (rightCell && rightCell->figureId != cell->figureId)
@@ -1078,12 +1082,12 @@ void OpenGLRender::biuldGlassGlow()
           verts[3].y -= glowWidth;
         }
 
-        addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
-        addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
+        addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
+        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
+        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
+        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
+        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
+        addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
       }
 
       if (topCell && topCell->figureId != cell->figureId)
@@ -1118,12 +1122,12 @@ void OpenGLRender::biuldGlassGlow()
           verts[3].x += glowWidth;
         }
 
-        addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
-        addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
+        addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
+        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
+        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
+        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
+        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
+        addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
       }
 
       if (bottomCell && bottomCell->figureId != cell->figureId)
@@ -1158,12 +1162,12 @@ void OpenGLRender::biuldGlassGlow()
           verts[3].x += glowWidth;
         }
 
-        addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
-        addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
+        addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
+        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
+        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
+        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
+        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
+        addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
       }
     }
   }
@@ -1316,7 +1320,7 @@ void OpenGLRender::buildFigureBlocks()
               { x + dx, -y - 0.5f },
             };
 
-            const glm::vec3 color = Globals::ColorValues[cell->color];
+            const glm::vec3 & color = Palette::cellColorArray[cell->color];
 
             addVertex(origin + scale * verts[0], segmentUvArray[vertSegmentType][0], Globals::boldBlockTemplateTexIndex, color, 1.0f);
             addVertex(origin + scale * verts[1], segmentUvArray[vertSegmentType][1], Globals::boldBlockTemplateTexIndex, color, 1.0f);
@@ -1351,8 +1355,6 @@ void OpenGLRender::buildFigureGlow()
   const float nextPanelHeight = nextPanelLayout->height;
 
   const float glowWidth = 0.3f;
-  const float glowMinAlpha = 0.01f;
-  const float glowMaxAlpha = 0.25f;
 
   for (int i = -1; i < Globals::nextFiguresCount; i++)
   {
@@ -1374,6 +1376,9 @@ void OpenGLRender::buildFigureGlow()
       int figureTopGap = figure->dim;
       int figureHeight = 0;
 
+      const glm::vec3 & glowColor = Palette::cellColorArray[figure->color];
+      const glm::vec3 glowInnerColor = glowColor * Palette::figureGlowInnerBright;
+      const glm::vec3 glowOuterColor = glowColor * Palette::figureGlowOuterBright;
 
       for (int x = 0; x < figure->dim; x++)
       {
@@ -1447,8 +1452,6 @@ void OpenGLRender::buildFigureGlow()
           bool haveBottomCell = bottomCell && !bottomCell->isEmpty();
           bool haveBottomLeftCell = bottomLeftCell && !bottomLeftCell->isEmpty();
 
-          const glm::vec3 color = Globals::ColorValues[cell->color];
-
           if (!haveLeftCell)
           {
             glm::vec2 verts[4] =
@@ -1481,12 +1484,12 @@ void OpenGLRender::buildFigureGlow()
               verts[3].y -= glowWidth;
             }
 
-            addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
-            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
-            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
-            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
-            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
-            addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
+            addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
+            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
+            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
+            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
+            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
+            addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
           }
 
           if (!haveRightCell)
@@ -1521,12 +1524,12 @@ void OpenGLRender::buildFigureGlow()
               verts[3].y -= glowWidth;
             }
 
-            addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
-            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
-            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
-            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
-            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
-            addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
+            addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
+            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
+            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
+            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
+            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
+            addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
           }
 
           if (!haveTopCell)
@@ -1561,12 +1564,12 @@ void OpenGLRender::buildFigureGlow()
               verts[3].x += glowWidth;
             }
 
-            addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
-            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
-            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
-            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
-            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
-            addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
+            addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
+            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
+            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
+            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
+            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
+            addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
           }
 
           if (!haveBottomCell)
@@ -1601,12 +1604,12 @@ void OpenGLRender::buildFigureGlow()
               verts[3].x += glowWidth;
             }
 
-            addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
-            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
-            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
-            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
-            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMaxAlpha, 0.0f);
-            addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, color * glowMinAlpha, 0.0f);
+            addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
+            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
+            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
+            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
+            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
+            addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
           }
         }
       }
@@ -1633,19 +1636,21 @@ void OpenGLRender::buildDropTrails()
     float trailTop = top - scale * (dropTrailIt->y - dropTrailIt->height * trailOpSqProgress);
     float trailWidth = scale * 1.5f;
     float trailHeight = scale * (0.1f + 1.1f * dropTrailIt->height * trailOpSqProgress);
-    glm::vec3 color = Globals::ColorValues[dropTrailIt->color] * trailOpSqProgress;
+    glm::vec3 trailColor = Palette::cellColorArray[dropTrailIt->color] * trailOpSqProgress;
+    glm::vec3 sparkleColor = (0.5f + Palette::cellColorArray[dropTrailIt->color]) * trailOpSqProgress;
 
-    buildTexturedRect(trailLeft, trailTop, trailWidth, trailHeight, Globals::dropTrailTexIndex, color, 0.0f);
+    buildTexturedRect(trailLeft, trailTop, trailWidth, trailHeight, Globals::dropTrailTexIndex, trailColor, 0.0f);
 
     for (int spInd = 0; spInd < DropTrail::sparkleQty; spInd++)
     {
-      float sparkleX = scale * (dropTrailIt->x + dropTrailIt->sparkles[spInd].relX);
-      float sparkleY = scale * (dropTrailIt->y - dropTrailIt->sparkles[spInd].relY * dropTrailIt->height - dropTrailIt->sparkles[spInd].speed * dropTrailIt->getTrailProgress());
+      const DropSparkle & sparkle = dropTrailIt->sparkles[spInd];
+      float sparkleX = scale * (dropTrailIt->x + sparkle.relX);
+      float sparkleY = scale * (dropTrailIt->y - sparkle.relY * dropTrailIt->height - sparkle.speed * dropTrailIt->getTrailProgress());
       const float sparkleSize = scale * 0.07f;
-      color = (0.5f + Globals::ColorValues[dropTrailIt->color]) * dropTrailIt->sparkles[spInd].alpha * trailOpSqProgress;
+      float sparkleAlpha = sparkle.alpha;
 
       if (sparkleX < GameLogic::glassWidth - sparkleSize && sparkleY > 0.0f)
-        buildTexturedRect(left + sparkleX, top - sparkleY, sparkleSize, sparkleSize, Globals::dropSparkleTexIndex, color, 0.0f);
+        buildTexturedRect(left + sparkleX, top - sparkleY, sparkleSize, sparkleSize, Globals::dropSparkleTexIndex, sparkleColor * sparkleAlpha, 0.0f);
     }
   }
 }
@@ -1657,6 +1662,7 @@ void OpenGLRender::buildRowFlashes()
   if (!glassLayout)
     return;
 
+  // TODO change 'left' and 'top' to 'glassLeft' and 'glassTop'
   const float left = glassLayout->getGlobalLeft();
   const float top = glassLayout->getGlobalTop();
   const float scale = glassLayout->width / GameLogic::glassWidth;
@@ -1664,10 +1670,11 @@ void OpenGLRender::buildRowFlashes()
 
   float overallProgress = glm::clamp(float(Time::timer - GameLogic::rowsDeleteTimer) / Globals::rowsDeletionEffectTime, 0.0f, 1.0f);
   float mul = 1.0f - cos((overallProgress - 0.5f) * (overallProgress < 0.5f ? 0.5f : 2.0f) * (float)M_PI_2);
-  float flashBright = 1.00f - overallProgress * overallProgress;
   float dx = 1.0f - mul * 3.0f;
   float dy = 0.25f - 0.75f * mul;
+  glm::vec3 flashColor(Palette::deletedRowFlashBright * (1.00f - overallProgress * overallProgress));
 
+  //TODO move unchanged variables out from cycle
   for (GameLogic::DeletedRowsIterator delRowIt = GameLogic::getDeletedRowsBegin(), end = GameLogic::getDeletedRowsEnd(); delRowIt != end; ++delRowIt)
   {
     int row = *delRowIt;
@@ -1675,16 +1682,16 @@ void OpenGLRender::buildRowFlashes()
     float flashTop = top + scale * (dy - row);
     float flashWidth = scale * (GameLogic::glassWidth + 2.0f * dx);
     float flashHeight = scale * (1.0f + 2.0f * dy);
-    glm::vec3 color(flashBright);
-
-    buildTexturedRect(flashLeft, flashTop, flashWidth, flashHeight, Globals::rowFlashTexIndex, color, 0.0f);
+    buildTexturedRect(flashLeft, flashTop, flashWidth, flashHeight, Globals::rowFlashTexIndex, flashColor, 0.0f);
   }
 
   if (GameLogic::getDeletedRowsBegin() != GameLogic::getDeletedRowsEnd())
   {
-    float shineProgress = glm::clamp(overallProgress / 0.85f, 0.0f, 1.0f);
+    float shineProgress = glm::clamp(overallProgress * 1.2f, 0.0f, 1.0f);
     int firstRow = *GameLogic::getDeletedRowsBegin();
     int lastRow = *(GameLogic::getDeletedRowsEnd() - 1);
+
+    // TODO give ltX ltY more understandable names
     float ltX = (shineProgress - 0.5f) * 3.0f * GameLogic::glassWidth;
     float ltY = 0.5f * (firstRow + lastRow + 1);
 
@@ -1712,7 +1719,8 @@ void OpenGLRender::buildRowFlashes()
 
       float alphaMul = 1.0f - 2.0f * fabs(0.5f - glm::clamp(shineProgress * shineProgress, 0.1f, 1.0f));
 
-      glm::vec3 colors0(0.2f * alphaMul);
+      //TODO rename colors0 and colors1
+      glm::vec3 colors0(0.2f * alphaMul * Palette::deletedRowRaysBright);
       glm::vec3 colors1(0.0f);
 
       glm::vec2 verts[3] =
@@ -1730,9 +1738,9 @@ void OpenGLRender::buildRowFlashes()
     float shineSize = 3.5f;
     float shineLeft = left + scale * ltX - 0.5f * shineSize;
     float shineTop = top - scale * ltY + 0.5f * shineSize;
-    float shineBright = 0.1f * sin(shineProgress * (float)M_PI);
+    const glm::vec3 shineColor(0.1f * sin(shineProgress * (float)M_PI) * Palette::deletedRowShineBright);
 
-    buildTexturedRect(shineLeft, shineTop, shineSize, shineSize, Globals::rowShineLightTexIndex, glm::vec3(shineBright), 0.0f);
+    buildTexturedRect(shineLeft, shineTop, shineSize, shineSize, Globals::rowShineLightTexIndex, shineColor, 0.0f);
   }
 }
 
@@ -1938,12 +1946,14 @@ void OpenGLRender::buildMenu()
       }
       LayoutObject::Rect menuRowRect = menuLayout->getCellGlobalRect(row, 0);
       menuRowRect.left -= (menuRowRect.width + Layout::menuRowGlowWidth) * rowProgress * rowProgress;
-      bool highlight = (row == menuLogic->selectedRow);
-      glm::vec3 & panelColor = highlight ? Globals::menuSelectedPanelColor : Globals::menuNormalPanelColor;
-      buildSidePanel(menuRowRect.left, menuRowRect.top, menuRowRect.width, menuRowRect.height, Layout::menuRowCornerSize, Layout::menuRowGlowWidth, panelColor, 0.1f * panelColor, panelColor);
+      const bool highlight = (row == menuLogic->selectedRow);
+      const glm::vec3 & panelTopColor = highlight ? Palette::menuSelectedRowBackgroundTop : Palette::menuNormalRowBackgroundTop;
+      const glm::vec3 & panelBottomColor = highlight ? Palette::menuSelectedRowBackgroundBottom : Palette::menuNormalRowBackgroundBottom;
+      const glm::vec3 & panelGlowColor = highlight ? Palette::menuSelectedRowGlow : Palette::menuNormalRowGlow;
+      buildSidePanel(menuRowRect.left, menuRowRect.top, menuRowRect.width, menuRowRect.height, Layout::menuRowCornerSize, Layout::menuRowGlowWidth, panelTopColor, panelBottomColor, panelGlowColor);
       menuRowRect.left += Layout::menuRowTextOffset;
       const float textHeight = 0.08f;
-      glm::vec3 & textColor = highlight ? Globals::menuSelectedTextColor : Globals::menuNormalTextColor;
+      const glm::vec3 & textColor = highlight ? Palette::menuSelectedRowText : Palette::menuNormalRowText;
       const char * text = menuLogic->getText(row);
       buildTextMesh(menuRowRect.left, menuRowRect.top, menuRowRect.width, menuRowRect.height, text, Globals::midFontSize, Layout::menuFontHeight, textColor, 1.0f, haLeft, vaCenter);
     }
@@ -2085,54 +2095,54 @@ void OpenGLRender::buildTextMesh(float left, float top, float width, float heigh
 
 void OpenGLRender::buildSettings()
 {
-  if (InterfaceLogic::state != InterfaceLogic::stSettings)
-    return;
+  //if (InterfaceLogic::state != InterfaceLogic::stSettings)
+    //return;
 
   //Globals::settingsWidth = float(0.75f * Globals::gameBkSize.x + 0.5f * sin(2 * M_PI * glm::fract(Time::timer * 0.25f)));
   //Globals::settingsHeight = float(0.5f * Globals::gameBkSize.y + 0.2f * cos(2 * M_PI * glm::fract(Time::timer * 0.25f)));
 
-  buildRect(-1.0f, 1.0f, 2.0f, 2.0f, glm::vec3(0.0f), 0.75f);
-  float k = (1.0f - InterfaceLogic::settingsLogic.transitionProgress) * (1.0f - InterfaceLogic::settingsLogic.transitionProgress);
-  float x = Layout::backgroundLeft - (Globals::settingsWidth + Globals::settingsWidth) * k;
+  //buildRect(-1.0f, 1.0f, 2.0f, 2.0f, glm::vec3(0.0f), 0.75f);
+  //float k = (1.0f - InterfaceLogic::settingsLogic.transitionProgress) * (1.0f - InterfaceLogic::settingsLogic.transitionProgress);
+  //float x = Layout::backgroundLeft - (Globals::settingsWidth + Globals::settingsWidth) * k;
   //buildSidePanel(x, Globals::settingsTop, Globals::settingsWidth, Globals::settingsHeight, Globals::settingsCornerSize, Globals::settingsTopBkColor, 0.1f * Globals::settingsTopBkColor, Globals::settingsTopBkColor, Globals::settingsGlowWidth);
   //buildTextMesh("Settings", Globals::bigFontSize, 0.15f, glm::vec3(0.0f), 0.6f, x + 0.05f + 0.01f, Globals::settingsTop - 0.14f - 0.01f, otLeft);
   //buildTextMesh("Settings", Globals::bigFontSize, 0.15f, Globals::settingsCaptionColor, 1.0f, x + 0.05f, Globals::settingsTop - 0.14f, otLeft);
 
-  buildSidePanel(x, Globals::settingsTop, Globals::settingsWidth, Globals::settingsHeight, Globals::settingsCornerSize, Globals::settingsGlowWidth, Globals::settingsTopBkColor, 0.1f * Globals::settingsTopBkColor, Globals::settingsTopBkColor);
+  //buildSidePanel(x, Globals::settingsTop, Globals::settingsWidth, Globals::settingsHeight, Globals::settingsCornerSize, Globals::settingsGlowWidth, Globals::settingsTopBkColor, 0.1f * Globals::settingsTopBkColor, Globals::settingsTopBkColor);
   //buildTextMesh(x + 0.05f + 0.007f, Globals::settingsTop - 0.08f - 0.007f, "SETTINGS", Globals::midFontSize, 0.08f, glm::vec3(0.0f), 0.6f, haLeft, vaTop);
   //buildTextMesh(x + 0.05f, Globals::settingsTop - 0.08f, "SETTINGS", Globals::midFontSize, 0.08f, Globals::settingsCaptionColor, 1.0f, haLeft, vaTop);
   
 
-  const float panelHorzGaps = 0.05f;
-  const float panelTopGap = 0.04f;
-  const float panelBottomGap = 0.08f;
-  const float panelLeft = x + panelHorzGaps;
-  const float panelTop = Globals::menuTop - Globals::settingsCornerSize - panelTopGap;
-  const float panelWidth = Globals::settingsWidth - 2.0f * panelHorzGaps;
-  const float panelHeight = Globals::settingsHeight - Globals::settingsCornerSize - panelTopGap - panelBottomGap;
-  const float panelBorderWidth = 0.005f;
+  //const float panelHorzGaps = 0.05f;
+  //const float panelTopGap = 0.04f;
+  //const float panelBottomGap = 0.08f;
+  //const float panelLeft = x + panelHorzGaps;
+  //const float panelTop = Globals::menuTop - Globals::settingsCornerSize - panelTopGap;
+  //const float panelWidth = Globals::settingsWidth - 2.0f * panelHorzGaps;
+  //const float panelHeight = Globals::settingsHeight - Globals::settingsCornerSize - panelTopGap - panelBottomGap;
+  //const float panelBorderWidth = 0.005f;
 
-  buildVertGradientRect(panelLeft, panelTop, panelWidth, panelHeight, Globals::settingsPanelTopBkColor, 1.0f, Globals::settingsPanelBottomBkColor, 1.0f);
-  buildFrameRect(panelLeft, panelTop, panelWidth, panelHeight, panelBorderWidth, 0.5f * Globals::settingsCaptionColor, 1.0f);
+  //buildVertGradientRect(panelLeft, panelTop, panelWidth, panelHeight, Globals::settingsPanelTopBkColor, 1.0f, Globals::settingsPanelBottomBkColor, 1.0f);
+  //buildFrameRect(panelLeft, panelTop, panelWidth, panelHeight, panelBorderWidth, 0.5f * Globals::settingsCaptionColor, 1.0f);
 
-  const float backShevronSize = 0.05f;
-  const float backShevronVertGaps = 0.5f * (panelBottomGap - backShevronSize);
-  const float backShevronTop = panelTop - panelHeight - backShevronVertGaps;
-  const float backShevronRight = x + Globals::settingsWidth - panelHorzGaps;
-  const float backShevronsStep = 0.8f * backShevronSize;
-  const glm::vec3 backShevronColor(0.5f);
+  //const float backShevronSize = 0.05f;
+  //const float backShevronVertGaps = 0.5f * (panelBottomGap - backShevronSize);
+  //const float backShevronTop = panelTop - panelHeight - backShevronVertGaps;
+  //const float backShevronRight = x + Globals::settingsWidth - panelHorzGaps;
+  //const float backShevronsStep = 0.8f * backShevronSize;
+  //const glm::vec3 backShevronColor(0.5f);
 
-  for (int i = 0; i < 3; i++)
-    buildTexturedRect(backShevronRight - backShevronSize - i * backShevronsStep, backShevronTop, backShevronSize, backShevronSize, Globals::levelBackShevronTexIndex, backShevronColor, 1.0f);
+  //for (int i = 0; i < 3; i++)
+  //  buildTexturedRect(backShevronRight - backShevronSize - i * backShevronsStep, backShevronTop, backShevronSize, backShevronSize, Globals::levelBackShevronTexIndex, backShevronColor, 1.0f);
 
   //buildTextMesh("CLOSE", Globals::bigFontSize, 0.05f, glm::vec3(0.5f), 1.0f, x + Globals::settingsWidth - 0.05f, Globals::settingsTop - Globals::settingsHeight + 0.05f, otRight);
   
   //buildTextMesh(panelLeft + 0.03f, panelTop - 0.045f, "SOUND", Globals::smallFontSize, 0.035f, glm::vec3(0.75f), 1.0f, haLeft, vaCenter);
-  buildProgressBar(panelLeft + 0.35f * Globals::settingsWidth, panelTop - 0.02f, panelWidth - 0.35f * Globals::settingsWidth - 0.02f, 0.03f, glm::vec3(0.75f), glm::vec3(0.25f), 1.0f, 0.75f);
+  //buildProgressBar(panelLeft + 0.35f * Globals::settingsWidth, panelTop - 0.02f, panelWidth - 0.35f * Globals::settingsWidth - 0.02f, 0.03f, glm::vec3(0.75f), glm::vec3(0.25f), 1.0f, 0.75f);
 
-  buildRect(panelLeft + 0.01f, panelTop - 0.04f - 0.025f, panelWidth - 0.02f, 0.05f, glm::vec3(0.75f), 1.0f);
+  //buildRect(panelLeft + 0.01f, panelTop - 0.04f - 0.025f, panelWidth - 0.02f, 0.05f, glm::vec3(0.75f), 1.0f);
   //buildTextMesh(panelLeft + 0.03f, panelTop - 0.045f - 0.055f, "MUSIC", Globals::smallFontSize, 0.035f, glm::vec3(0.25f), 1.0f, haLeft, vaCenter);
-  buildProgressBar(panelLeft + 0.35f * Globals::settingsWidth, panelTop - 0.02f - 0.055f, panelWidth - 0.35f * Globals::settingsWidth - 0.02f, 0.03f, glm::vec3(0.75f), glm::vec3(0.25f), 1.0f, 0.75f);
+  //buildProgressBar(panelLeft + 0.35f * Globals::settingsWidth, panelTop - 0.02f - 0.055f, panelWidth - 0.35f * Globals::settingsWidth - 0.02f, 0.03f, glm::vec3(0.75f), glm::vec3(0.25f), 1.0f, 0.75f);
 
   return;
 }

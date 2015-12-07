@@ -1,6 +1,7 @@
 #pragma once
 #include "Globals.h"
 #include "DropSparkle.h"
+#include "Cell.h"
 
 class DropTrail
 {
@@ -14,7 +15,7 @@ public:
   int x;
   int y;
   int height;
-  Globals::Color color;
+  Cell::Color color;
   DropSparkle sparkles[sparkleQty];
 
   DropTrail();

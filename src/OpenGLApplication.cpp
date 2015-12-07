@@ -4,6 +4,7 @@
 #include "Crosy.h"
 #include "Time.h"
 #include "Layout.h"
+#include "Palette.h"
 
 #pragma warning(disable : 4100)
 
@@ -61,6 +62,7 @@ bool OpenGLApplication::init()
   assert(!checkGlErrors());
 
   Layout::load("default");
+  Palette::load("default");
 
   render.init(wndWidth, wndHeight);
   fps.init();

@@ -47,7 +47,7 @@ void GameLogic::resetGame()
   rowElevation.assign(glassHeight, 0);
   rowCurrentElevation.assign(glassHeight, 0.0f);
   nextFigures.resize(Globals::nextFiguresCount);
-  glass.assign(glassWidth * glassHeight, Cell(0, Globals::Color::clNone));
+  glass.assign(glassWidth * glassHeight, Cell(0, Cell::Color::clNone));
   lastStepTimer = Time::timer;
   
   for (int i = 0; i < Globals::nextFiguresCount; i++)
@@ -398,7 +398,7 @@ void GameLogic::proceedFallingRows()
   }
 }
 
-void GameLogic::createDropTrail(int x, int y, int height, Globals::Color color)
+void GameLogic::createDropTrail(int x, int y, int height, Cell::Color color)
 {
   dropTrails.emplace_back();
   DropTrail & dropTrail = dropTrails.back();

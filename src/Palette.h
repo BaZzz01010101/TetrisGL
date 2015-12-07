@@ -18,6 +18,7 @@ public:
   static glm::vec3 glassBackgroundMin;
   static glm::vec3 glassBackgroundMax;
   static glm::vec3 scoreBarBackground;
+  static float scoreBarBackgroundAlpha;
   static glm::vec3 scoreBarMenuButtonBackground;
   static glm::vec3 scoreBarText;
   static glm::vec3 scoreBarMenuButtonText;
@@ -31,14 +32,10 @@ public:
   static glm::vec3 goalCaptionText;
   static glm::vec3 goalPanelBackground;
   static glm::vec3 goalPanelText;
-  static glm::vec3 figureRed;
-  static glm::vec3 figureOrange;
-  static glm::vec3 figureYellow;
-  static glm::vec3 figureGreen;
-  static glm::vec3 figureCyan;
-  static glm::vec3 figureBlue;
-  static glm::vec3 figurePurple;
   static glm::vec3 figureShadow;
+
+  static glm::vec3 cellColorArray[Cell::Color::COLOR_COUNT];
+
   static glm::vec3 menuNormalRowBackgroundTop;
   static glm::vec3 menuNormalRowBackgroundBottom;
   static glm::vec3 menuSelectedRowBackgroundTop;
@@ -47,7 +44,6 @@ public:
   static glm::vec3 menuSelectedRowText;
   static glm::vec3 menuNormalRowGlow;
   static glm::vec3 menuSelectedRowGlow;
-  static glm::vec3 figureColorArray[Figure::Color::COLOR_COUNT];
 
   static float figureGlowOuterBright;
   static float figureGlowInnerBright;

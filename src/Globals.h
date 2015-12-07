@@ -7,8 +7,8 @@ private:
   ~Globals();
 
 public:
-  enum Color { clNone = -1, clRed, clOrange, clYellow, clGreen, clCyan, clBlue, clPurple };
-  static glm::vec3 Globals::ColorValues[7];
+//  enum Color { clNone = -1, clRed, clOrange, clYellow, clGreen, clCyan, clBlue, clPurple };
+//  static glm::vec3 Globals::ColorValues[7];
   static std::string glErrorMessage;
   static GLuint mainArrayTextureId;
   static int mainArrayTextureSize;
@@ -47,20 +47,20 @@ public:
   //static float scoreBarCaptionWidth;
   //static float scoreBarValueWidth;
   //static float scoreBarMenuWidth;
-  static glm::vec3 levelPanelColor;
-  static glm::vec3 goalPanelColor;
-  static float menuTop;
-  static float menuRowWidth;
-  static float menuRowHeight;
-  static float menuRowInterval;
-  static float menuRowGlowWidth;
-  static float menuRowCornerSize;
+  //static glm::vec3 levelPanelColor;
+  //static glm::vec3 goalPanelColor;
+  //static float menuTop;
+  //static float menuRowWidth;
+  //static float menuRowHeight;
+  //static float menuRowInterval;
+  //static float menuRowGlowWidth;
+  //static float menuRowCornerSize;
   static float menuShowingTime;
   static float menuHidingTime;
-  static glm::vec3 menuNormalPanelColor;
-  static glm::vec3 menuSelectedPanelColor;
-  static glm::vec3 menuNormalTextColor;
-  static glm::vec3 menuSelectedTextColor;
+  //static glm::vec3 menuNormalPanelColor;
+  //static glm::vec3 menuSelectedPanelColor;
+  //static glm::vec3 menuNormalTextColor;
+  //static glm::vec3 menuSelectedTextColor;
   static float settingsTop;
   static float settingsWidth;
   static float settingsHeight;

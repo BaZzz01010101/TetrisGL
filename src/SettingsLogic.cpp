@@ -8,7 +8,8 @@
 SettingsLogic::SettingsLogic() :
   changed(false),
   state(stHidden),
-  result(resNone)
+  result(resNone),
+  transitionProgress(0.0f)
 {
 }
 

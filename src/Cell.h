@@ -5,13 +5,14 @@ class Cell
 {
 public:
   int figureId;
-  Globals::Color color;
+  enum Color { clNone = -1, clRed, clOrange, clYellow, clGreen, clCyan, clBlue, clPurple, COLOR_COUNT };
+  Color color;
 
   Cell();
-  Cell(int figureId, Globals::Color color);
+  Cell(int figureId, Color color);
 
   void clear();
   Cell & operator = (const Cell & cell);
-  inline bool isEmpty() const { return color == Globals::Color::clNone; };
+  inline bool isEmpty() const { return color == Color::clNone; };
 };
 
