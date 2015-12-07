@@ -1766,14 +1766,17 @@ void OpenGLRender::buildSidePanel(float left, float top, float width, float heig
       { x1, y1 },
     };
 
-    const glm::vec2 tiledUV = glm::vec2(width, height) / Globals::sidePanelBkTileSize;
+    const float u0 = x0 / Layout::sidePanelBkTileWidth;
+    const float v0 = y0 / Layout::sidePanelBkTileHeight;
+    const float u1 = x1 / Layout::sidePanelBkTileWidth;
+    const float v1 = y1 / Layout::sidePanelBkTileHeight;
 
     glm::vec2 uv[4] =
     {
-      verts[0] / Globals::sidePanelBkTileSize,
-      verts[1] / Globals::sidePanelBkTileSize,
-      verts[2] / Globals::sidePanelBkTileSize,
-      verts[3] / Globals::sidePanelBkTileSize
+      { u0, v0 },
+      { u1, v0 },
+      { u0, v1 },
+      { u1, v1 },
     };
 
     float lt0 = 1.0f - glm::clamp(2.0f * -y0 / height, 0.0f, 1.0f);

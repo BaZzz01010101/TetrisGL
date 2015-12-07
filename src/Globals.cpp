@@ -38,7 +38,7 @@ int Globals::levelBackShevronTexIndex = 15;
 int Globals::fontFirstTexIndex = 16;
 
 //glm::vec2 Globals::bkTileSize(0.03f, 0.02f);
-glm::vec2 Globals::sidePanelBkTileSize(0.024f, 0.016f);
+//glm::vec2 Globals::sidePanelBkTileSize(0.024f, 0.016f);
 int Globals::nextFiguresCount = 3;
 float Globals::rowsDeletionEffectTime = 0.8f;
 //glm::vec2 Globals::gameBkPos(-0.75f, 1.0f);

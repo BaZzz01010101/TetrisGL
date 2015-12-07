@@ -51,6 +51,8 @@ public:
   static float backgroundHeight;
   static float gameBkTileWidth;
   static float gameBkTileHeight;
+  static float sidePanelBkTileWidth;
+  static float sidePanelBkTileHeight;
   static float holdNextFigureScale;
   static float menuRowGlowWidth;
   static float menuRowCornerSize;

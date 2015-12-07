@@ -15,6 +15,8 @@ float Layout::backgroundLeft = Layout::screenLeft + 0.5f * (screenWidth - backgr
 float Layout::backgroundTop = Layout::screenTop - 0.5f * (screenHeight - backgroundHeight);
 float Layout::gameBkTileWidth = 0.03f;
 float Layout::gameBkTileHeight = 0.02f;
+float Layout::sidePanelBkTileWidth = 0.024f;
+float Layout::sidePanelBkTileHeight = 0.016f;
 float Layout::holdNextFigureScale = 0.0375f;
 float Layout::menuRowGlowWidth = 0.03f;
 float Layout::menuRowCornerSize = 0.03f;
@@ -85,8 +87,8 @@ void Layout::load(const char * name)
   {
     rapidjson::Value & gameSection = doc["Game"];
 
-    loadValue(gameSection, "BackgroundTileWidth", &gameBkTileWidth);
-    loadValue(gameSection, "BackgroundTileHeight", &gameBkTileHeight);
+    loadValue(gameSection, "GameBkTileWidth", &gameBkTileWidth);
+    loadValue(gameSection, "GameBkTileHeight", &gameBkTileHeight);
 
     loadValue(gameSection, "ScoreBarTopGap", &scoreBarTopGap);
     loadValue(gameSection, "ScoreBarLeftGap", &scoreBarLeftGap);
@@ -120,6 +122,9 @@ void Layout::load(const char * name)
   if (doc.HasMember("Interface"))
   {
     rapidjson::Value & intrfaceSection = doc["Interface"];
+
+    loadValue(intrfaceSection, "SidePanelBkTileWidth", &sidePanelBkTileWidth);
+    loadValue(intrfaceSection, "SidePanelBkTileHeight", &sidePanelBkTileHeight);
 
     loadValue(intrfaceSection, "MenuTop", &menuTop);
     loadValue(intrfaceSection, "MenuRowWidth", &menuRowWidth);

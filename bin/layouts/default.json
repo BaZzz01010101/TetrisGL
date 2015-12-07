@@ -4,8 +4,8 @@
 
 	"Game" : 
 	{
-		"BackgroundTileWidth" : 0.03,
-		"BackgroundTileHeight" : 0.02,
+		"GameBkTileWidth" : 0.03,
+		"GameBkTileHeight" : 0.02,
 
 		"ScoreBarTopGap" : 0.01,
     "ScoreBarLeftGap" : 0.01,
@@ -34,6 +34,9 @@
 
 	"Interface" :
 	{
+		"SidePanelBkTileWidth" : 0.024,
+		"SidePanelBkTileHeight" : 0.016,
+
 		"MenuTop" : -0.5,
 		"MenuRowWidth" : 0.75,
 		"MenuRowHeight" : 0.12,
