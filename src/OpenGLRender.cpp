@@ -306,7 +306,7 @@ void OpenGLRender::sendToDevice()
   }
 }
 
-void OpenGLRender::buildRect(float left, float top, float width, float height, glm::vec3 color, float alpha)
+void OpenGLRender::buildRect(float left, float top, float width, float height, const glm::vec3 & color, float alpha)
 {
   const glm::vec2 verts0(left, top);
   const glm::vec2 verts1(left + width, top);
@@ -322,7 +322,7 @@ void OpenGLRender::buildRect(float left, float top, float width, float height, g
   addVertex(verts3, uv, Globals::emptyTexIndex, color, alpha);
 }
 
-void OpenGLRender::buildTexturedRect(float left, float top, float width, float height, int texIndex, glm::vec3 color, float alpha)
+void OpenGLRender::buildTexturedRect(float left, float top, float width, float height, int texIndex, const glm::vec3 & color, float alpha)
 {
   const float pixSize = Globals::mainArrayTexturePixelSize;
   const glm::vec2 verts0(left, top);
@@ -342,7 +342,7 @@ void OpenGLRender::buildTexturedRect(float left, float top, float width, float h
   addVertex(verts3, uv3, texIndex, color, alpha);
 }
 
-void OpenGLRender::buildVertGradientRect(float left, float top, float width, float height, glm::vec3 topColor, float topAlpha, glm::vec3 bottomColor, float bottomAlpha)
+void OpenGLRender::buildVertGradientRect(float left, float top, float width, float height, const glm::vec3 & topColor, float topAlpha, const glm::vec3 & bottomColor, float bottomAlpha)
 {
   glm::vec2 verts0(left, top);
   glm::vec2 verts1(left + width, top);
@@ -358,7 +358,7 @@ void OpenGLRender::buildVertGradientRect(float left, float top, float width, flo
   addVertex(verts3, uv, Globals::emptyTexIndex, bottomColor, bottomAlpha);
 }
 
-void OpenGLRender::buildLine(float x0, float y0, float x1, float y1, float width, glm::vec3 color, float alpha)
+void OpenGLRender::buildLine(float x0, float y0, float x1, float y1, float width, const glm::vec3 & color, float alpha)
 {
   const float pixSize = Globals::mainArrayTexturePixelSize;
   const float W_2 = 0.5f * width;
@@ -405,7 +405,7 @@ void OpenGLRender::buildLine(float x0, float y0, float x1, float y1, float width
   }
 }
 
-void OpenGLRender::buildFrameRect(float left, float top, float width, float height, float borderWidth, glm::vec3 borderColor, float borderAlpha)
+void OpenGLRender::buildFrameRect(float left, float top, float width, float height, float borderWidth, const glm::vec3 & borderColor, float borderAlpha)
 {
   const float pixSize = Globals::mainArrayTexturePixelSize;
   const float W_2 = 0.5f * borderWidth;
@@ -447,7 +447,7 @@ void OpenGLRender::buildFrameRect(float left, float top, float width, float heig
   }
 }
 
-void OpenGLRender::buildProgressBar(float left, float top, float width, float height, glm::vec3 bkColor, glm::vec3 fgColor, float alpha, float progress)
+void OpenGLRender::buildProgressBar(float left, float top, float width, float height, const glm::vec3 & bkColor, const glm::vec3 & fgColor, float alpha, float progress)
 {
   const float borderWidth = 0.005f;
   const float gapWidth = 0.008f;
@@ -1736,7 +1736,7 @@ void OpenGLRender::buildRowFlashes()
   }
 }
 
-void OpenGLRender::buildSidePanel(float left, float top, float width, float height, float cornerSize, glm::vec3 topColor, glm::vec3 bottomColor, glm::vec3 glowColor, float glowWidth)
+void OpenGLRender::buildSidePanel(float left, float top, float width, float height, float cornerSize, float glowWidth, const glm::vec3 & topColor, const glm::vec3 & bottomColor, const glm::vec3 & glowColor)
 {
   glm::vec2 origin = glm::vec2(left, top);
   const float pixSize = Globals::mainArrayTexturePixelSize;
@@ -1937,7 +1937,7 @@ void OpenGLRender::buildMenu()
       menuRowRect.left -= (menuRowRect.width + Layout::menuRowGlowWidth) * rowProgress * rowProgress;
       bool highlight = (row == menuLogic->selectedRow);
       glm::vec3 & panelColor = highlight ? Globals::menuSelectedPanelColor : Globals::menuNormalPanelColor;
-      buildSidePanel(menuRowRect.left, menuRowRect.top, menuRowRect.width, menuRowRect.height, Layout::menuRowCornerSize, panelColor, 0.1f * panelColor, panelColor, Layout::menuRowGlowWidth);
+      buildSidePanel(menuRowRect.left, menuRowRect.top, menuRowRect.width, menuRowRect.height, Layout::menuRowCornerSize, Layout::menuRowGlowWidth, panelColor, 0.1f * panelColor, panelColor);
       menuRowRect.left += Layout::menuRowTextOffset;
       const float textHeight = 0.08f;
       glm::vec3 & textColor = highlight ? Globals::menuSelectedTextColor : Globals::menuNormalTextColor;
@@ -1997,7 +1997,7 @@ void OpenGLRender::loadGlyph(char ch, int size)
   assert(!checkGlErrors());
 }
 
-void OpenGLRender::buildTextMesh(float left, float top, float width, float height, const char * str, int fontSize, float scale, glm::vec3 color, float alpha, HorzAllign horzAllign, VertAllign vertAllign)
+void OpenGLRender::buildTextMesh(float left, float top, float width, float height, const char * str, int fontSize, float scale, const glm::vec3 & color, float alpha, HorzAllign horzAllign, VertAllign vertAllign)
 {
   float penX = 0;
   char leftChar = 0;
@@ -2095,7 +2095,7 @@ void OpenGLRender::buildSettings()
   //buildTextMesh("Settings", Globals::bigFontSize, 0.15f, glm::vec3(0.0f), 0.6f, x + 0.05f + 0.01f, Globals::settingsTop - 0.14f - 0.01f, otLeft);
   //buildTextMesh("Settings", Globals::bigFontSize, 0.15f, Globals::settingsCaptionColor, 1.0f, x + 0.05f, Globals::settingsTop - 0.14f, otLeft);
 
-  buildSidePanel(x, Globals::settingsTop, Globals::settingsWidth, Globals::settingsHeight, Globals::settingsCornerSize, Globals::settingsTopBkColor, 0.1f * Globals::settingsTopBkColor, Globals::settingsTopBkColor, Globals::settingsGlowWidth);
+  buildSidePanel(x, Globals::settingsTop, Globals::settingsWidth, Globals::settingsHeight, Globals::settingsCornerSize, Globals::settingsGlowWidth, Globals::settingsTopBkColor, 0.1f * Globals::settingsTopBkColor, Globals::settingsTopBkColor);
   //buildTextMesh(x + 0.05f + 0.007f, Globals::settingsTop - 0.08f - 0.007f, "SETTINGS", Globals::midFontSize, 0.08f, glm::vec3(0.0f), 0.6f, haLeft, vaTop);
   //buildTextMesh(x + 0.05f, Globals::settingsTop - 0.08f, "SETTINGS", Globals::midFontSize, 0.08f, Globals::settingsCaptionColor, 1.0f, haLeft, vaTop);
   
