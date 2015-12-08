@@ -13,6 +13,7 @@ int main()
 
   InterfaceLogic::init();
   GameLogic::init();
+  Binding::init();
   std::unique_ptr<Application> application = std::make_unique<OpenGLApplication>();
 
   if(!application->init())

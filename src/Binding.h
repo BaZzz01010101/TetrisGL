@@ -7,17 +7,17 @@ class Binding
 public:
   enum Action { doNothing = -1, moveLeft, moveRight, rotateLeft, rotateRight, fastDown, dropDown, swapHold, ACTION_COUNT };
 
+  static void init();
+  static void setKeyBinding(Key key, Action action);
+  static Action getKeyAction(Key key);
+  static Key getActionKey(Action action);
+  static const char * getActionName(Action action);
+
+private:
   Binding();
   ~Binding();
 
-  void setDefault();
-  void setKeyBinding(Key key, Action action);
-  Action getKeyAction(Key key) const;
-  Key getActionKey(Action action) const;
-  const char * getActionName(Action action);
-
-private:
-  static const char * const actionNames[ACTION_COUNT];
-  Action keyActions[KEY_COUNT];
+  static const char * const actionNames[Action::ACTION_COUNT];
+  static Action keyActions[Key::KEY_COUNT];
 };
 

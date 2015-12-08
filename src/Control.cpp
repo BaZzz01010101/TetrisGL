@@ -156,7 +156,7 @@ void Control::updateGameKeyboard()
     }
     else
     {
-      Binding::Action action = bindings.getKeyAction(key);
+      Binding::Action action = Binding::getKeyAction(key);
 
       if (action != Binding::doNothing)
       {

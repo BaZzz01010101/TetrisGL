@@ -32,7 +32,6 @@ private:
     bool wasChanged;
   };
 
-  Binding bindings;
   const uint64_t freq;
   const uint64_t repeatDelay;
   const uint64_t repeatInterval;

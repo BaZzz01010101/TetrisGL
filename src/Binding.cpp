@@ -2,7 +2,7 @@
 
 #include "Binding.h"
 
-const char * const Binding::actionNames[ACTION_COUNT] =
+const char * const Binding::actionNames[Binding::ACTION_COUNT] =
 {
   "Move Left",
   "Move Right",
@@ -13,9 +13,11 @@ const char * const Binding::actionNames[ACTION_COUNT] =
   "Hold",
 };
 
+Binding::Action Binding::keyActions[Key::KEY_COUNT];
+
 Binding::Binding()
 {
-  setDefault();
+  init();
 }
 
 
@@ -23,10 +25,9 @@ Binding::~Binding()
 {
 }
 
-void Binding::setDefault()
+void Binding::init()
 {
-  for (Key key = Key::KB_NONE; key < Key::KEY_COUNT; key++)
-    keyActions[key] = doNothing;
+  std::fill_n(keyActions, (int)Key::KEY_COUNT, doNothing);
 
   keyActions[KB_LEFT] = moveLeft;
   keyActions[KB_RIGHT] = moveRight;
@@ -42,12 +43,12 @@ void Binding::setKeyBinding(Key key, Action action)
   keyActions[key] = action;
 }
 
-Binding::Action Binding::getKeyAction(Key key) const
+Binding::Action Binding::getKeyAction(Key key) 
 {
   return keyActions[key];
 }
 
-Key Binding::getActionKey(Action action) const
+Key Binding::getActionKey(Action action) 
 {
   for (int key = 0; key < KEY_COUNT; key++)
     if (keyActions[key] == action)
