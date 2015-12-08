@@ -1,8 +1,8 @@
 #include "static_headers.h"
 
-#include "Bindings.h"
+#include "Binding.h"
 
-const char * const Bindings::actionNames[ACTION_COUNT] =
+const char * const Binding::actionNames[ACTION_COUNT] =
 {
   "Move Left",
   "Move Right",
@@ -13,17 +13,17 @@ const char * const Bindings::actionNames[ACTION_COUNT] =
   "Hold",
 };
 
-Bindings::Bindings()
+Binding::Binding()
 {
   setDefault();
 }
 
 
-Bindings::~Bindings()
+Binding::~Binding()
 {
 }
 
-void Bindings::setDefault()
+void Binding::setDefault()
 {
   for (Key key = Key::KB_NONE; key < Key::KEY_COUNT; key++)
     keyActions[key] = doNothing;
@@ -37,17 +37,17 @@ void Bindings::setDefault()
   keyActions[KB_RIGHT_CONTROL] = swapHold;
 }
 
-void Bindings::setKeyBinding(Key key, Action action)
+void Binding::setKeyBinding(Key key, Action action)
 {
   keyActions[key] = action;
 }
 
-Bindings::Action Bindings::getKeyAction(Key key) const
+Binding::Action Binding::getKeyAction(Key key) const
 {
   return keyActions[key];
 }
 
-Key Bindings::getActionKey(Action action) const
+Key Binding::getActionKey(Action action) const
 {
   for (int key = 0; key < KEY_COUNT; key++)
     if (keyActions[key] == action)
@@ -56,7 +56,7 @@ Key Bindings::getActionKey(Action action) const
   return KB_NONE;
 }
 
-const char * Bindings::getActionName(Action action)
+const char * Binding::getActionName(Action action)
 {
   return actionNames[action];
 }

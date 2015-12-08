@@ -4,7 +4,7 @@
 #include "Figure.h"
 #include "DropSparkle.h"
 #include "DropTrail.h"
-#include "Bindings.h"
+#include "Binding.h"
 #include "MenuLogic.h"
 
 #pragma warning(disable : 4512)

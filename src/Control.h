@@ -1,6 +1,6 @@
 #pragma once
 #include "Keys.h"
-#include "Bindings.h"
+#include "Binding.h"
 #include "GameLogic.h"
 #include "InterfaceLogic.h"
 
@@ -32,7 +32,7 @@ private:
     bool wasChanged;
   };
 
-  Bindings bindings;
+  Binding bindings;
   const uint64_t freq;
   const uint64_t repeatDelay;
   const uint64_t repeatInterval;

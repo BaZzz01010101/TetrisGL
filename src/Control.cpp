@@ -156,20 +156,20 @@ void Control::updateGameKeyboard()
     }
     else
     {
-      Bindings::Action action = bindings.getKeyAction(key);
+      Binding::Action action = bindings.getKeyAction(key);
 
-      if (action != Bindings::doNothing)
+      if (action != Binding::doNothing)
       {
 
         if (keyState.pressCount || keyState.repeatCount)
         for (int i = 0, cnt = keyState.pressCount + keyState.repeatCount; i < cnt; i++)
           switch (action)
         {
-          case Bindings::moveLeft:    GameLogic::shiftCurrentFigureLeft();   break;
-          case Bindings::moveRight:   GameLogic::shiftCurrentFigureRight();  break;
-          case Bindings::rotateLeft:  GameLogic::rotateCurrentFigureLeft();  break;
-          case Bindings::rotateRight: GameLogic::rotateCurrentFigureRight(); break;
-          case Bindings::fastDown:    GameLogic::fastDownCurrentFigure();    break;
+          case Binding::moveLeft:    GameLogic::shiftCurrentFigureLeft();   break;
+          case Binding::moveRight:   GameLogic::shiftCurrentFigureRight();  break;
+          case Binding::rotateLeft:  GameLogic::rotateCurrentFigureLeft();  break;
+          case Binding::rotateRight: GameLogic::rotateCurrentFigureRight(); break;
+          case Binding::fastDown:    GameLogic::fastDownCurrentFigure();    break;
           default: break;
         }
 
@@ -177,8 +177,8 @@ void Control::updateGameKeyboard()
         for (int i = 0, cnt = keyState.pressCount; i < cnt; i++)
           switch (action)
         {
-          case Bindings::dropDown: GameLogic::dropCurrentFigure(); break;
-          case Bindings::swapHold: GameLogic::holdCurrentFigure(); break;
+          case Binding::dropDown: GameLogic::dropCurrentFigure(); break;
+          case Binding::swapHold: GameLogic::holdCurrentFigure(); break;
           default: break;
         }
       }

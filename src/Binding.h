@@ -2,13 +2,13 @@
 
 #include "Keys.h"
 
-class Bindings
+class Binding
 {
 public:
   enum Action { doNothing = -1, moveLeft, moveRight, rotateLeft, rotateRight, fastDown, dropDown, swapHold, ACTION_COUNT };
 
-  Bindings();
-  ~Bindings();
+  Binding();
+  ~Binding();
 
   void setDefault();
   void setKeyBinding(Key key, Action action);
