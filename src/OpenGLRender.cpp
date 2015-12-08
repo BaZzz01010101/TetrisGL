@@ -495,8 +495,7 @@ void OpenGLRender::buildBackground()
     float fx1 = float(abs(xTess - 2 * (x + 1))) / xTess;
     float fy1 = float(y + 1) / yTess;
 
-    //TODO rename 'light', 'lightColor' and 'darkColor'
-    float light[4] =
+    float bright[4] =
     {
       1.0f - sqrtf(fx0 * fx0 + fy0 * fy0) / M_SQRT2,
       1.0f - sqrtf(fx0 * fx0 + fy1 * fy1) / M_SQRT2,
@@ -504,15 +503,15 @@ void OpenGLRender::buildBackground()
       1.0f - sqrtf(fx1 * fx1 + fy1 * fy1) / M_SQRT2,
     };
 
-    const glm::vec3 & lightColor = Palette::gameBackgroundInner;
-    const glm::vec3 & darkColor = Palette::gameBackgroundOuter;
+    const glm::vec3 & innerColor = Palette::gameBackgroundInner;
+    const glm::vec3 & outerColor = Palette::gameBackgroundOuter;
 
     glm::vec3 col[4] =
     {
-      darkColor + (lightColor - darkColor) * light[0],
-      darkColor + (lightColor - darkColor) * light[1],
-      darkColor + (lightColor - darkColor) * light[2],
-      darkColor + (lightColor - darkColor) * light[3],
+      outerColor + (innerColor - outerColor) * bright[0],
+      outerColor + (innerColor - outerColor) * bright[1],
+      outerColor + (innerColor - outerColor) * bright[2],
+      outerColor + (innerColor - outerColor) * bright[3],
     };
 
     addVertex(origin + verts[0], uv[0], Globals::backgroundTexIndex, col[0], 1.0f);
@@ -551,8 +550,7 @@ void OpenGLRender::buildBackground()
       const float fx1 = float(abs(xTess - 2 * (x + 1))) / xTess;
       const float fy1 = float(abs(xTess / 4 - (y + 1))) / yTess;
 
-      //TODO rename 'light'
-      float light[4] =
+      float bright[4] =
       {
         sqrtf(fx0 * fx0 + fy0 * fy0) / M_SQRT2,
         sqrtf(fx0 * fx0 + fy1 * fy1) / M_SQRT2,
@@ -577,21 +575,20 @@ void OpenGLRender::buildBackground()
       const float gDiff = (float)M_PI / 3.0f;
       const float bDiff = 2.0f * (float)M_PI / 3.0f;
 
-      //TODO rename lightColor and darkColor
-      glm::vec3 lightColor(rMin + (rMax - rMin) * abs(sin(a)),
+      glm::vec3 outerColor(rMin + (rMax - rMin) * abs(sin(a)),
         gMin + (gMax - gMin) * abs(sin(a + gDiff)),
         bMin + (bMax - bMin) * abs(sin(a + bDiff)));
 
-      glm::vec3 darkColor(darkMul * (rMin + (rMax - rMin) * abs(sin(a + darkDiff))),
+      glm::vec3 innerColor(darkMul * (rMin + (rMax - rMin) * abs(sin(a + darkDiff))),
         darkMul * (gMin + (gMax - gMin) * abs(sin(a + gDiff + darkDiff))),
         darkMul * (bMin + (bMax - bMin) * abs(sin(a + bDiff + darkDiff))));
 
       glm::vec3 col[4] =
       {
-        darkColor + (lightColor - darkColor) * light[0],
-        darkColor + (lightColor - darkColor) * light[1],
-        darkColor + (lightColor - darkColor) * light[2],
-        darkColor + (lightColor - darkColor) * light[3],
+        innerColor + (outerColor - innerColor) * bright[0],
+        innerColor + (outerColor - innerColor) * bright[1],
+        innerColor + (outerColor - innerColor) * bright[2],
+        innerColor + (outerColor - innerColor) * bright[3],
       };
 
       glm::vec2 uv(0.5f, 0.5f);
@@ -1662,9 +1659,8 @@ void OpenGLRender::buildRowFlashes()
   if (!glassLayout)
     return;
 
-  // TODO change 'left' and 'top' to 'glassLeft' and 'glassTop'
-  const float left = glassLayout->getGlobalLeft();
-  const float top = glassLayout->getGlobalTop();
+  const float glassLeft = glassLayout->getGlobalLeft();
+  const float glassTop = glassLayout->getGlobalTop();
   const float scale = glassLayout->width / GameLogic::glassWidth;
   const float pixSize = Globals::mainArrayTexturePixelSize;
 
@@ -1678,8 +1674,8 @@ void OpenGLRender::buildRowFlashes()
   for (GameLogic::DeletedRowsIterator delRowIt = GameLogic::getDeletedRowsBegin(), end = GameLogic::getDeletedRowsEnd(); delRowIt != end; ++delRowIt)
   {
     int row = *delRowIt;
-    float flashLeft = left - scale * dx;
-    float flashTop = top + scale * (dy - row);
+    float flashLeft = glassLeft - scale * dx;
+    float flashTop = glassTop + scale * (dy - row);
     float flashWidth = scale * (GameLogic::glassWidth + 2.0f * dx);
     float flashHeight = scale * (1.0f + 2.0f * dy);
     buildTexturedRect(flashLeft, flashTop, flashWidth, flashHeight, Globals::rowFlashTexIndex, flashColor, 0.0f);
@@ -1725,9 +1721,9 @@ void OpenGLRender::buildRowFlashes()
 
       glm::vec2 verts[3] =
       {
-        { left + scale * ltX, top - scale * ltY },
-        { left + scale * (gapX + rayEndDX), top - scale * (gapY1 + rayEndDY1) },
-        { left + scale * (gapX + rayEndDX), top - scale * (gapY2 + rayEndDY2) },
+        { glassLeft + scale * ltX, glassTop - scale * ltY },
+        { glassLeft + scale * (gapX + rayEndDX), glassTop - scale * (gapY1 + rayEndDY1) },
+        { glassLeft + scale * (gapX + rayEndDX), glassTop - scale * (gapY2 + rayEndDY2) },
       };
 
       addVertex(verts[0], uv[0], Globals::rowShineRayTexIndex, colors0, 0.0f);
@@ -1736,8 +1732,8 @@ void OpenGLRender::buildRowFlashes()
     }
 
     float shineSize = 3.5f;
-    float shineLeft = left + scale * ltX - 0.5f * shineSize;
-    float shineTop = top - scale * ltY + 0.5f * shineSize;
+    float shineLeft = glassLeft + scale * ltX - 0.5f * shineSize;
+    float shineTop = glassTop - scale * ltY + 0.5f * shineSize;
     const glm::vec3 shineColor(0.1f * sin(shineProgress * (float)M_PI) * Palette::deletedRowShineBright);
 
     buildTexturedRect(shineLeft, shineTop, shineSize, shineSize, Globals::rowShineLightTexIndex, shineColor, 0.0f);
