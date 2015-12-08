@@ -1,6 +1,6 @@
 #pragma once
 #include "Keys.h"
-#include "Actions.h"
+#include "Bindings.h"
 #include "GameLogic.h"
 #include "InterfaceLogic.h"
 

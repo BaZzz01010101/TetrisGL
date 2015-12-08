@@ -59,7 +59,6 @@
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level3</WarningLevel>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level3</WarningLevel>
     </ClCompile>
-    <ClCompile Include="..\..\src\Actions.cpp" />
     <ClCompile Include="..\..\src\Application.cpp" />
     <ClCompile Include="..\..\src\Cell.cpp" />
     <ClCompile Include="..\..\src\Bindings.cpp" />
@@ -102,7 +101,6 @@
     <ClInclude Include="..\..\src\3rdParty\SOIL2\stbi_pvr_c.h" />
     <ClInclude Include="..\..\src\3rdParty\SOIL2\stb_image.h" />
     <ClInclude Include="..\..\src\3rdParty\SOIL2\stb_image_write.h" />
-    <ClInclude Include="..\..\src\Actions.h" />
     <ClInclude Include="..\..\src\Application.h" />
     <ClInclude Include="..\..\src\Cell.h" />
     <ClInclude Include="..\..\src\Bindings.h" />

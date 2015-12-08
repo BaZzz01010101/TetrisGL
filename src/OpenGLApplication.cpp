@@ -296,5 +296,5 @@ void OpenGLApplication::initGlfwKeyMap()
   glfwKeyMap[GLFW_KEY_RIGHT_SUPER] = KB_RIGHT_SUPER;
   glfwKeyMap[GLFW_KEY_MENU] = KB_MENU;
 
-  glfwKeyMap[GLFW_MOUSE_BUTTON_LEFT] = MOUSE_LEFT;
+  //glfwKeyMap[GLFW_MOUSE_BUTTON_LEFT] = MOUSE_LEFT;
 }
