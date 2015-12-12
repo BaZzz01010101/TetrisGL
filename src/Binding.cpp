@@ -61,3 +61,34 @@ const char * Binding::getActionName(Action action)
 {
   return actionNames[action];
 }
+
+Binding::Action operator++(Binding::Action & action)
+{
+  action = action + 1;
+
+  if (action > KEY_COUNT)
+    action = Binding::ACTION_COUNT;
+
+  return action;
+}
+
+Binding::Action operator++(Binding::Action & action, int)
+{
+  Binding::Action prevAction = action;
+  action = action + 1;
+
+  if (action > Binding::ACTION_COUNT)
+    action = Binding::doNothing + 1;
+
+  return prevAction;
+}
+
+Binding::Action operator+(Binding::Action action, int value)
+{
+  action = static_cast<Binding::Action>((int)action + value);
+
+  if (action > KEY_COUNT)
+    action = static_cast<Binding::Action>(action % Binding::ACTION_COUNT);
+
+  return action;
+}
