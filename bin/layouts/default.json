@@ -82,7 +82,7 @@
 		"SettingsProgressBarWidth" : 0.7,
 		"SettingsProgressBarOuterGap" : 0.006,
 		"SettingsProgressBarBorder" : 0.005,
-		"SettingsProgressBarInnerGap" : 0.001
+		"SettingsProgressBarInnerGap" : 0.002
 	}
 
 }

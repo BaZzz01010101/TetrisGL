@@ -9,7 +9,11 @@ SettingsLogic::SettingsLogic() :
   changed(false),
   state(stHidden),
   result(resNone),
-  transitionProgress(0.0f)
+  transitionProgress(0.0f),
+  soundVolume(0.66f),
+  musicVolume(0.75f),
+  selectedControl(ctrlSoundVolume),
+  selectedAction(Binding::doNothing)
 {
 }
 

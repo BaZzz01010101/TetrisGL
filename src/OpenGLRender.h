@@ -58,6 +58,7 @@ private:
   void rebuildMesh();
   void drawMesh();
   void buildRect(float left, float top, float width, float height, const glm::vec3 & color, float alpha);
+  void buildSmoothRect(float left, float top, float width, float height, float blur, const glm::vec3 & color, float alpha);
   void buildTexturedRect(float left, float top, float width, float height, int texIndex, const glm::vec3 & color, float alpha);
   void buildVertGradientRect(float left, float top, float width, float height, const glm::vec3 & topColor, float topAlpha, const glm::vec3 & bottomColor, float bottomAlpha);
   void buildLine(float x0, float y0, float x1, float y1, float width, const glm::vec3 & color, float alpha);

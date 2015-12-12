@@ -229,6 +229,10 @@ void OpenGLRender::update()
 
 void OpenGLRender::rebuildMesh()
 {
+  //TODO remove this realtime loading
+  Layout::load("default");
+  Palette::load("default");
+
   clearVertices();
 
   buildBackground();
@@ -321,6 +325,13 @@ void OpenGLRender::buildRect(float left, float top, float width, float height, c
   addVertex(verts1, uv, Globals::emptyTexIndex, color, alpha);
   addVertex(verts2, uv, Globals::emptyTexIndex, color, alpha);
   addVertex(verts3, uv, Globals::emptyTexIndex, color, alpha);
+}
+
+void OpenGLRender::buildSmoothRect(float left, float top, float width, float height, float blur, const glm::vec3 & color, float alpha)
+{
+  const float halfBlur = 0.5f * blur;
+  buildRect(left + halfBlur, top - halfBlur, width - blur, height - blur, color, alpha);
+  buildFrameRect(left + halfBlur, top - halfBlur, width - blur, height - blur, blur, color, alpha);
 }
 
 void OpenGLRender::buildTexturedRect(float left, float top, float width, float height, int texIndex, const glm::vec3 & color, float alpha)
@@ -450,13 +461,22 @@ void OpenGLRender::buildFrameRect(float left, float top, float width, float heig
 
 void OpenGLRender::buildProgressBar(float left, float top, float width, float height, const glm::vec3 & bkColor, const glm::vec3 & fgColor, float alpha, float progress)
 {
-  const float borderWidth = 0.005f;
-  const float gapWidth = 0.008f;
+  const float borderWidth = Layout::settingsProgressBarBorder;
+  const float gapWidth = Layout::settingsProgressBarInnerGap;
+  left += 0.5f * borderWidth;
+  top -= 0.5f * borderWidth;
+  width -= borderWidth;
+  height -= borderWidth;
 
   buildRect(left, top, width, height, bkColor, alpha);
   buildFrameRect(left, top, width, height, borderWidth, fgColor, alpha);
-  buildFrameRect(left + gapWidth, top - gapWidth, (width - 2.0f * gapWidth) * progress, height - 2.0f * gapWidth, borderWidth, fgColor, alpha);
-  buildRect(left + gapWidth, top - gapWidth, (width - 2.0f * gapWidth) * progress, height - 2.0f * gapWidth, fgColor, alpha);
+
+  left += borderWidth + gapWidth;
+  top -= borderWidth + gapWidth;
+  width -= 2.0f * (borderWidth + gapWidth);
+  height -= 2.0f * (borderWidth + gapWidth);
+
+  buildSmoothRect(left, top, width * progress, height, Globals::edgeBlurWidth, fgColor, alpha);
 }
 
 void OpenGLRender::buildBackground()
@@ -1687,9 +1707,8 @@ void OpenGLRender::buildRowFlashes()
     int firstRow = *GameLogic::getDeletedRowsBegin();
     int lastRow = *(GameLogic::getDeletedRowsEnd() - 1);
 
-    // TODO give ltX ltY more understandable names
-    float ltX = (shineProgress - 0.5f) * 3.0f * GameLogic::glassWidth;
-    float ltY = 0.5f * (firstRow + lastRow + 1);
+    float lightSourceX = (shineProgress - 0.5f) * 3.0f * GameLogic::glassWidth;
+    float lightSourceY = 0.5f * (firstRow + lastRow + 1);
 
     for (GameLogic::DeletedRowGapsIterator rowGapsIt = GameLogic::getDeletedRowGapsBegin();
       rowGapsIt != GameLogic::getDeletedRowGapsEnd();
@@ -1698,9 +1717,9 @@ void OpenGLRender::buildRowFlashes()
       float gapX = float(rowGapsIt->x);
       float gapY1 = float(rowGapsIt->y);
       float gapY2 = float(rowGapsIt->y + 1);
-      float ltDX = gapX - ltX;
-      float ltDY1 = gapY1 - ltY;
-      float ltDY2 = gapY2 - ltY;
+      float ltDX = gapX - lightSourceX;
+      float ltDY1 = gapY1 - lightSourceY;
+      float ltDY2 = gapY2 - lightSourceY;
       const float leverRatio = 8.0f;
       float rayEndDX = ltDX * leverRatio;
       float rayEndDY1 = ltDY1 * leverRatio;
@@ -1715,25 +1734,24 @@ void OpenGLRender::buildRowFlashes()
 
       float alphaMul = 1.0f - 2.0f * fabs(0.5f - glm::clamp(shineProgress * shineProgress, 0.1f, 1.0f));
 
-      //TODO rename colors0 and colors1
-      glm::vec3 colors0(0.2f * alphaMul * Palette::deletedRowRaysBright);
-      glm::vec3 colors1(0.0f);
+      glm::vec3 rayBeginColor(0.2f * alphaMul * Palette::deletedRowRaysBright);
+      glm::vec3 rayEndColor(0.0f);
 
       glm::vec2 verts[3] =
       {
-        { glassLeft + scale * ltX, glassTop - scale * ltY },
+        { glassLeft + scale * lightSourceX, glassTop - scale * lightSourceY },
         { glassLeft + scale * (gapX + rayEndDX), glassTop - scale * (gapY1 + rayEndDY1) },
         { glassLeft + scale * (gapX + rayEndDX), glassTop - scale * (gapY2 + rayEndDY2) },
       };
 
-      addVertex(verts[0], uv[0], Globals::rowShineRayTexIndex, colors0, 0.0f);
-      addVertex(verts[1], uv[1], Globals::rowShineRayTexIndex, colors1, 0.0f);
-      addVertex(verts[2], uv[2], Globals::rowShineRayTexIndex, colors1, 0.0f);
+      addVertex(verts[0], uv[0], Globals::rowShineRayTexIndex, rayBeginColor, 0.0f);
+      addVertex(verts[1], uv[1], Globals::rowShineRayTexIndex, rayEndColor, 0.0f);
+      addVertex(verts[2], uv[2], Globals::rowShineRayTexIndex, rayEndColor, 0.0f);
     }
 
     float shineSize = 3.5f;
-    float shineLeft = glassLeft + scale * ltX - 0.5f * shineSize;
-    float shineTop = glassTop - scale * ltY + 0.5f * shineSize;
+    float shineLeft = glassLeft + scale * lightSourceX - 0.5f * shineSize;
+    float shineTop = glassTop - scale * lightSourceY + 0.5f * shineSize;
     const glm::vec3 shineColor(0.1f * sin(shineProgress * (float)M_PI) * Palette::deletedRowShineBright);
 
     buildTexturedRect(shineLeft, shineTop, shineSize, shineSize, Globals::rowShineLightTexIndex, shineColor, 0.0f);
@@ -1921,6 +1939,7 @@ void OpenGLRender::buildMenu()
 
   if (menuLogic && menuLayout)
   {
+    //TODO use Layout class to get background rect
     buildRect(-1.0f, 1.0f, 2.0f, 2.0f, glm::vec3(0.0f), 0.75f * InterfaceLogic::menuShadeProgress);
 
     for (int row = 0, cnt = menuLogic->rowCount; row < cnt; row++)
@@ -2091,8 +2110,168 @@ void OpenGLRender::buildTextMesh(float left, float top, float width, float heigh
 
 void OpenGLRender::buildSettings()
 {
-  //if (InterfaceLogic::state != InterfaceLogic::stSettings)
-    //return;
+  if (InterfaceLogic::state != InterfaceLogic::stSettings)
+    return;
+
+  const float backgroundLeft = Layout::settingsLayout.getGlobalLeft();
+  const float backgroundTop = Layout::settingsLayout.getGlobalTop();
+  const float backgroundWidth = Layout::settingsLayout.width;
+  const float backgroundHeight = Layout::settingsLayout.height;
+  buildRect(backgroundLeft, backgroundTop, backgroundWidth, backgroundHeight, glm::vec3(0.0f), Palette::backgroundShadeAlpha);
+
+  LayoutObject * settingsWindowLayout = Layout::settingsLayout.getChild("SettingsWindow");
+
+  if (settingsWindowLayout)
+  {
+    const float opProgress = 1.0f - InterfaceLogic::settingsLogic.transitionProgress;
+    const float sqOpProgress = opProgress * opProgress;
+    const float fullSettingsWidth = settingsWindowLayout->width + Layout::settingsGlowWidth;
+    const float dx = -sqOpProgress * fullSettingsWidth;
+
+    const float left = settingsWindowLayout->getGlobalLeft() + dx;
+    const float top = settingsWindowLayout->getGlobalTop();
+    const float width = settingsWindowLayout->width;
+    const float height = settingsWindowLayout->height;
+    buildSidePanel(left, top, width, height, Layout::settingsCornerSize, Layout::settingsGlowWidth, Palette::settingsBackgroundTop, Palette::settingsBackgroundBottom, Palette::settingsGlow);
+
+    LayoutObject * settingTitleShadowLayout = settingsWindowLayout->getChild("SettingsTitleShadow");
+
+    if (settingTitleShadowLayout)
+    {
+      const float left = settingTitleShadowLayout->getGlobalLeft() + dx;
+      const float top = settingTitleShadowLayout->getGlobalTop();
+      const float width = settingTitleShadowLayout->width;
+      const float height = settingTitleShadowLayout->height;
+      buildTextMesh(left, top, width, height, "SETTINGS", Globals::midFontSize, Layout::settingsTitleHeight, glm::vec3(0.0f), Palette::settingsTitleShadowAlpha, haLeft, vaTop);
+    }
+
+    LayoutObject * settingTitleLayout = settingsWindowLayout->getChild("SettingsTitle");
+
+    if (settingTitleLayout)
+    {
+      const float left = settingTitleLayout->getGlobalLeft() + dx;
+      const float top = settingTitleLayout->getGlobalTop();
+      const float width = settingTitleLayout->width;
+      const float height = settingTitleLayout->height;
+      buildTextMesh(left, top, width, height, "SETTINGS", Globals::midFontSize, Layout::settingsTitleHeight, Palette::settingsTitleText, 1.0f, haLeft, vaTop);
+    }
+
+    LayoutObject * settingPanelLayout = settingsWindowLayout->getChild("SettingsPanel");
+
+    if (settingPanelLayout)
+    {
+      const float left = settingPanelLayout->getGlobalLeft() + dx;
+      const float top = settingPanelLayout->getGlobalTop();
+      const float width = settingPanelLayout->width;
+      const float height = settingPanelLayout->height;
+      buildVertGradientRect(left, top, width, height, Palette::settingsPanelBackgroundTop, 1.0f, Palette::settingsPanelBackgroundBottom, 1.0f);
+      buildFrameRect(left, top, width, height, Layout::settingsPanelBorderWidth, Palette::settingsPanelBorder, 1.0f);
+
+      LayoutObject * volumeTitleLayout = settingPanelLayout->getChild("VolumeTitle");
+
+      if (volumeTitleLayout)
+      {
+        const float left = volumeTitleLayout->getGlobalLeft() + dx;
+        const float top = volumeTitleLayout->getGlobalTop();
+        const float width = volumeTitleLayout->width;
+        const float height = volumeTitleLayout->height;
+        buildTextMesh(left, top, width, height, "VOLUME", Globals::midFontSize, height, Palette::settingsPanelTitleText, 1.0f, haLeft, vaTop);
+      }
+
+      LayoutObject * soundVolumeRowLayout = settingPanelLayout->getChild("SoundVolume");
+
+      if (soundVolumeRowLayout)
+      {
+        const float left = soundVolumeRowLayout->getGlobalLeft() + dx;
+        const float top = soundVolumeRowLayout->getGlobalTop();
+        const float width = soundVolumeRowLayout->width;
+        const float height = soundVolumeRowLayout->height;
+        const glm::vec3 & bkColor = Palette::settingsInactiveRowBackground;
+        const glm::vec3 & textColor = Palette::settingsInactiveRowText;
+        buildSmoothRect(left, top, width, height, Globals::edgeBlurWidth, bkColor, 1.0);
+        buildTextMesh(left + Layout::settingsPanelRowCaptionIndent, top, width, height, "Sound", Globals::midFontSize, height, textColor, 1.0f, haLeft, vaTop);
+
+        LayoutObject * progressBarLayout = soundVolumeRowLayout->getChild("SoundProgressBar");
+
+        if (progressBarLayout)
+        {
+          const float left = progressBarLayout->getGlobalLeft() + dx;
+          const float top = progressBarLayout->getGlobalTop();
+          const float width = progressBarLayout->width;
+          const float height = progressBarLayout->height;
+          const glm::vec3 & bkColor = Palette::settingsProgressBarBackground;
+          const glm::vec3 & fgColor = Palette::settingsProgressBarForeground;
+          const float progress = InterfaceLogic::settingsLogic.soundVolume;
+          buildProgressBar(left, top, width, height, bkColor, fgColor, 1.0f, progress);
+        }
+      }
+
+      LayoutObject * musicVolumeRowLayout = settingPanelLayout->getChild("MusicVolume");
+
+      if (musicVolumeRowLayout)
+      {
+        const float left = musicVolumeRowLayout->getGlobalLeft() + dx;
+        const float top = musicVolumeRowLayout->getGlobalTop();
+        const float width = musicVolumeRowLayout->width;
+        const float height = musicVolumeRowLayout->height;
+        const glm::vec3 & bkColor = Palette::settingsInactiveRowBackground;
+        const glm::vec3 & textColor = Palette::settingsInactiveRowText;
+        buildSmoothRect(left, top, width, height, Globals::edgeBlurWidth, bkColor, 1.0);
+        buildTextMesh(left + Layout::settingsPanelRowCaptionIndent, top, width, height, "Music", Globals::midFontSize, height, textColor, 1.0f, haLeft, vaTop);
+
+        LayoutObject * progressBarLayout = musicVolumeRowLayout->getChild("MusicProgressBar");
+
+        if (progressBarLayout)
+        {
+          const float left = progressBarLayout->getGlobalLeft() + dx;
+          const float top = progressBarLayout->getGlobalTop();
+          const float width = progressBarLayout->width;
+          const float height = progressBarLayout->height;
+          const glm::vec3 & bkColor = Palette::settingsProgressBarBackground;
+          const glm::vec3 & fgColor = Palette::settingsProgressBarForeground;
+          const float progress = InterfaceLogic::settingsLogic.musicVolume;
+          buildProgressBar(left, top, width, height, bkColor, fgColor, 1.0f, progress);
+        }
+      }
+
+      LayoutObject * keyBindingTitleLayout = settingPanelLayout->getChild("KeyBindingTitle");
+
+      if (keyBindingTitleLayout)
+      {
+        const float left = keyBindingTitleLayout->getGlobalLeft() + dx;
+        const float top = keyBindingTitleLayout->getGlobalTop();
+        const float width = keyBindingTitleLayout->width;
+        const float height = keyBindingTitleLayout->height;
+        buildTextMesh(left, top, width, height, "KEY BINDING", Globals::midFontSize, height, Palette::settingsPanelTitleText, 1.0f, haLeft, vaTop);
+      }
+
+      LayoutObject * keyBindingGridLayout = settingPanelLayout->getChild("KeyBindingGrid");
+
+      for (int row = 0, count = keyBindingGridLayout->getRowCount(); row < count; row++)
+      {
+        float left0 = keyBindingGridLayout->getColumnGlobalLeft(0) + dx;
+        const float width0 = keyBindingGridLayout->getColumnWidth(0);
+        const float left1 = keyBindingGridLayout->getColumnGlobalLeft(1) + dx;
+        const float width1 = keyBindingGridLayout->getColumnWidth(1);
+        const float top = keyBindingGridLayout->getRowGlobalTop(row);
+        const float height = keyBindingGridLayout->getRowHeight(row);
+        Binding::Action action = static_cast<Binding::Action>(row);
+        const char * actionName = Binding::getActionName(action);
+        Key key = Binding::getActionKey(action);
+        const char * keyName = Keys::getName(key);
+        const glm::vec3 & bkColor = Palette::settingsInactiveRowBackground;
+        const glm::vec3 & textColor = Palette::settingsInactiveRowText;
+        buildSmoothRect(left0, top, width0, height, Globals::edgeBlurWidth, bkColor, 1.0);
+        buildSmoothRect(left1, top, width1, height, Globals::edgeBlurWidth, bkColor, 1.0);
+        left0 += Layout::settingsPanelRowCaptionIndent;
+        buildTextMesh(left0, top, width0, height, actionName, Globals::midFontSize, Layout::settingsPanelRowCaptionHeight, textColor, 1.0f, haLeft, vaCenter);
+        buildTextMesh(left1, top, width1, height, keyName, Globals::midFontSize, Layout::settingsPanelRowCaptionHeight, textColor, 1.0f, haCenter, vaCenter);
+      }
+
+
+    }
+  }
+
 
   //Globals::settingsWidth = float(0.75f * Globals::gameBkSize.x + 0.5f * sin(2 * M_PI * glm::fract(Time::timer * 0.25f)));
   //Globals::settingsHeight = float(0.5f * Globals::gameBkSize.y + 0.2f * cos(2 * M_PI * glm::fract(Time::timer * 0.25f)));
