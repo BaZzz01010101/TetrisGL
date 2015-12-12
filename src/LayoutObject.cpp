@@ -19,6 +19,8 @@ LayoutObject::~LayoutObject()
 void LayoutObject::clear()
 {
   childList.clear();
+  rows.clear();
+  columns.clear();
 }
 
 LayoutObject & LayoutObject::addChild(const char * name, float left, float top, float width, float height)
