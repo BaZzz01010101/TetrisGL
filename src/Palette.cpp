@@ -3,26 +3,26 @@
 #include "Palette.h"
 #include "Crosy.h"
 
-glm::vec3 Palette::gameBackgroundOuter = glm::vec3(0.05f, 0.1f, 0.2f);
-glm::vec3 Palette::gameBackgroundInner = glm::vec3(0.3f, 0.6f, 1.0f);
-glm::vec3 Palette::glassBackgroundMin = glm::vec3(0.1f, 0.1f, 0.2f);
-glm::vec3 Palette::glassBackgroundMax = glm::vec3(0.3f, 0.3f, 0.5f);
-glm::vec3 Palette::scoreBarBackground = glm::vec3(0.0f, 0.0f, 0.0f);
+glm::vec3 Palette::gameBackgroundOuter(0.05f, 0.1f, 0.2f);
+glm::vec3 Palette::gameBackgroundInner(0.3f, 0.6f, 1.0f);
+glm::vec3 Palette::glassBackgroundMin(0.1f, 0.1f, 0.2f);
+glm::vec3 Palette::glassBackgroundMax(0.3f, 0.3f, 0.5f);
+glm::vec3 Palette::scoreBarBackground(0.0f, 0.0f, 0.0f);
 float Palette::scoreBarBackgroundAlpha = 0.6f;
-glm::vec3 Palette::scoreBarMenuButtonBackground = glm::vec3(0.3f, 0.6f, 0.9f);
-glm::vec3 Palette::scoreBarText = glm::vec3(1.0f, 1.0f, 1.0f);
-glm::vec3 Palette::scoreBarMenuButtonText = glm::vec3(1.0f, 1.0f, 1.0f);
-glm::vec3 Palette::holdCaptionText = glm::vec3(1.0f, 1.0f, 1.0f);
-glm::vec3 Palette::holdEmptyPanel = glm::vec3(0.5f, 0.5f, 0.5f);
-glm::vec3 Palette::nextCaptionText = glm::vec3(1.0f, 1.0f, 1.0f);
-glm::vec3 Palette::nextEmptyPanel = glm::vec3(0.5f, 0.5f, 0.5f);
-glm::vec3 Palette::levelCaptionText = glm::vec3(1.0f, 1.0f, 1.0f);
-glm::vec3 Palette::levelPanelBackground = glm::vec3(0.2f, 0.45f, 0.8f);
-glm::vec3 Palette::levelPanelText = glm::vec3(1.0f, 1.0f, 1.0f);
-glm::vec3 Palette::goalCaptionText = glm::vec3(1.0f, 1.0f, 1.0f);
-glm::vec3 Palette::goalPanelBackground = glm::vec3(0.2f, 0.45f, 0.8f);
-glm::vec3 Palette::goalPanelText = glm::vec3(1.0f, 1.0f, 1.0f);
-glm::vec3 Palette::figureShadow = glm::vec3(0.0f, 0.0f, 0.0f);
+glm::vec3 Palette::scoreBarMenuButtonBackground(0.3f, 0.6f, 0.9f);
+glm::vec3 Palette::scoreBarText(1.0f, 1.0f, 1.0f);
+glm::vec3 Palette::scoreBarMenuButtonText(1.0f, 1.0f, 1.0f);
+glm::vec3 Palette::holdCaptionText(1.0f, 1.0f, 1.0f);
+glm::vec3 Palette::holdEmptyPanel(0.5f, 0.5f, 0.5f);
+glm::vec3 Palette::nextCaptionText(1.0f, 1.0f, 1.0f);
+glm::vec3 Palette::nextEmptyPanel(0.5f, 0.5f, 0.5f);
+glm::vec3 Palette::levelCaptionText(1.0f, 1.0f, 1.0f);
+glm::vec3 Palette::levelPanelBackground(0.2f, 0.45f, 0.8f);
+glm::vec3 Palette::levelPanelText(1.0f, 1.0f, 1.0f);
+glm::vec3 Palette::goalCaptionText(1.0f, 1.0f, 1.0f);
+glm::vec3 Palette::goalPanelBackground(0.2f, 0.45f, 0.8f);
+glm::vec3 Palette::goalPanelText(1.0f, 1.0f, 1.0f);
+glm::vec3 Palette::figureShadow(0.0f, 0.0f, 0.0f);
 
 glm::vec3 Palette::cellColorArray[Cell::Color::COLOR_COUNT] =
 {
@@ -35,15 +35,34 @@ glm::vec3 Palette::cellColorArray[Cell::Color::COLOR_COUNT] =
   { 0.4f, 0.1f, 0.8f },
 };
 
-glm::vec3 Palette::menuNormalRowBackgroundTop = glm::vec3(0.4f, 0.7f, 1.2f);
-glm::vec3 Palette::menuNormalRowBackgroundBottom = glm::vec3(0.04f, 0.07f, 0.12f);
-glm::vec3 Palette::menuSelectedRowBackgroundTop = glm::vec3(2.0f, 1.9f, 1.2f);
-glm::vec3 Palette::menuSelectedRowBackgroundBottom = glm::vec3(0.2f, 0.19f, 0.12f);
-glm::vec3 Palette::menuNormalRowText = glm::vec3(0.4f, 0.7f, 1.0f);
-glm::vec3 Palette::menuSelectedRowText = glm::vec3(1.0f, 0.9f, 0.4f);
-glm::vec3 Palette::menuNormalRowGlow = glm::vec3(0.4f, 0.7f, 1.2f);
-glm::vec3 Palette::menuSelectedRowGlow = glm::vec3(2.0f, 1.9f, 1.2);
+glm::vec3 Palette::menuNormalRowBackgroundTop(0.4f, 0.7f, 1.2f);
+glm::vec3 Palette::menuNormalRowBackgroundBottom(0.04f, 0.07f, 0.12f);
+glm::vec3 Palette::menuSelectedRowBackgroundTop(2.0f, 1.9f, 1.2f);
+glm::vec3 Palette::menuSelectedRowBackgroundBottom(0.2f, 0.19f, 0.12f);
+glm::vec3 Palette::menuNormalRowText(0.4f, 0.7f, 1.0f);
+glm::vec3 Palette::menuSelectedRowText(1.0f, 0.9f, 0.4f);
+glm::vec3 Palette::menuNormalRowGlow(0.4f, 0.7f, 1.2f);
+glm::vec3 Palette::menuSelectedRowGlow(2.0f, 1.9f, 1.2);
 
+glm::vec3 Palette::settingsBackgroundTop(0.4f, 0.7f, 1.2f);
+glm::vec3 Palette::settingsBackgroundBottom(0.04f, 0.07f, 0.12f);
+glm::vec3 Palette::settingsGlow(0.4f, 0.7f, 1.2f);
+glm::vec3 Palette::settingsTitleText(1.0f, 0.9f, 0.4f);
+float Palette::settingsTitleShadowAlpha = 0.5f;
+glm::vec3 Palette::settingsPanelBackgroundTop(0.04f, 0.14f, 0.24f);
+glm::vec3 Palette::settingsPanelBackgroundBottom(0.01f, 0.035f, 0.0625f);
+glm::vec3 Palette::settingsPanelBorder(0.5f, 0.45f, 0.2f);
+glm::vec3 Palette::settingsPanelTitleText(0.65f, 0.65f, 0.65f);
+glm::vec3 Palette::settingsActiveRowBackground(0.75f, 0.75f, 0.75f);
+glm::vec3 Palette::settingsInactiveRowBackground(0.25f, 0.25f, 0.25f);
+glm::vec3 Palette::settingsMouseoverRowBackground(0.35f, 0.35f, 0.35f);
+glm::vec3 Palette::settingsActiveRowText(0.25f, 0.25f, 0.25f);
+glm::vec3 Palette::settingsInactiveRowText(0.75f, 0.75f, 0.75f);
+glm::vec3 Palette::settingsMouseoverRowText(0.75f, 0.75f, 0.75f);
+glm::vec3 Palette::settingsProgressBarForeground(0.25f, 0.25f, 0.25f);
+glm::vec3 Palette::settingsProgressBarBackground(1.0f, 1.0f, 1.0f);
+
+float Palette::backgroundShadeAlpha = 0.75f;
 float Palette::figureGlowOuterBright = 0.01f;
 float Palette::figureGlowInnerBright = 0.25f;
 float Palette::deletedRowFlashBright = 1.0f;
@@ -100,13 +119,31 @@ void Palette::load(const char * name)
   loadValue(doc, "MenuNormalRowGlow", &menuNormalRowGlow);
   loadValue(doc, "MenuSelectedRowGlow", &menuSelectedRowGlow);
 
+  loadValue(doc, "SettingsBackgroundTop", &settingsBackgroundTop);
+  loadValue(doc, "SettingsBackgroundBottom", &settingsBackgroundBottom);
+  loadValue(doc, "SettingsGlow", &settingsGlow);
+  loadValue(doc, "SettingsTitleText", &settingsTitleText);
+  loadValue(doc, "SettingsTitleShadowAlpha", &settingsTitleShadowAlpha);
+  loadValue(doc, "SettingsPanelBackgroundTop", &settingsPanelBackgroundTop);
+  loadValue(doc, "SettingsPanelBackgroundBottom", &settingsPanelBackgroundBottom);
+  loadValue(doc, "SettingsPanelBorder", &settingsPanelBorder);
+  loadValue(doc, "SettingsPanelTitleText", &settingsPanelTitleText);
+  loadValue(doc, "SettingsActiveRowBackground", &settingsActiveRowBackground);
+  loadValue(doc, "SettingsInactiveRowBackground", &settingsInactiveRowBackground);
+  loadValue(doc, "SettingsMouseoverRowBackground", &settingsMouseoverRowBackground);
+  loadValue(doc, "SettingsActiveRowText", &settingsActiveRowText);
+  loadValue(doc, "SettingsInactiveRowText", &settingsInactiveRowText);
+  loadValue(doc, "SettingsMouseoverRowText", &settingsMouseoverRowText);
+  loadValue(doc, "SettingsProgressBarForeground", &settingsProgressBarForeground);
+  loadValue(doc, "SettingsProgressBarBackground", &settingsProgressBarBackground);
+  
+  loadValue(doc, "BackgroundShadeAlpha", &backgroundShadeAlpha);
   loadValue(doc, "FigureGlowOuterBright", &figureGlowOuterBright);
   loadValue(doc, "FigureGlowInnerBright", &figureGlowInnerBright);
   loadValue(doc, "DeletedRowFlashBright", &deletedRowFlashBright);
   loadValue(doc, "DeletedRowRaysBright", &deletedRowRaysBright);
   loadValue(doc, "DeletedRowShineBright", &deletedRowShineBright);
   loadValue(doc, "GlassBackgroundInnerBright", &glassBackgroundInnerBright);
-
 
 }
 

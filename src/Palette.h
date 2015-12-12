@@ -45,6 +45,25 @@ public:
   static glm::vec3 menuNormalRowGlow;
   static glm::vec3 menuSelectedRowGlow;
 
+  static glm::vec3 settingsBackgroundTop;
+  static glm::vec3 settingsBackgroundBottom;
+  static glm::vec3 settingsGlow;
+  static glm::vec3 settingsTitleText;
+  static float settingsTitleShadowAlpha;
+  static glm::vec3 settingsPanelBackgroundTop;
+  static glm::vec3 settingsPanelBackgroundBottom;
+  static glm::vec3 settingsPanelBorder;
+  static glm::vec3 settingsPanelTitleText;
+  static glm::vec3 settingsActiveRowBackground;
+  static glm::vec3 settingsInactiveRowBackground;
+  static glm::vec3 settingsMouseoverRowBackground;
+  static glm::vec3 settingsActiveRowText;
+  static glm::vec3 settingsInactiveRowText;
+  static glm::vec3 settingsMouseoverRowText;
+  static glm::vec3 settingsProgressBarForeground;
+  static glm::vec3 settingsProgressBarBackground;
+  
+  static float backgroundShadeAlpha;
   static float figureGlowOuterBright;
   static float figureGlowInnerBright;
   static float deletedRowFlashBright;
