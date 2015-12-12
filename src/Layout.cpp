@@ -2,6 +2,7 @@
 
 #include "Layout.h"
 #include "InterfaceLogic.h"
+#include "Binding.h"
 #include "Crosy.h"
 
 const float Layout::screenLeft = -1.0f;
@@ -52,6 +53,44 @@ float Layout::menuRowWidth = 0.75f;
 float Layout::menuRowHeight = 0.12f;
 float Layout::menuRowInterval = 0.08f;
 
+float Layout::settingsTop = -0.5f;
+float Layout::settingsWidth = 1.25f;
+float Layout::settingsHeight = 1.0f;
+float Layout::settingsGlowWidth = 0.05f;
+float Layout::settingsCornerSize = 0.08f;
+
+float Layout::settingsTitleLeft = 0.05f;
+float Layout::settingsTitleTop = -0.08f;
+float Layout::settingsTitleHeight = 0.08f;
+float Layout::settingsTitleShadowDX = 0.01f;
+float Layout::settingsTitleShadowDY = 0.01f;
+
+float Layout::settingsPanelTitleLeft = 0.04f;
+float Layout::settingsPanelLeft = 0.05f;
+float Layout::settingsPanelTop = 0.12f;
+float Layout::settingsPanelRightGap = 0.05f;
+float Layout::settingsPanelBottomGap = 0.08f;
+float Layout::settingsPanelBorderWidth = 0.005f;
+
+float Layout::settingsBackShevronHeight = 0.05f;
+float Layout::settingsBackShevronStep = 0.04f;
+float Layout::settingsBackShevronRightGap = 0.05f;
+
+float Layout::settingsPanelTitleTopGap = 0.02f;
+float Layout::settingsPanelTitleBottomGap = 0.01f;
+float Layout::settingsPanelTitleHeight = 0.08f;
+float Layout::settingsPanelRowHorzGap = 0.01f;
+float Layout::settingsPanelRowVertGap = 0.01f;
+float Layout::settingsPanelRowHeight = 0.06f;
+float Layout::settingsPanelRowCaptionIndent = 0.01f;
+float Layout::settingsPanelRowCaptionHeight = 0.05f;
+float Layout::settingsKeyBindingCaptionWidth = 0.6f;
+
+float Layout::settingsProgressBarWidth = 0.8f;
+float Layout::settingsProgressBarOuterGap = 0.01f;
+float Layout::settingsProgressBarBorder = 0.005f;
+float Layout::settingsProgressBarInnerGap = 0.01f;
+
 LayoutObject Layout::gameLayout("Game", NULL, backgroundLeft, backgroundTop, backgroundWidth, backgroundHeight);
 LayoutObject Layout::mainMenuLayout("MainMenu", NULL, backgroundLeft, backgroundTop, backgroundWidth, backgroundHeight);
 LayoutObject Layout::inGameMenuLayout("InGameMenu", NULL, backgroundLeft, backgroundTop, backgroundWidth, backgroundHeight);
@@ -59,6 +98,7 @@ LayoutObject Layout::quitConfirmationMenuLayout("QuitConfirmationMenu", NULL, ba
 LayoutObject Layout::restartConfirmationMenuLayout("RestartConfirmationMenu", NULL, backgroundLeft, backgroundTop, backgroundWidth, backgroundHeight);
 LayoutObject Layout::exitToMainConfirmationMenuLayout("ExitToMainConfirmationMenu", NULL, backgroundLeft, backgroundTop, backgroundWidth, backgroundHeight);
 LayoutObject Layout::saveSettingsMenuLayout("SaveSettingsMenu", NULL, backgroundLeft, backgroundTop, backgroundWidth, backgroundHeight);
+LayoutObject Layout::settingsLayout("Settings", NULL, backgroundLeft, backgroundTop, backgroundWidth, backgroundHeight);
 
 void Layout::load(const char * name)
 {
@@ -134,9 +174,55 @@ void Layout::load(const char * name)
     loadValue(intrfaceSection, "MenuRowCornerSize", &menuRowCornerSize);
     loadValue(intrfaceSection, "MenuRowTextOffset", &menuRowTextOffset);
     loadValue(intrfaceSection, "MenuFontHeight", &menuFontHeight);
+
+    loadValue(intrfaceSection, "SettingsTop", &settingsTop);
+    loadValue(intrfaceSection, "SettingsWidth", &settingsWidth);
+    loadValue(intrfaceSection, "SettingsHeight", &settingsHeight);
+    loadValue(intrfaceSection, "SettingsGlowWidth", &settingsGlowWidth);
+    loadValue(intrfaceSection, "SettingsCornerSize", &settingsCornerSize);
+
+    loadValue(intrfaceSection, "SettingsTitleLeft", &settingsTitleLeft);
+    loadValue(intrfaceSection, "SettingsTitleTop", &settingsTitleTop);
+    loadValue(intrfaceSection, "SettingsTitleHeight", &settingsTitleHeight);
+    loadValue(intrfaceSection, "SettingsTitleShadowDX", &settingsTitleShadowDX);
+    loadValue(intrfaceSection, "SettingsTitleShadowDY", &settingsTitleShadowDY);
+
+    loadValue(intrfaceSection, "SettingsPanelLeft", &settingsPanelLeft);
+    loadValue(intrfaceSection, "SettingsPanelTop", &settingsPanelTop);
+    loadValue(intrfaceSection, "SettingsPanelRightGap", &settingsPanelRightGap);
+    loadValue(intrfaceSection, "SettingsPanelBottomGap", &settingsPanelBottomGap);
+    loadValue(intrfaceSection, "SettingsPanelBorderWidth", &settingsPanelBorderWidth);
+
+    loadValue(intrfaceSection, "SettingsBackShevronHeight", &settingsBackShevronHeight);
+    loadValue(intrfaceSection, "SettingsBackShevronStep", &settingsBackShevronStep);
+    loadValue(intrfaceSection, "SettingsBackShevronRightGap", &settingsBackShevronRightGap);
+
+    
+    loadValue(intrfaceSection, "SettingsPanelTitleLeft", &settingsPanelTitleLeft);
+    loadValue(intrfaceSection, "SettingsPanelTitleTopGap", &settingsPanelTitleTopGap);
+    loadValue(intrfaceSection, "SettingsPanelTitleBottomGap", &settingsPanelTitleBottomGap);
+    loadValue(intrfaceSection, "SettingsPanelTitleHeight", &settingsPanelTitleHeight);
+    loadValue(intrfaceSection, "SettingsPanelRowHorzGap", &settingsPanelRowHorzGap);
+    loadValue(intrfaceSection, "SettingsPanelRowVertGap", &settingsPanelRowVertGap);
+    loadValue(intrfaceSection, "SettingsPanelRowHeight", &settingsPanelRowHeight);
+    loadValue(intrfaceSection, "SettingsPanelRowCaptionIndent", &settingsPanelRowCaptionIndent);
+    loadValue(intrfaceSection, "SettingsPanelRowCaptionHeight", &settingsPanelRowCaptionHeight);
+    loadValue(intrfaceSection, "SettingsKeyBindingCaptionWidth", &settingsKeyBindingCaptionWidth);
+
+    loadValue(intrfaceSection, "SettingsProgressBarWidth", &settingsProgressBarWidth);
+    loadValue(intrfaceSection, "SettingsProgressBarOuterGap", &settingsProgressBarOuterGap);
+    loadValue(intrfaceSection, "SettingsProgressBarBorder", &settingsProgressBarBorder);
+    loadValue(intrfaceSection, "SettingsProgressBarInnerGap", &settingsProgressBarInnerGap);
   }
 
   gameLayout.clear();
+  mainMenuLayout.clear();
+  inGameMenuLayout.clear();
+  quitConfirmationMenuLayout.clear();
+  restartConfirmationMenuLayout.clear();
+  exitToMainConfirmationMenuLayout.clear();
+  saveSettingsMenuLayout.clear();
+  settingsLayout.clear();
 
   const float scoreBarValueLeft = scoreBarLeftGap + scoreBarCaptionWidth + scoreBarSeparatorGap;
   const float scoreBarValueWidth = backgroundWidth - scoreBarLeftGap - scoreBarCaptionWidth - scoreBarSeparatorGap - scoreBarSeparatorGap - scoreBarMenuButtonWidth - scoreBarRightGap;
@@ -188,6 +274,47 @@ void Layout::load(const char * name)
 
   for (int i = 0; i < InterfaceLogic::saveSettingsMenu.rowCount; i++)
     saveSettingsMenuLayout.addRow(i ? menuRowInterval : -menuTop, menuRowHeight);
+
+  
+  LayoutObject & settingsWindowLayout = settingsLayout.addChild("SettingsWindow", 0.0f, settingsTop, settingsWidth, settingsHeight);
+  settingsWindowLayout.addChild("SettingsTitle", settingsTitleLeft, settingsTitleTop, 0.0, settingsTitleHeight);
+  const float settingsTitleShadowLeft = settingsTitleLeft + settingsTitleShadowDX;
+  const float settingsTitleShadowTop = settingsTitleTop - settingsTitleShadowDY;
+  settingsWindowLayout.addChild("SettingsTitleShadow", settingsTitleShadowLeft, settingsTitleShadowTop, 0.0, settingsTitleHeight);
+
+  const float settingsPanelWidth = settingsWidth - settingsPanelLeft - settingsPanelRightGap;
+  const float settingsPanelHeight = settingsHeight + settingsPanelTop - settingsPanelBottomGap;
+  LayoutObject & settingsPanelLayout = settingsWindowLayout.addChild("SettingsPanel", settingsPanelLeft, settingsPanelTop, settingsPanelWidth, settingsPanelHeight);
+
+  float settingsPanelChildTop = -settingsPanelTitleTopGap;
+  const float settingsPanelRowLeft = settingsPanelRowHorzGap + 0.5f * settingsPanelBorderWidth;
+  const float settingsPanelRowWidth = settingsPanelWidth - 2.0f * settingsPanelRowHorzGap - settingsPanelBorderWidth;
+  settingsPanelLayout.addChild("VolumeTitle", settingsPanelTitleLeft, settingsPanelChildTop, settingsPanelRowWidth, settingsPanelTitleHeight);
+
+  settingsPanelChildTop -= settingsPanelTitleHeight + settingsPanelTitleBottomGap;
+  LayoutObject & soundProgressBarLayout = settingsPanelLayout.addChild("SoundVolume", settingsPanelRowLeft, settingsPanelChildTop, settingsPanelRowWidth, settingsPanelRowHeight);
+  settingsPanelChildTop -= settingsPanelRowHeight + settingsPanelRowVertGap;
+  LayoutObject & musicProgressBarLayout = settingsPanelLayout.addChild("MusicVolume", settingsPanelRowLeft, settingsPanelChildTop, settingsPanelRowWidth, settingsPanelRowHeight);
+
+  const float settingsProgressBarLeft = settingsPanelRowWidth - settingsProgressBarOuterGap - settingsProgressBarWidth;
+  const float settingsProgressBarHeight = settingsPanelRowHeight - 2.0f * settingsProgressBarOuterGap;
+  soundProgressBarLayout.addChild("SoundProgressBar", settingsProgressBarLeft, -settingsProgressBarOuterGap, settingsProgressBarWidth, settingsProgressBarHeight);
+  musicProgressBarLayout.addChild("MusicProgressBar", settingsProgressBarLeft, -settingsProgressBarOuterGap, settingsProgressBarWidth, settingsProgressBarHeight);
+
+  settingsPanelChildTop -= settingsPanelRowHeight + settingsPanelTitleTopGap;
+  settingsPanelLayout.addChild("KeyBindingTitle", settingsPanelTitleLeft, settingsPanelChildTop, settingsPanelRowWidth, settingsPanelTitleHeight);
+  
+  settingsPanelChildTop -= settingsPanelTitleHeight + settingsPanelTitleBottomGap;
+  const float keyBindingGridHeight = Binding::ACTION_COUNT * settingsPanelRowHeight + (Binding::ACTION_COUNT - 1) * settingsPanelRowVertGap;
+  LayoutObject & keyBindingGridLayout = settingsPanelLayout.addChild("KeyBindingGrid", settingsPanelRowLeft, settingsPanelChildTop, settingsPanelRowWidth, keyBindingGridHeight);
+  keyBindingGridLayout.addColumn(0.0f, settingsKeyBindingCaptionWidth);
+  keyBindingGridLayout.addColumn(settingsPanelRowHorzGap, settingsPanelRowWidth - settingsKeyBindingCaptionWidth - settingsPanelRowHorzGap);
+
+  for (Binding::Action action = Binding::doNothing + 1; action < Binding::ACTION_COUNT; action++)
+  {
+    const float topGap = (action == Binding::doNothing + 1) ? 0.0f : settingsPanelRowVertGap;
+    keyBindingGridLayout.addRow(topGap, settingsPanelRowHeight);
+  }
 }
 
 void Layout::loadValue(rapidjson::Value & source, const char * name, float * result)

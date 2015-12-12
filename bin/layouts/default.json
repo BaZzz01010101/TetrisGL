@@ -44,9 +44,45 @@
 		"MenuRowGlowWidth" : 0.03,
 		"MenuRowCornerSize" : 0.03,
 		"MenuRowTextOffset" : 0.15,
-		"MenuFontHeight" : 0.08
+		"MenuFontHeight" : 0.08,
 
-	
+		"SettingsTop" : -0.5,
+		"SettingsWidth" : 1.25,
+		"SettingsHeight" : 1.078,
+		"SettingsGlowWidth" : 0.05,
+		"SettingsCornerSize" : 0.1,
+
+		"SettingsTitleLeft" : 0.075,
+		"SettingsTitleTop" : -0.03,
+		"SettingsTitleHeight" : 0.08,
+		"SettingsTitleShadowDX" : 0.01,
+		"SettingsTitleShadowDY" : 0.01,
+
+		"SettingsPanelLeft" : 0.05,
+		"SettingsPanelTop" : -0.15,
+		"SettingsPanelRightGap" : 0.05,
+		"SettingsPanelBottomGap" : 0.08,
+		"SettingsPanelBorderWidth" : 0.005,
+
+		"SettingsBackShevronHeight" : 0.05,
+		"SettingsBackShevronStep" : 0.04,
+		"SettingsBackShevronRightGap" : 0.05,
+
+		"SettingsPanelTitleLeft" : 0.05,
+		"SettingsPanelTitleTopGap" : 0.035,
+		"SettingsPanelTitleBottomGap" : 0.015,
+		"SettingsPanelTitleHeight" : 0.05,
+		"SettingsPanelRowHorzGap" : 0.002,
+		"SettingsPanelRowVertGap" : 0.002,
+		"SettingsPanelRowHeight" : 0.07,
+		"SettingsPanelRowCaptionIndent" : 0.02,
+		"SettingsPanelRowCaptionHeight" : 0.05,
+		"SettingsKeyBindingCaptionWidth" : 0.6,
+
+		"SettingsProgressBarWidth" : 0.7,
+		"SettingsProgressBarOuterGap" : 0.006,
+		"SettingsProgressBarBorder" : 0.005,
+		"SettingsProgressBarInnerGap" : 0.001
 	}
 
 }
