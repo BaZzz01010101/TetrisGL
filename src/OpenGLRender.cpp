@@ -659,9 +659,11 @@ void OpenGLRender::buildBackground()
     const float height = scoreBarMenuButtonLayout->height;
     const float border = 0.125f * height;
     const float textHeight = 0.75f * height;
-    buildRect(left + 0.5f * border, top + 0.5f * border, width - border, height - border, Palette::scoreBarMenuButtonBackground, 1.0f);
-    buildFrameRect(left, top, width, height, border, Palette::scoreBarMenuButtonText, 1.0f);
-    buildTextMesh(left, top, width, height, "MENU", Globals::smallFontSize, textHeight, Palette::scoreBarMenuButtonText, 1.0f, haCenter, vaCenter);
+    const glm::vec3 bkColor = GameLogic::menuButtonHighlighted ? Palette::scoreBarMenuButtonHighlightedBackground : Palette::scoreBarMenuButtonBackground;
+    const glm::vec3 fgColor = GameLogic::menuButtonHighlighted ? Palette::scoreBarMenuButtonHighlightedText : Palette::scoreBarMenuButtonText;
+    buildRect(left + 0.5f * border, top + 0.5f * border, width - border, height - border, bkColor, 1.0f);
+    buildFrameRect(left, top, width, height, border, fgColor, 1.0f);
+    buildTextMesh(left, top, width, height, "MENU", Globals::smallFontSize, textHeight, fgColor, 1.0f, haCenter, vaCenter);
   }
 
   // add hold figure panel to mesh

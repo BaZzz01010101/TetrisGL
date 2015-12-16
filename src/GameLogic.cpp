@@ -15,6 +15,7 @@ int GameLogic::curLevel = 0;
 bool GameLogic::haveHold = false;
 bool GameLogic::haveFallingRows = false;
 double GameLogic::rowsDeleteTimer = -1.0;
+bool GameLogic::menuButtonHighlighted = false;
 
 Figure GameLogic::holdFigure;
 Figure GameLogic::curFigure;

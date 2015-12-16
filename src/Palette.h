@@ -20,8 +20,10 @@ public:
   static glm::vec3 scoreBarBackground;
   static float scoreBarBackgroundAlpha;
   static glm::vec3 scoreBarMenuButtonBackground;
+  static glm::vec3 scoreBarMenuButtonHighlightedBackground;
   static glm::vec3 scoreBarText;
   static glm::vec3 scoreBarMenuButtonText;
+  static glm::vec3 scoreBarMenuButtonHighlightedText;
   static glm::vec3 holdCaptionText;
   static glm::vec3 holdEmptyPanel;
   static glm::vec3 nextCaptionText;

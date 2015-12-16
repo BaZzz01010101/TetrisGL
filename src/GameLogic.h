@@ -29,6 +29,7 @@ public:
   static bool haveHold;
   static bool haveFallingRows;
   static double rowsDeleteTimer;
+  static bool menuButtonHighlighted;
 
   struct CellCoord
   {

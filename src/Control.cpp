@@ -39,6 +39,14 @@ void Control::mouseMove(float x, float y)
   mouseX = x;
   mouseY = y;
 
+  GameLogic::menuButtonHighlighted = false;
+
+  if (GameLogic::state == GameLogic::stPlaying)
+    if (LayoutObject * gameLayout = Layout::screen.getChild("Game"))
+      if (LayoutObject * mouseoverObject = gameLayout->getObjectFromPoint(mouseX, mouseY))
+        if (mouseoverObject->name == "ScoreBarMenuButton")
+          GameLogic::menuButtonHighlighted = true;
+
   if (InterfaceLogic::state != InterfaceLogic::stHidden)
   {
     int row, col;
