@@ -80,7 +80,6 @@ public:
   static int smallFontSize;
   static int midFontSize;
   static int bigFontSize;
-  static float edgeBlurWidth;
 };
 
 extern bool checkGlErrors();

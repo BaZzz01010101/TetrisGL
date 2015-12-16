@@ -12,6 +12,7 @@
 OpenGLRender::OpenGLRender() :
   figureVert(GL_VERTEX_SHADER),
   figureFrag(GL_FRAGMENT_SHADER),
+  edgeBlurWidth(0.005f),
   showWireframe(false)
 {
 }
@@ -46,10 +47,10 @@ void OpenGLRender::init(int width, int height)
 
     "void main()"
     "{"
-    "  gl_Position = vec4(vertexPos, 0, 1);"
+    "  gl_Position = vec4(vertexPos.x * 2.0 - 1.0, 1.0 - vertexPos.y * 2.0, 0, 1);"
     "  uvw = vertexUVW;"
     "  color = vertexRGBA;"
-    "  pixPos = (vertexPos + vec2(-0.5, 0.5)) * 2.0;"
+    "  pixPos = vertexPos;"
     "}");
 
   figureFrag.compileFromString(
@@ -178,6 +179,8 @@ void OpenGLRender::resize(int width, int height)
     glViewport((width - height) / 2, 0, height, height);
   else
     glViewport(int(width * (1.0f - 1.0f / gameAspect)) / 2, (height - int(width / gameAspect)) / 2, int(width / gameAspect), int(width / gameAspect));
+
+  assert(!checkGlErrors());
 
   glClearDepth(-1.0f);
   assert(!checkGlErrors());
@@ -315,8 +318,8 @@ void OpenGLRender::buildRect(float left, float top, float width, float height, c
 {
   const glm::vec2 verts0(left, top);
   const glm::vec2 verts1(left + width, top);
-  const glm::vec2 verts2(left, top - height);
-  const glm::vec2 verts3(left + width, top - height);
+  const glm::vec2 verts2(left, top + height);
+  const glm::vec2 verts3(left + width, top + height);
   const glm::vec2 uv(0.5f);
 
   addVertex(verts0, uv, Globals::emptyTexIndex, color, alpha);
@@ -330,8 +333,8 @@ void OpenGLRender::buildRect(float left, float top, float width, float height, c
 void OpenGLRender::buildSmoothRect(float left, float top, float width, float height, float blur, const glm::vec3 & color, float alpha)
 {
   const float halfBlur = 0.5f * blur;
-  buildRect(left + halfBlur, top - halfBlur, width - blur, height - blur, color, alpha);
-  buildFrameRect(left + halfBlur, top - halfBlur, width - blur, height - blur, blur, color, alpha);
+  buildRect(left + halfBlur, top + halfBlur, width - blur, height - blur, color, alpha);
+  buildFrameRect(left, top, width, height, blur, color, alpha);
 }
 
 void OpenGLRender::buildTexturedRect(float left, float top, float width, float height, int texIndex, const glm::vec3 & color, float alpha)
@@ -339,8 +342,8 @@ void OpenGLRender::buildTexturedRect(float left, float top, float width, float h
   const float pixSize = Globals::mainArrayTexturePixelSize;
   const glm::vec2 verts0(left, top);
   const glm::vec2 verts1(left + width, top);
-  const glm::vec2 verts2(left, top - height);
-  const glm::vec2 verts3(left + width, top - height);
+  const glm::vec2 verts2(left, top + height);
+  const glm::vec2 verts3(left + width, top + height);
   const glm::vec2 uv0(pixSize, pixSize);
   const glm::vec2 uv1(1.0f - pixSize, pixSize);
   const glm::vec2 uv2(pixSize, 1.0f - pixSize);
@@ -358,8 +361,8 @@ void OpenGLRender::buildVertGradientRect(float left, float top, float width, flo
 {
   glm::vec2 verts0(left, top);
   glm::vec2 verts1(left + width, top);
-  glm::vec2 verts2(left, top - height);
-  glm::vec2 verts3(left + width, top - height);
+  glm::vec2 verts2(left, top + height);
+  glm::vec2 verts3(left + width, top + height);
   const glm::vec2 uv(0.5f);
 
   addVertex(verts0, uv, Globals::emptyTexIndex, topColor, topAlpha);
@@ -420,18 +423,17 @@ void OpenGLRender::buildLine(float x0, float y0, float x1, float y1, float width
 void OpenGLRender::buildFrameRect(float left, float top, float width, float height, float borderWidth, const glm::vec3 & borderColor, float borderAlpha)
 {
   const float pixSize = Globals::mainArrayTexturePixelSize;
-  const float W_2 = 0.5f * borderWidth;
 
   glm::vec2 verts[8] =
   {
-    { left - W_2, top + W_2 },
-    { left + W_2, top - W_2 },
-    { left + width + W_2, top + W_2 },
-    { left + width - W_2, top - W_2 },
-    { left + width + W_2, top - height - W_2 },
-    { left + width - W_2, top - height + W_2 },
-    { left - W_2, top - height - W_2 },
-    { left + W_2, top - height + W_2 },
+    { left, top },
+    { left + borderWidth, top + borderWidth },
+    { left + width, top },
+    { left + width - borderWidth, top + borderWidth },
+    { left + width, top + height },
+    { left + width - borderWidth, top + height - borderWidth },
+    { left, top + height },
+    { left + borderWidth, top + height - borderWidth },
 
   };
 
@@ -463,20 +465,16 @@ void OpenGLRender::buildProgressBar(float left, float top, float width, float he
 {
   const float borderWidth = Layout::settingsProgressBarBorder;
   const float gapWidth = Layout::settingsProgressBarInnerGap;
-  left += 0.5f * borderWidth;
-  top -= 0.5f * borderWidth;
-  width -= borderWidth;
-  height -= borderWidth;
 
-  buildRect(left, top, width, height, bkColor, alpha);
+  buildRect(left + 0.5f * borderWidth, top + 0.5f * borderWidth, width - borderWidth, height - borderWidth, bkColor, alpha);
   buildFrameRect(left, top, width, height, borderWidth, fgColor, alpha);
 
   left += borderWidth + gapWidth;
-  top -= borderWidth + gapWidth;
+  top += borderWidth + gapWidth;
   width -= 2.0f * (borderWidth + gapWidth);
   height -= 2.0f * (borderWidth + gapWidth);
 
-  buildSmoothRect(left, top, width * progress, height, Globals::edgeBlurWidth, fgColor, alpha);
+  buildSmoothRect(left, top, width * progress, height, edgeBlurWidth, fgColor, alpha);
 }
 
 void OpenGLRender::buildBackground()
@@ -493,10 +491,10 @@ void OpenGLRender::buildBackground()
   {
     glm::vec2 verts[4] =
     {
-      { Layout::backgroundWidth * x / xTess, -Layout::backgroundHeight* y / yTess },
-      { Layout::backgroundWidth * x / xTess, -Layout::backgroundHeight * (y + 1) / yTess },
-      { Layout::backgroundWidth * (x + 1) / xTess, -Layout::backgroundHeight * y / yTess },
-      { Layout::backgroundWidth * (x + 1) / xTess, -Layout::backgroundHeight * (y + 1) / yTess },
+      { Layout::backgroundWidth * x / xTess, Layout::backgroundHeight * y / yTess },
+      { Layout::backgroundWidth * x / xTess, Layout::backgroundHeight * (y + 1) / yTess },
+      { Layout::backgroundWidth * (x + 1) / xTess, Layout::backgroundHeight * y / yTess },
+      { Layout::backgroundWidth * (x + 1) / xTess, Layout::backgroundHeight * (y + 1) / yTess },
     };
 
     const float tiledU = Layout::backgroundWidth / Layout::gameBkTileWidth;
@@ -541,10 +539,9 @@ void OpenGLRender::buildBackground()
     addVertex(origin + verts[2], uv[2], Globals::backgroundTexIndex, col[2], 1.0f);
     addVertex(origin + verts[3], uv[3], Globals::backgroundTexIndex, col[3], 1.0f);
   }
-
   // add glass background to the mesh
 
-  LayoutObject * glassLayout = Layout::gameLayout.getChild("Glass");
+  LayoutObject * glassLayout = Layout::screen.getChildRecursive("Glass");
 
   if (glassLayout)
   {
@@ -559,16 +556,16 @@ void OpenGLRender::buildBackground()
     {
       glm::vec2 verts[4] =
       {
-        { glassWidth * x / xTess, -glassHeight * y / yTess },
-        { glassWidth * x / xTess, -glassHeight * (y + 1) / yTess },
-        { glassWidth * (x + 1) / xTess, -glassHeight * y / yTess },
-        { glassWidth * (x + 1) / xTess, -glassHeight * (y + 1) / yTess },
+        { glassWidth * x / xTess, glassHeight * y / yTess },
+        { glassWidth * x / xTess, glassHeight * (y + 1) / yTess },
+        { glassWidth * (x + 1) / xTess, glassHeight * y / yTess },
+        { glassWidth * (x + 1) / xTess, glassHeight * (y + 1) / yTess },
       };
 
       const float fx0 = float(abs(xTess - 2 * x)) / xTess;
-      const float fy0 = float(abs(xTess / 4 - y)) / yTess;
+      const float fy0 = float(abs(yTess / 4 - y)) / yTess;
       const float fx1 = float(abs(xTess - 2 * (x + 1))) / xTess;
-      const float fy1 = float(abs(xTess / 4 - (y + 1))) / yTess;
+      const float fy1 = float(abs(yTess / 4 - (y + 1))) / yTess;
 
       float bright[4] =
       {
@@ -624,7 +621,7 @@ void OpenGLRender::buildBackground()
 
   // add score caption to the mesh
 
-  LayoutObject * scoreBarCaptionLayout = Layout::gameLayout.getChild("ScoreBarCaption");
+  LayoutObject * scoreBarCaptionLayout = Layout::screen.getChildRecursive("ScoreBarCaption");
 
   if (scoreBarCaptionLayout)
   {
@@ -638,7 +635,7 @@ void OpenGLRender::buildBackground()
 
   // add score value to the mesh
 
-  LayoutObject * scoreBarValueLayout = Layout::gameLayout.getChild("ScoreBarValue");
+  LayoutObject * scoreBarValueLayout = Layout::screen.getChildRecursive("ScoreBarValue");
 
   if (scoreBarValueLayout)
   {
@@ -652,7 +649,7 @@ void OpenGLRender::buildBackground()
 
   // add MENU button to mesh
 
-  LayoutObject * scoreBarMenuButtonLayout = Layout::gameLayout.getChild("ScoreBarMenuButton");
+  LayoutObject * scoreBarMenuButtonLayout = Layout::screen.getChildRecursive("ScoreBarMenuButton");
 
   if (scoreBarMenuButtonLayout)
   {
@@ -662,14 +659,14 @@ void OpenGLRender::buildBackground()
     const float height = scoreBarMenuButtonLayout->height;
     const float border = 0.125f * height;
     const float textHeight = 0.75f * height;
-    buildRect(left + 0.5f * border, top - 0.5f * border, width - border, height - border, Palette::scoreBarMenuButtonBackground, 1.0f);
-    buildFrameRect(left + 0.5f * border, top - 0.5f * border, width - border, height - border, border, Palette::scoreBarMenuButtonText, 1.0f);
+    buildRect(left + 0.5f * border, top + 0.5f * border, width - border, height - border, Palette::scoreBarMenuButtonBackground, 1.0f);
+    buildFrameRect(left, top, width, height, border, Palette::scoreBarMenuButtonText, 1.0f);
     buildTextMesh(left, top, width, height, "MENU", Globals::smallFontSize, textHeight, Palette::scoreBarMenuButtonText, 1.0f, haCenter, vaCenter);
   }
 
   // add hold figure panel to mesh
 
-  LayoutObject * holdPanelCaptionLayout = Layout::gameLayout.getChild("HoldPanelCaption");
+  LayoutObject * holdPanelCaptionLayout = Layout::screen.getChildRecursive("HoldPanelCaption");
 
   if (holdPanelCaptionLayout)
   {
@@ -680,7 +677,7 @@ void OpenGLRender::buildBackground()
     buildTextMesh(left, top, width, height, "HOLD", Globals::smallFontSize, height, Palette::holdCaptionText, 1.0f, haCenter, vaCenter);
   }
 
-  LayoutObject * holdPanelLayout = Layout::gameLayout.getChild("HoldPanel");
+  LayoutObject * holdPanelLayout = Layout::screen.getChildRecursive("HoldPanel");
 
   if (holdPanelLayout)
   {
@@ -695,7 +692,7 @@ void OpenGLRender::buildBackground()
 
   // add next figure panel to mesh
 
-  LayoutObject * nextPanelCaptionLayout = Layout::gameLayout.getChild("NextPanelCaption");
+  LayoutObject * nextPanelCaptionLayout = Layout::screen.getChildRecursive("NextPanelCaption");
 
   if (nextPanelCaptionLayout)
   {
@@ -706,7 +703,7 @@ void OpenGLRender::buildBackground()
     buildTextMesh(left, top, width, height, "NEXT   ", Globals::smallFontSize, height, Palette::nextCaptionText, 1.0f, haCenter, vaCenter);
   }
 
-  LayoutObject * nextPanelLayout = Layout::gameLayout.getChild("NextPanel");
+  LayoutObject * nextPanelLayout = Layout::screen.getChildRecursive("NextPanel");
 
   if (nextPanelLayout)
   {
@@ -721,7 +718,7 @@ void OpenGLRender::buildBackground()
 
   // add level panel to mesh
 
-  LayoutObject * levelPanelCaptionLayout = Layout::gameLayout.getChild("LevelPanelCaption");
+  LayoutObject * levelPanelCaptionLayout = Layout::screen.getChildRecursive("LevelPanelCaption");
 
   if (levelPanelCaptionLayout)
   {
@@ -732,7 +729,7 @@ void OpenGLRender::buildBackground()
     buildTextMesh(left, top, width, height, "LEVEL", Globals::smallFontSize, height, Palette::levelCaptionText, 1.0f, haCenter, vaCenter);
   }
 
-  LayoutObject * levelPanelLayout = Layout::gameLayout.getChild("LevelPanel");
+  LayoutObject * levelPanelLayout = Layout::screen.getChildRecursive("LevelPanel");
 
   if (levelPanelLayout)
   {
@@ -741,12 +738,12 @@ void OpenGLRender::buildBackground()
     const float width = levelPanelLayout->width;
     const float height = levelPanelLayout->height;
     buildTexturedRect(left, top, width, height, Globals::levelGoalBkTexIndex, Palette::levelPanelBackground, 1.0f);
-    buildTextMesh(left, top, width, height, std::to_string(GameLogic::curLevel).c_str(), Globals::bigFontSize, 0.11f, Palette::levelPanelText, 1.0f, haCenter, vaCenter);
+    buildTextMesh(left, top, width, height, std::to_string(GameLogic::curLevel).c_str(), Globals::bigFontSize, Layout::levelGoalTextHeight, Palette::levelPanelText, 1.0f, haCenter, vaCenter);
   }
 
   // add goal panel to mesh
 
-  LayoutObject * goalPanelCaptionLayout = Layout::gameLayout.getChild("GoalPanelCaption");
+  LayoutObject * goalPanelCaptionLayout = Layout::screen.getChildRecursive("GoalPanelCaption");
 
   if (goalPanelCaptionLayout)
   {
@@ -757,7 +754,7 @@ void OpenGLRender::buildBackground()
     buildTextMesh(left, top, width, height, "GOAL", Globals::smallFontSize, height, Palette::goalCaptionText, 1.0f, haCenter, vaCenter);
   }
 
-  LayoutObject * goalPanelLayout = Layout::gameLayout.getChild("GoalPanel");
+  LayoutObject * goalPanelLayout = Layout::screen.getChildRecursive("GoalPanel");
 
   if (goalPanelLayout)
   {
@@ -766,13 +763,13 @@ void OpenGLRender::buildBackground()
     const float width = goalPanelLayout->width;
     const float height = goalPanelLayout->height;
     buildTexturedRect(left, top, width, height, Globals::levelGoalBkTexIndex, Palette::goalPanelBackground, 1.0f);
-    buildTextMesh(left, top, width, height, std::to_string(GameLogic::curGoal).c_str(), Globals::bigFontSize, 0.11f, Palette::goalPanelText, 1.0f, haCenter, vaCenter);
+    buildTextMesh(left, top, width, height, std::to_string(GameLogic::curGoal).c_str(), Globals::bigFontSize, Layout::levelGoalTextHeight, Palette::goalPanelText, 1.0f, haCenter, vaCenter);
   }
 }
 
 void OpenGLRender::buidGlassShadow()
 {
-  LayoutObject * glassLayout = Layout::gameLayout.getChild("Glass");
+  LayoutObject * glassLayout = Layout::screen.getChildRecursive("Glass");
 
   if (!glassLayout)
     return;
@@ -789,7 +786,7 @@ void OpenGLRender::buidGlassShadow()
     glm::vec2 origin = glassPos;
     
     if (GameLogic::getRowElevation(y))
-      origin.y += scale * GameLogic::getRowCurrentElevation(y);
+      origin.y -= scale * GameLogic::getRowCurrentElevation(y);
 
     if (cell->figureId)
     {
@@ -805,10 +802,10 @@ void OpenGLRender::buidGlassShadow()
 
         glm::vec2 verts[4] =
         {
-          { x,        -y - 1.0f + pixSize },
-          { x,        -y - 1.0f - shadowWidth },
-          { x + 1.0f, -y - 1.0f + pixSize },
-          { x + 1.0f, -y - 1.0f - shadowWidth }
+          { x,        y + 1.0f - pixSize },
+          { x,        y + 1.0f + shadowWidth },
+          { x + 1.0f, y + 1.0f - pixSize },
+          { x + 1.0f, y + 1.0f + shadowWidth }
         };
 
         glm::vec2 uv[4] =
@@ -850,10 +847,10 @@ void OpenGLRender::buidGlassShadow()
 
         glm::vec2 verts[4] =
         {
-          { x + 1.0f - pixSize,     -y },
-          { x + 1.0f + shadowWidth, -y },
-          { x + 1.0f - pixSize,     -y - 1.0f },
-          { x + 1.0f + shadowWidth, -y - 1.0f }
+          { x + 1.0f - pixSize,     y },
+          { x + 1.0f + shadowWidth, y },
+          { x + 1.0f - pixSize,     y + 1.0f },
+          { x + 1.0f + shadowWidth, y + 1.0f }
         };
 
         glm::vec2 uv[4] =
@@ -865,18 +862,18 @@ void OpenGLRender::buidGlassShadow()
         };
 
         if (softTop)
-          verts[1].y -= shadowWidth;
+          verts[1].y += shadowWidth;
 
         if (topRightCell && topRightCell->figureId == cell->figureId)
         {
-          verts[0].y += pixSize;
-          verts[1].y -= shadowWidth;
+          verts[0].y -= pixSize;
+          verts[1].y += shadowWidth;
         }
 
         if (rightBottomCell && rightBottomCell->figureId != cell->figureId && bottomCell && bottomCell->figureId != cell->figureId)
         {
           verts[2].y += pixSize;
-          verts[3].y -= shadowWidth;
+          verts[3].y += shadowWidth;
         }
 
         addVertex(origin + scale * verts[0], uv[0], Globals::shadowTexIndex, Palette::figureShadow, 1.0f);
@@ -892,7 +889,7 @@ void OpenGLRender::buidGlassShadow()
 
 void OpenGLRender::buidGlassBlocks()
 {
-  LayoutObject * glassLayout = Layout::gameLayout.getChild("Glass");
+  LayoutObject * glassLayout = Layout::screen.getChildRecursive("Glass");
 
   if (!glassLayout)
     return;
@@ -908,7 +905,7 @@ void OpenGLRender::buidGlassBlocks()
     glm::vec2 origin = glassPos;
     
     if (GameLogic::getRowElevation(y))
-      origin.y += scale * GameLogic::getRowCurrentElevation(y);
+      origin.y -= scale * GameLogic::getRowCurrentElevation(y);
 
     if (cell && cell->figureId)
     {
@@ -961,10 +958,10 @@ void OpenGLRender::buidGlassBlocks()
 
         glm::vec2 verts[4] =
         {
-          { x + 0.5f, -y - 0.5f },
-          { x + 0.5f, -y - dy },
-          { x + dx, -y - dy },
-          { x + dx, -y - 0.5f },
+          { x + 0.5f, y + 0.5f },
+          { x + 0.5f, y + dy },
+          { x + dx, y + dy },
+          { x + dx, y + 0.5f },
         };
 
         const glm::vec3 & color = Palette::cellColorArray[cell->color];
@@ -982,7 +979,7 @@ void OpenGLRender::buidGlassBlocks()
 
 void OpenGLRender::biuldGlassGlow()
 {
-  LayoutObject * glassLayout = Layout::gameLayout.getChild("Glass");
+  LayoutObject * glassLayout = Layout::screen.getChildRecursive("Glass");
 
   if (!glassLayout)
     return;
@@ -1001,7 +998,7 @@ void OpenGLRender::biuldGlassGlow()
     glm::vec2 origin = glassPos;
 
     if (GameLogic::getRowElevation(y))
-      origin.y += scale * GameLogic::getRowCurrentElevation(y);
+      origin.y -= scale * GameLogic::getRowCurrentElevation(y);
 
     if (cell->figureId)
     {
@@ -1031,32 +1028,32 @@ void OpenGLRender::biuldGlassGlow()
       {
         glm::vec2 verts[4] =
         {
-          { x + pixSize,   -y },
-          { x - glowWidth, -y },
-          { x + pixSize,   -y - 1.0f },
-          { x - glowWidth, -y - 1.0f }
+          { x + pixSize,   y },
+          { x - glowWidth, y },
+          { x + pixSize,   y + 1.0f },
+          { x - glowWidth, y + 1.0f }
         };
 
         if (haveLeftTopCell)
         {
-          verts[0].y += pixSize;
-          verts[1].y -= glowWidth;
+          verts[0].y -= pixSize;
+          verts[1].y += glowWidth;
         }
         else if (topCell && !haveTopCell)
         {
-          verts[0].y -= pixSize;
-          verts[1].y += glowWidth;
+          verts[0].y += pixSize;
+          verts[1].y -= glowWidth;
         }
 
         if (haveBottomLeftCell)
         {
-          verts[2].y -= pixSize;
-          verts[3].y += glowWidth;
+          verts[2].y += pixSize;
+          verts[3].y -= glowWidth;
         }
         else if (bottomCell && !haveBottomCell)
         {
-          verts[2].y += pixSize;
-          verts[3].y -= glowWidth;
+          verts[2].y -= pixSize;
+          verts[3].y += glowWidth;
         }
 
         addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
@@ -1071,32 +1068,32 @@ void OpenGLRender::biuldGlassGlow()
       {
         glm::vec2 verts[4] =
         {
-          { x + 1.0f - pixSize,   -y },
-          { x + 1.0f + glowWidth, -y },
-          { x + 1.0f - pixSize,   -y - 1.0f },
-          { x + 1.0f + glowWidth, -y - 1.0f }
+          { x + 1.0f - pixSize,   y },
+          { x + 1.0f + glowWidth, y },
+          { x + 1.0f - pixSize,   y + 1.0f },
+          { x + 1.0f + glowWidth, y + 1.0f }
         };
 
         if (haveTopRightCell)
         {
-          verts[0].y += pixSize;
-          verts[1].y -= glowWidth;
+          verts[0].y -= pixSize;
+          verts[1].y += glowWidth;
         }
         else if (topCell && !haveTopCell)
         {
-          verts[0].y -= pixSize;
-          verts[1].y += glowWidth;
+          verts[0].y += pixSize;
+          verts[1].y -= glowWidth;
         }
 
         if (haveRightBottomCell)
         {
-          verts[2].y -= pixSize;
-          verts[3].y += glowWidth;
+          verts[2].y += pixSize;
+          verts[3].y -= glowWidth;
         }
         else if (bottomCell && !haveBottomCell)
         {
-          verts[2].y += pixSize;
-          verts[3].y -= glowWidth;
+          verts[2].y -= pixSize;
+          verts[3].y += glowWidth;
         }
 
         addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
@@ -1111,10 +1108,10 @@ void OpenGLRender::biuldGlassGlow()
       {
         glm::vec2 verts[4] =
         {
-          { x,        -y - pixSize },
-          { x,        -y + glowWidth },
-          { x + 1.0f, -y - pixSize },
-          { x + 1.0f, -y + glowWidth }
+          { x,        y + pixSize },
+          { x,        y - glowWidth },
+          { x + 1.0f, y + pixSize },
+          { x + 1.0f, y - glowWidth }
         };
 
         if (haveLeftTopCell)
@@ -1151,10 +1148,10 @@ void OpenGLRender::biuldGlassGlow()
       {
         glm::vec2 verts[4] =
         {
-          { x,        -y - 1.0f + pixSize },
-          { x,        -y - 1.0f - glowWidth },
-          { x + 1.0f, -y - 1.0f + pixSize },
-          { x + 1.0f, -y - 1.0f - glowWidth }
+          { x,        y + 1.0f - pixSize },
+          { x,        y + 1.0f + glowWidth },
+          { x + 1.0f, y + 1.0f - pixSize },
+          { x + 1.0f, y + 1.0f + glowWidth }
         };
 
         if (haveBottomLeftCell)
@@ -1192,8 +1189,8 @@ void OpenGLRender::biuldGlassGlow()
 
 void OpenGLRender::buildFigureBlocks()
 {
-  LayoutObject * holdPanelLayout = Layout::gameLayout.getChild("HoldPanel");
-  LayoutObject * nextPanelLayout = Layout::gameLayout.getChild("NextPanel");
+  LayoutObject * holdPanelLayout = Layout::screen.getChildRecursive("HoldPanel");
+  LayoutObject * nextPanelLayout = Layout::screen.getChildRecursive("NextPanel");
 
   if (!holdPanelLayout || !nextPanelLayout)
     return;
@@ -1269,12 +1266,12 @@ void OpenGLRender::buildFigureBlocks()
       if (i < 0)
       {
         origin.x = holdPanelLeft + 0.5f * holdPanelWidth - scale * 0.5f * figureWidth - scale * figureLeftGap;
-        origin.y = holdPanelTop - 0.5f * holdPanelHeight + 0.5f * scale * figureHeight + scale * figureTopGap;
+        origin.y = holdPanelTop + 0.5f * holdPanelHeight - scale * 0.5f * figureHeight - scale * figureTopGap;
       }
       else
       {
-        origin.x = nextPanelLeft + 0.5f * nextPanelWidth - scale * 0.5f * float(figureWidth) - scale * float(figureLeftGap);
-        origin.y = nextPanelTop - 0.5f * nextPanelHeight + scale * 0.5f * figureHeight + scale * figureTopGap - i * nextPanelHeight;
+        origin.x = nextPanelLeft + 0.5f * nextPanelWidth - scale * 0.5f * figureWidth - scale * figureLeftGap;
+        origin.y = nextPanelTop + 0.5f * nextPanelHeight - scale * 0.5f * figureHeight - scale * figureTopGap + i * nextPanelHeight;
       }
 
       for (int y = 0; y < figure->dim; y++)
@@ -1331,10 +1328,10 @@ void OpenGLRender::buildFigureBlocks()
 
             glm::vec2 verts[4] =
             {
-              { x + 0.5f, -y - 0.5f },
-              { x + 0.5f, -y - dy },
-              { x + dx, -y - dy },
-              { x + dx, -y - 0.5f },
+              { x + 0.5f, y + 0.5f },
+              { x + 0.5f, y + dy },
+              { x + dx,   y + dy },
+              { x + dx,   y + 0.5f },
             };
 
             const glm::vec3 & color = Palette::cellColorArray[cell->color];
@@ -1354,8 +1351,8 @@ void OpenGLRender::buildFigureBlocks()
 
 void OpenGLRender::buildFigureGlow()
 {
-  LayoutObject * holdPanelLayout = Layout::gameLayout.getChild("HoldPanel");
-  LayoutObject * nextPanelLayout = Layout::gameLayout.getChild("NextPanel");
+  LayoutObject * holdPanelLayout = Layout::screen.getChildRecursive("HoldPanel");
+  LayoutObject * nextPanelLayout = Layout::screen.getChildRecursive("NextPanel");
 
   if (!holdPanelLayout || !nextPanelLayout)
     return;
@@ -1436,12 +1433,12 @@ void OpenGLRender::buildFigureGlow()
       if (i < 0)
       {
         origin.x = holdPanelLeft + 0.5f * holdPanelWidth - scale * 0.5f * figureWidth - scale * figureLeftGap;
-        origin.y = holdPanelTop - 0.5f * holdPanelHeight + 0.5f * scale * figureHeight + scale * figureTopGap;
+        origin.y = holdPanelTop + 0.5f * holdPanelHeight - scale * 0.5f * figureHeight - scale * figureTopGap;
       }
       else
       {
-        origin.x = nextPanelLeft + 0.5f * nextPanelWidth - scale * 0.5f * float(figureWidth) - scale * float(figureLeftGap);
-        origin.y = nextPanelTop - 0.5f * nextPanelHeight + scale * 0.5f * figureHeight + scale * figureTopGap - i * nextPanelHeight;
+        origin.x = nextPanelLeft + 0.5f * nextPanelWidth - scale * 0.5f * figureWidth - scale * figureLeftGap;
+        origin.y = nextPanelTop + 0.5f * nextPanelHeight - scale * 0.5f * figureHeight - scale * figureTopGap + i * nextPanelHeight;
       }
 
       for (int y = 0; y < figure->dim; y++)
@@ -1473,32 +1470,32 @@ void OpenGLRender::buildFigureGlow()
           {
             glm::vec2 verts[4] =
             {
-              { x + pixSize,   -y },
-              { x - glowWidth, -y },
-              { x + pixSize,   -y - 1.0f },
-              { x - glowWidth, -y - 1.0f }
+              { x + pixSize,   y },
+              { x - glowWidth, y },
+              { x + pixSize,   y + 1.0f },
+              { x - glowWidth, y + 1.0f }
             };
 
             if (haveLeftTopCell)
             {
-              verts[0].y += pixSize;
-              verts[1].y -= glowWidth;
+              verts[0].y -= pixSize;
+              verts[1].y += glowWidth;
             }
             else if (!haveTopCell)
             {
-              verts[0].y -= pixSize;
-              verts[1].y += glowWidth;
+              verts[0].y += pixSize;
+              verts[1].y -= glowWidth;
             }
 
             if (haveBottomLeftCell)
             {
-              verts[2].y -= pixSize;
-              verts[3].y += glowWidth;
+              verts[2].y += pixSize;
+              verts[3].y -= glowWidth;
             }
             else if (!haveBottomCell)
             {
-              verts[2].y += pixSize;
-              verts[3].y -= glowWidth;
+              verts[2].y -= pixSize;
+              verts[3].y += glowWidth;
             }
 
             addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
@@ -1513,32 +1510,32 @@ void OpenGLRender::buildFigureGlow()
           {
             glm::vec2 verts[4] =
             {
-              { x + 1.0f - pixSize,   -y },
-              { x + 1.0f + glowWidth, -y },
-              { x + 1.0f - pixSize,   -y - 1.0f },
-              { x + 1.0f + glowWidth, -y - 1.0f }
+              { x + 1.0f - pixSize,   y },
+              { x + 1.0f + glowWidth, y },
+              { x + 1.0f - pixSize,   y + 1.0f },
+              { x + 1.0f + glowWidth, y + 1.0f }
             };
 
             if (haveTopRightCell)
             {
-              verts[0].y += pixSize;
-              verts[1].y -= glowWidth;
+              verts[0].y -= pixSize;
+              verts[1].y += glowWidth;
             }
             else if (!haveTopCell)
             {
-              verts[0].y -= pixSize;
-              verts[1].y += glowWidth;
+              verts[0].y += pixSize;
+              verts[1].y -= glowWidth;
             }
 
             if (haveRightBottomCell)
             {
-              verts[2].y -= pixSize;
-              verts[3].y += glowWidth;
+              verts[2].y += pixSize;
+              verts[3].y -= glowWidth;
             }
             else if (!haveBottomCell)
             {
-              verts[2].y += pixSize;
-              verts[3].y -= glowWidth;
+              verts[2].y -= pixSize;
+              verts[3].y += glowWidth;
             }
 
             addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
@@ -1553,10 +1550,10 @@ void OpenGLRender::buildFigureGlow()
           {
             glm::vec2 verts[4] =
             {
-              { x,        -y - pixSize },
-              { x,        -y + glowWidth },
-              { x + 1.0f, -y - pixSize },
-              { x + 1.0f, -y + glowWidth }
+              { x,        y + pixSize },
+              { x,        y - glowWidth },
+              { x + 1.0f, y + pixSize },
+              { x + 1.0f, y - glowWidth }
             };
 
             if (haveLeftTopCell)
@@ -1593,10 +1590,10 @@ void OpenGLRender::buildFigureGlow()
           {
             glm::vec2 verts[4] =
             {
-              { x,        -y - 1.0f + pixSize },
-              { x,        -y - 1.0f - glowWidth },
-              { x + 1.0f, -y - 1.0f + pixSize },
-              { x + 1.0f, -y - 1.0f - glowWidth }
+              { x,        y + 1.0f - pixSize },
+              { x,        y + 1.0f + glowWidth },
+              { x + 1.0f, y + 1.0f - pixSize },
+              { x + 1.0f, y + 1.0f + glowWidth }
             };
 
             if (haveBottomLeftCell)
@@ -1636,7 +1633,7 @@ void OpenGLRender::buildFigureGlow()
 
 void OpenGLRender::buildDropTrails()
 {
-  LayoutObject * glassLayout = Layout::gameLayout.getChild("Glass");
+  LayoutObject * glassLayout = Layout::screen.getChildRecursive("Glass");
 
   if (!glassLayout)
     return;
@@ -1650,7 +1647,7 @@ void OpenGLRender::buildDropTrails()
     float trailProgress = dropTrailIt->getTrailProgress();
     float trailOpSqProgress = 1.0f - trailProgress * trailProgress;
     float trailLeft = left + scale * dropTrailIt->x - scale * 0.25f;
-    float trailTop = top - scale * (dropTrailIt->y - dropTrailIt->height * trailOpSqProgress);
+    float trailTop = top + scale * (dropTrailIt->y - dropTrailIt->height * trailOpSqProgress);
     float trailWidth = scale * 1.5f;
     float trailHeight = scale * (0.1f + 1.1f * dropTrailIt->height * trailOpSqProgress);
     glm::vec3 trailColor = Palette::cellColorArray[dropTrailIt->color] * trailOpSqProgress;
@@ -1662,19 +1659,19 @@ void OpenGLRender::buildDropTrails()
     {
       const DropSparkle & sparkle = dropTrailIt->sparkles[spInd];
       float sparkleX = scale * (dropTrailIt->x + sparkle.relX);
-      float sparkleY = scale * (dropTrailIt->y - sparkle.relY * dropTrailIt->height - sparkle.speed * dropTrailIt->getTrailProgress());
+      float sparkleY = scale * (dropTrailIt->y - sparkle.relY * dropTrailIt->height - sparkle.speed * trailProgress);
       const float sparkleSize = scale * 0.07f;
       float sparkleAlpha = sparkle.alpha;
 
       if (sparkleX < GameLogic::glassWidth - sparkleSize && sparkleY > 0.0f)
-        buildTexturedRect(left + sparkleX, top - sparkleY, sparkleSize, sparkleSize, Globals::dropSparkleTexIndex, sparkleColor * sparkleAlpha, 0.0f);
+        buildTexturedRect(left + sparkleX, top + sparkleY, sparkleSize, sparkleSize, Globals::dropSparkleTexIndex, sparkleColor * sparkleAlpha, 0.0f);
     }
   }
 }
 
 void OpenGLRender::buildRowFlashes()
 {
-  LayoutObject * glassLayout = Layout::gameLayout.getChild("Glass");
+  LayoutObject * glassLayout = Layout::screen.getChildRecursive("Glass");
 
   if (!glassLayout)
     return;
@@ -1695,7 +1692,7 @@ void OpenGLRender::buildRowFlashes()
   {
     int row = *delRowIt;
     float flashLeft = glassLeft - scale * dx;
-    float flashTop = glassTop + scale * (dy - row);
+    float flashTop = glassTop + scale * (row - dy);
     float flashWidth = scale * (GameLogic::glassWidth + 2.0f * dx);
     float flashHeight = scale * (1.0f + 2.0f * dy);
     buildTexturedRect(flashLeft, flashTop, flashWidth, flashHeight, Globals::rowFlashTexIndex, flashColor, 0.0f);
@@ -1739,9 +1736,9 @@ void OpenGLRender::buildRowFlashes()
 
       glm::vec2 verts[3] =
       {
-        { glassLeft + scale * lightSourceX, glassTop - scale * lightSourceY },
-        { glassLeft + scale * (gapX + rayEndDX), glassTop - scale * (gapY1 + rayEndDY1) },
-        { glassLeft + scale * (gapX + rayEndDX), glassTop - scale * (gapY2 + rayEndDY2) },
+        { glassLeft + scale * lightSourceX, glassTop + scale * lightSourceY },
+        { glassLeft + scale * (gapX + rayEndDX), glassTop + scale * (gapY1 + rayEndDY1) },
+        { glassLeft + scale * (gapX + rayEndDX), glassTop + scale * (gapY2 + rayEndDY2) },
       };
 
       addVertex(verts[0], uv[0], Globals::rowShineRayTexIndex, rayBeginColor, 0.0f);
@@ -1751,7 +1748,7 @@ void OpenGLRender::buildRowFlashes()
 
     float shineSize = 3.5f;
     float shineLeft = glassLeft + scale * lightSourceX - 0.5f * shineSize;
-    float shineTop = glassTop - scale * lightSourceY + 0.5f * shineSize;
+    float shineTop = glassTop + scale * lightSourceY - 0.5f * shineSize;
     const glm::vec3 shineColor(0.1f * sin(shineProgress * (float)M_PI) * Palette::deletedRowShineBright);
 
     buildTexturedRect(shineLeft, shineTop, shineSize, shineSize, Globals::rowShineLightTexIndex, shineColor, 0.0f);
@@ -1776,9 +1773,9 @@ void OpenGLRender::buildSidePanel(float left, float top, float width, float heig
 // (x == 0 && y == 0) - is a right-top corner
 
     const float x0 = width - x * tessSize;
-    const float y0 = -y * tessSize;
+    const float y0 = y * tessSize;
     const float x1 = (x == xTess - 1) ? width - x * tessSize - lastChunkWidth : width - (x + 1) * tessSize;
-    const float y1 = (y == yTess - 1) ? -y * tessSize - lastChunkHeight : -(y + 1) * tessSize;
+    const float y1 = (y == yTess - 1) ? y * tessSize + lastChunkHeight : (y + 1) * tessSize;
 
     const glm::vec2 verts[4] = 
     {
@@ -1801,8 +1798,8 @@ void OpenGLRender::buildSidePanel(float left, float top, float width, float heig
       { u1, v1 },
     };
 
-    float lt0 = 1.0f - glm::clamp(2.0f * -y0 / height, 0.0f, 1.0f);
-    float lt1 = 1.0f - glm::clamp(2.0f * -y1 / height, 0.0f, 1.0f);
+    float lt0 = 1.0f - glm::clamp(2.0f * y0 / height, 0.0f, 1.0f);
+    float lt1 = 1.0f - glm::clamp(2.0f * y1 / height, 0.0f, 1.0f);
 
     glm::vec3 col0 = bottomColor + (topColor - bottomColor) * lt0;
     glm::vec3 col1 = bottomColor + (topColor - bottomColor) * lt1;
@@ -1828,29 +1825,29 @@ void OpenGLRender::buildSidePanel(float left, float top, float width, float heig
     { 0.0f,                         0.0f },
     { 0.75f * (width - cornerSize), 0.0f },
     { width - tessSize,             0.0f },
-    { width,                       -tessSize },
-    { width,                       -height},
-    { 0.0f,                        -height},
+    { width,                       tessSize },
+    { width,                       height},
+    { 0.0f,                        height},
   };
 
   glm::vec2 outerGlowVerts[6] = 
   {
-    { 0.0f,                                      glowWidth },
-    { 0.75f * (width - cornerSize),              glowWidth },
-    { width - cornerSize + glowWidth * sin_22_5, glowWidth },
-    { width + glowWidth,                        -cornerSize + glowWidth * sin_22_5 },
-    { width + glowWidth,                        -height - glowWidth },
-    { 0.0f,                                     -height - glowWidth },
+    { 0.0f,                                      -glowWidth },
+    { 0.75f * (width - cornerSize),              -glowWidth },
+    { width - cornerSize + glowWidth * sin_22_5, -glowWidth },
+    { width + glowWidth,                        cornerSize - glowWidth * sin_22_5 },
+    { width + glowWidth,                        height + glowWidth },
+    { 0.0f,                                     height + glowWidth },
   };
 
   glm::vec2 innerGlowVerts[6] =
   {
-    { 0.0f,                                              -topInnerGlowWidth },
-    { 0.75f * (width - cornerSize),                      -topInnerGlowWidth },
-    { width - cornerSize - topInnerGlowWidth * sin_22_5, -topInnerGlowWidth },
-    { width,                                             -cornerSize - topInnerGlowWidth },
-    { width - 0.5f * bottomInnerGlowWidth,               -height + 0.5f * bottomInnerGlowWidth },
-    { 0.0f,                                              -height + bottomInnerGlowWidth },
+    { 0.0f,                                              topInnerGlowWidth },
+    { 0.75f * (width - cornerSize),                      topInnerGlowWidth },
+    { width - cornerSize - topInnerGlowWidth * sin_22_5, topInnerGlowWidth },
+    { width,                                             cornerSize + topInnerGlowWidth },
+    { width - 0.5f * bottomInnerGlowWidth,               height - 0.5f * bottomInnerGlowWidth },
+    { 0.0f,                                              height - bottomInnerGlowWidth },
   };
 
   glm::vec2 borderUV[6] =
@@ -1913,23 +1910,23 @@ void OpenGLRender::buildMenu()
   {
   case InterfaceLogic::stMainMenu:                
     menuLogic = &InterfaceLogic::mainMenu;                    
-    menuLayout = &Layout::mainMenuLayout;
+    menuLayout = Layout::screen.getChild("MainMenu");
     break;
   case InterfaceLogic::stInGameMenu:              
     menuLogic = &InterfaceLogic::inGameMenu;                  
-    menuLayout = &Layout::inGameMenuLayout;
+    menuLayout = Layout::screen.getChild("InGameMenu");
     break;
   case InterfaceLogic::stQuitConfirmation:        
     menuLogic = &InterfaceLogic::quitConfirmationMenu;        
-    menuLayout = &Layout::quitConfirmationMenuLayout;
+    menuLayout = Layout::screen.getChild("QuitConfirmationMenu");
     break;
   case InterfaceLogic::stRestartConfirmation:     
     menuLogic = &InterfaceLogic::restartConfirmationMenu;     
-    menuLayout = &Layout::restartConfirmationMenuLayout;
+    menuLayout = Layout::screen.getChild("RestartConfirmationMenu");
     break;
   case InterfaceLogic::stExitToMainConfirmation:  
     menuLogic = &InterfaceLogic::exitToMainConfirmationMenu;  
-    menuLayout = &Layout::exitToMainConfirmationMenuLayout;
+    menuLayout = Layout::screen.getChild("ExitToMainConfirmationMenu");
     break;
   case InterfaceLogic::stSettings: break;
   case InterfaceLogic::stLeaderboard: break;
@@ -1939,8 +1936,11 @@ void OpenGLRender::buildMenu()
 
   if (menuLogic && menuLayout)
   {
-    //TODO use Layout class to get background rect
-    buildRect(-1.0f, 1.0f, 2.0f, 2.0f, glm::vec3(0.0f), 0.75f * InterfaceLogic::menuShadeProgress);
+    const float bkLeft = menuLayout->getGlobalLeft();
+    const float bkTop = menuLayout->getGlobalTop();
+    const float bkWidth = menuLayout->width;
+    const float bkHeight = menuLayout->height;
+    buildRect(bkLeft, bkTop, bkWidth, bkHeight, glm::vec3(0.0f), Palette::backgroundShadeAlpha * InterfaceLogic::menuShadeProgress);
 
     for (int row = 0, cnt = menuLogic->rowCount; row < cnt; row++)
     {
@@ -2063,9 +2063,9 @@ void OpenGLRender::buildTextMesh(float left, float top, float width, float heigh
     
     leftChar = *pch;
     float leftTopX = penX + scale * (kern.x + glyph.metrics.horiBearingX) / 64 / fontSize;
-    float leftTopY = scale * glyph.metrics.horiBearingY / 64 / fontSize;
+    float leftTopY = -scale * glyph.metrics.horiBearingY / 64 / fontSize;
     float rightBottomX = leftTopX + scale * glyph.metrics.width / 64 / fontSize;
-    float rightBottomY = leftTopY - scale * glyph.metrics.height / 64 / fontSize;
+    float rightBottomY = leftTopY + scale * glyph.metrics.height / 64 / fontSize;
 
     const float pixSize = 0.5f * Globals::mainArrayTexturePixelSize;
 
@@ -2085,7 +2085,7 @@ void OpenGLRender::buildTextMesh(float left, float top, float width, float heigh
   }
 
   float meshWidth = verts.back().x - verts.front().x;
-  glm::vec2 origin(left, top - scale * ftFace->ascender / ftFace->height);
+  glm::vec2 origin(left, top + scale * ftFace->ascender / ftFace->height);
 
   if (horzAllign == haRight)
     origin.x += width - meshWidth;
@@ -2093,9 +2093,9 @@ void OpenGLRender::buildTextMesh(float left, float top, float width, float heigh
     origin.x += 0.5f * (width - meshWidth);
 
   if (vertAllign == vaBottom)
-    origin.y -= height - scale;
+    origin.y += height - scale;
   else if (vertAllign == vaCenter)
-    origin.y -= 0.5f * (height - scale);
+    origin.y += 0.5f * (height - scale);
 
   for (int i = 0, cnt = (int)strlen(str); i < cnt; i++)
   {
@@ -2113,165 +2113,169 @@ void OpenGLRender::buildSettings()
   if (InterfaceLogic::state != InterfaceLogic::stSettings)
     return;
 
-  const float backgroundLeft = Layout::settingsLayout.getGlobalLeft();
-  const float backgroundTop = Layout::settingsLayout.getGlobalTop();
-  const float backgroundWidth = Layout::settingsLayout.width;
-  const float backgroundHeight = Layout::settingsLayout.height;
-  buildRect(backgroundLeft, backgroundTop, backgroundWidth, backgroundHeight, glm::vec3(0.0f), Palette::backgroundShadeAlpha);
+  LayoutObject * settingsLayout = Layout::screen.getChild("Settings");
 
-  LayoutObject * settingsWindowLayout = Layout::settingsLayout.getChild("SettingsWindow");
-
-  if (settingsWindowLayout)
+  if (settingsLayout)
   {
-    const float opProgress = 1.0f - InterfaceLogic::settingsLogic.transitionProgress;
-    const float sqOpProgress = opProgress * opProgress;
-    const float fullSettingsWidth = settingsWindowLayout->width + Layout::settingsGlowWidth;
-    const float dx = -sqOpProgress * fullSettingsWidth;
+    const float backgroundLeft = settingsLayout->getGlobalLeft();
+    const float backgroundTop = settingsLayout->getGlobalTop();
+    const float backgroundWidth = settingsLayout->width;
+    const float backgroundHeight = settingsLayout->height;
+    buildRect(backgroundLeft, backgroundTop, backgroundWidth, backgroundHeight, glm::vec3(0.0f), Palette::backgroundShadeAlpha);
 
-    const float left = settingsWindowLayout->getGlobalLeft() + dx;
-    const float top = settingsWindowLayout->getGlobalTop();
-    const float width = settingsWindowLayout->width;
-    const float height = settingsWindowLayout->height;
-    buildSidePanel(left, top, width, height, Layout::settingsCornerSize, Layout::settingsGlowWidth, Palette::settingsBackgroundTop, Palette::settingsBackgroundBottom, Palette::settingsGlow);
+    LayoutObject * settingsWindowLayout = settingsLayout->getChild("SettingsWindow");
 
-    LayoutObject * settingTitleShadowLayout = settingsWindowLayout->getChild("SettingsTitleShadow");
-
-    if (settingTitleShadowLayout)
+    if (settingsWindowLayout)
     {
-      const float left = settingTitleShadowLayout->getGlobalLeft() + dx;
-      const float top = settingTitleShadowLayout->getGlobalTop();
-      const float width = settingTitleShadowLayout->width;
-      const float height = settingTitleShadowLayout->height;
-      buildTextMesh(left, top, width, height, "SETTINGS", Globals::midFontSize, Layout::settingsTitleHeight, glm::vec3(0.0f), Palette::settingsTitleShadowAlpha, haLeft, vaTop);
-    }
+      const float opProgress = 1.0f - InterfaceLogic::settingsLogic.transitionProgress;
+      const float sqOpProgress = opProgress * opProgress;
+      const float fullSettingsWidth = settingsWindowLayout->width + Layout::settingsGlowWidth;
+      const float shift = -sqOpProgress * fullSettingsWidth;
 
-    LayoutObject * settingTitleLayout = settingsWindowLayout->getChild("SettingsTitle");
+      const float left = settingsWindowLayout->getGlobalLeft() + shift;
+      const float top = settingsWindowLayout->getGlobalTop();
+      const float width = settingsWindowLayout->width;
+      const float height = settingsWindowLayout->height;
+      buildSidePanel(left, top, width, height, Layout::settingsCornerSize, Layout::settingsGlowWidth, Palette::settingsBackgroundTop, Palette::settingsBackgroundBottom, Palette::settingsGlow);
 
-    if (settingTitleLayout)
-    {
-      const float left = settingTitleLayout->getGlobalLeft() + dx;
-      const float top = settingTitleLayout->getGlobalTop();
-      const float width = settingTitleLayout->width;
-      const float height = settingTitleLayout->height;
-      buildTextMesh(left, top, width, height, "SETTINGS", Globals::midFontSize, Layout::settingsTitleHeight, Palette::settingsTitleText, 1.0f, haLeft, vaTop);
-    }
+      LayoutObject * settingTitleShadowLayout = settingsWindowLayout->getChild("SettingsTitleShadow");
 
-    LayoutObject * settingPanelLayout = settingsWindowLayout->getChild("SettingsPanel");
-
-    if (settingPanelLayout)
-    {
-      const float left = settingPanelLayout->getGlobalLeft() + dx;
-      const float top = settingPanelLayout->getGlobalTop();
-      const float width = settingPanelLayout->width;
-      const float height = settingPanelLayout->height;
-      buildVertGradientRect(left, top, width, height, Palette::settingsPanelBackgroundTop, 1.0f, Palette::settingsPanelBackgroundBottom, 1.0f);
-      buildFrameRect(left, top, width, height, Layout::settingsPanelBorderWidth, Palette::settingsPanelBorder, 1.0f);
-
-      LayoutObject * volumeTitleLayout = settingPanelLayout->getChild("VolumeTitle");
-
-      if (volumeTitleLayout)
+      if (settingTitleShadowLayout)
       {
-        const float left = volumeTitleLayout->getGlobalLeft() + dx;
-        const float top = volumeTitleLayout->getGlobalTop();
-        const float width = volumeTitleLayout->width;
-        const float height = volumeTitleLayout->height;
-        buildTextMesh(left, top, width, height, "VOLUME", Globals::midFontSize, height, Palette::settingsPanelTitleText, 1.0f, haLeft, vaTop);
+        const float left = settingTitleShadowLayout->getGlobalLeft() + shift;
+        const float top = settingTitleShadowLayout->getGlobalTop();
+        const float width = settingTitleShadowLayout->width;
+        const float height = settingTitleShadowLayout->height;
+        buildTextMesh(left, top, width, height, "SETTINGS", Globals::midFontSize, Layout::settingsTitleHeight, glm::vec3(0.0f), Palette::settingsTitleShadowAlpha, haLeft, vaTop);
       }
 
-      LayoutObject * soundVolumeRowLayout = settingPanelLayout->getChild("SoundVolume");
+      LayoutObject * settingTitleLayout = settingsWindowLayout->getChild("SettingsTitle");
 
-      if (soundVolumeRowLayout)
+      if (settingTitleLayout)
       {
-        const float left = soundVolumeRowLayout->getGlobalLeft() + dx;
-        const float top = soundVolumeRowLayout->getGlobalTop();
-        const float width = soundVolumeRowLayout->width;
-        const float height = soundVolumeRowLayout->height;
-        const glm::vec3 & bkColor = Palette::settingsInactiveRowBackground;
-        const glm::vec3 & textColor = Palette::settingsInactiveRowText;
-        buildSmoothRect(left, top, width, height, Globals::edgeBlurWidth, bkColor, 1.0);
-        buildTextMesh(left + Layout::settingsPanelRowCaptionIndent, top, width, height, "Sound", Globals::midFontSize, height, textColor, 1.0f, haLeft, vaTop);
+        const float left = settingTitleLayout->getGlobalLeft() + shift;
+        const float top = settingTitleLayout->getGlobalTop();
+        const float width = settingTitleLayout->width;
+        const float height = settingTitleLayout->height;
+        buildTextMesh(left, top, width, height, "SETTINGS", Globals::midFontSize, Layout::settingsTitleHeight, Palette::settingsTitleText, 1.0f, haLeft, vaCenter);
+      }
 
-        LayoutObject * progressBarLayout = soundVolumeRowLayout->getChild("SoundProgressBar");
+      LayoutObject * settingPanelLayout = settingsWindowLayout->getChild("SettingsPanel");
 
-        if (progressBarLayout)
+      if (settingPanelLayout)
+      {
+        const float left = settingPanelLayout->getGlobalLeft() + shift;
+        const float top = settingPanelLayout->getGlobalTop();
+        const float width = settingPanelLayout->width;
+        const float height = settingPanelLayout->height;
+        buildVertGradientRect(left, top, width, height, Palette::settingsPanelBackgroundTop, 1.0f, Palette::settingsPanelBackgroundBottom, 1.0f);
+        buildFrameRect(left, top, width, height, Layout::settingsPanelBorderWidth, Palette::settingsPanelBorder, 1.0f);
+
+        LayoutObject * volumeTitleLayout = settingPanelLayout->getChild("VolumeTitle");
+
+        if (volumeTitleLayout)
         {
-          const float left = progressBarLayout->getGlobalLeft() + dx;
-          const float top = progressBarLayout->getGlobalTop();
-          const float width = progressBarLayout->width;
-          const float height = progressBarLayout->height;
-          const glm::vec3 & bkColor = Palette::settingsProgressBarBackground;
-          const glm::vec3 & fgColor = Palette::settingsProgressBarForeground;
-          const float progress = InterfaceLogic::settingsLogic.soundVolume;
-          buildProgressBar(left, top, width, height, bkColor, fgColor, 1.0f, progress);
+          const float left = volumeTitleLayout->getGlobalLeft() + shift;
+          const float top = volumeTitleLayout->getGlobalTop();
+          const float width = volumeTitleLayout->width;
+          const float height = volumeTitleLayout->height;
+          buildTextMesh(left, top, width, height, "VOLUME", Globals::midFontSize, height, Palette::settingsPanelTitleText, 1.0f, haLeft, vaCenter);
         }
-      }
 
-      LayoutObject * musicVolumeRowLayout = settingPanelLayout->getChild("MusicVolume");
+        LayoutObject * soundVolumeRowLayout = settingPanelLayout->getChild("SoundVolume");
 
-      if (musicVolumeRowLayout)
-      {
-        const float left = musicVolumeRowLayout->getGlobalLeft() + dx;
-        const float top = musicVolumeRowLayout->getGlobalTop();
-        const float width = musicVolumeRowLayout->width;
-        const float height = musicVolumeRowLayout->height;
-        const glm::vec3 & bkColor = Palette::settingsInactiveRowBackground;
-        const glm::vec3 & textColor = Palette::settingsInactiveRowText;
-        buildSmoothRect(left, top, width, height, Globals::edgeBlurWidth, bkColor, 1.0);
-        buildTextMesh(left + Layout::settingsPanelRowCaptionIndent, top, width, height, "Music", Globals::midFontSize, height, textColor, 1.0f, haLeft, vaTop);
-
-        LayoutObject * progressBarLayout = musicVolumeRowLayout->getChild("MusicProgressBar");
-
-        if (progressBarLayout)
+        if (soundVolumeRowLayout)
         {
-          const float left = progressBarLayout->getGlobalLeft() + dx;
-          const float top = progressBarLayout->getGlobalTop();
-          const float width = progressBarLayout->width;
-          const float height = progressBarLayout->height;
-          const glm::vec3 & bkColor = Palette::settingsProgressBarBackground;
-          const glm::vec3 & fgColor = Palette::settingsProgressBarForeground;
-          const float progress = InterfaceLogic::settingsLogic.musicVolume;
-          buildProgressBar(left, top, width, height, bkColor, fgColor, 1.0f, progress);
+          const float left = soundVolumeRowLayout->getGlobalLeft() + shift;
+          const float top = soundVolumeRowLayout->getGlobalTop();
+          const float width = soundVolumeRowLayout->width;
+          const float height = soundVolumeRowLayout->height;
+          const glm::vec3 & bkColor = Palette::settingsInactiveRowBackground;
+          const glm::vec3 & textColor = Palette::settingsInactiveRowText;
+          buildSmoothRect(left, top, width, height, edgeBlurWidth, bkColor, 1.0);
+          buildTextMesh(left + Layout::settingsPanelRowCaptionIndent, top, width, height, "Sound", Globals::midFontSize, Layout::settingsPanelRowCaptionHeight, textColor, 1.0f, haLeft, vaCenter);
+
+          LayoutObject * progressBarLayout = soundVolumeRowLayout->getChild("SoundProgressBar");
+
+          if (progressBarLayout)
+          {
+            const float left = progressBarLayout->getGlobalLeft() + shift;
+            const float top = progressBarLayout->getGlobalTop();
+            const float width = progressBarLayout->width;
+            const float height = progressBarLayout->height;
+            const glm::vec3 & bkColor = Palette::settingsProgressBarBackground;
+            const glm::vec3 & fgColor = Palette::settingsProgressBarForeground;
+            const float progress = InterfaceLogic::settingsLogic.soundVolume;
+            buildProgressBar(left, top, width, height, bkColor, fgColor, 1.0f, progress);
+          }
         }
+
+        LayoutObject * musicVolumeRowLayout = settingPanelLayout->getChild("MusicVolume");
+
+        if (musicVolumeRowLayout)
+        {
+          const float left = musicVolumeRowLayout->getGlobalLeft() + shift;
+          const float top = musicVolumeRowLayout->getGlobalTop();
+          const float width = musicVolumeRowLayout->width;
+          const float height = musicVolumeRowLayout->height;
+          const glm::vec3 & bkColor = Palette::settingsInactiveRowBackground;
+          const glm::vec3 & textColor = Palette::settingsInactiveRowText;
+          buildSmoothRect(left, top, width, height, edgeBlurWidth, bkColor, 1.0);
+          buildTextMesh(left + Layout::settingsPanelRowCaptionIndent, top, width, height, "Music", Globals::midFontSize, Layout::settingsPanelRowCaptionHeight, textColor, 1.0f, haLeft, vaCenter);
+
+          LayoutObject * progressBarLayout = musicVolumeRowLayout->getChild("MusicProgressBar");
+
+          if (progressBarLayout)
+          {
+            const float left = progressBarLayout->getGlobalLeft() + shift;
+            const float top = progressBarLayout->getGlobalTop();
+            const float width = progressBarLayout->width;
+            const float height = progressBarLayout->height;
+            const glm::vec3 & bkColor = Palette::settingsProgressBarBackground;
+            const glm::vec3 & fgColor = Palette::settingsProgressBarForeground;
+            const float progress = InterfaceLogic::settingsLogic.musicVolume;
+            buildProgressBar(left, top, width, height, bkColor, fgColor, 1.0f, progress);
+          }
+        }
+
+        LayoutObject * keyBindingTitleLayout = settingPanelLayout->getChild("KeyBindingTitle");
+
+        if (keyBindingTitleLayout)
+        {
+          const float left = keyBindingTitleLayout->getGlobalLeft() + shift;
+          const float top = keyBindingTitleLayout->getGlobalTop();
+          const float width = keyBindingTitleLayout->width;
+          const float height = keyBindingTitleLayout->height;
+          buildTextMesh(left, top, width, height, "KEY BINDING", Globals::midFontSize, height, Palette::settingsPanelTitleText, 1.0f, haLeft, vaCenter);
+        }
+
+        LayoutObject * keyBindingGridLayout = settingPanelLayout->getChild("KeyBindingGrid");
+
+        for (int row = 0, count = keyBindingGridLayout->getRowCount(); row < count; row++)
+        {
+          float left0 = keyBindingGridLayout->getColumnGlobalLeft(0) + shift;
+          const float width0 = keyBindingGridLayout->getColumnWidth(0);
+          const float left1 = keyBindingGridLayout->getColumnGlobalLeft(1) + shift;
+          const float width1 = keyBindingGridLayout->getColumnWidth(1);
+          const float top = keyBindingGridLayout->getRowGlobalTop(row);
+          const float height = keyBindingGridLayout->getRowHeight(row);
+          Binding::Action action = static_cast<Binding::Action>(row);
+          const char * actionName = Binding::getActionName(action);
+          Key key = Binding::getActionKey(action);
+          const char * keyName = Keys::getName(key);
+          const glm::vec3 & bkColor = Palette::settingsInactiveRowBackground;
+          const glm::vec3 & textColor = Palette::settingsInactiveRowText;
+          buildSmoothRect(left0, top, width0, height, edgeBlurWidth, bkColor, 1.0);
+          buildSmoothRect(left1, top, width1, height, edgeBlurWidth, bkColor, 1.0);
+          left0 += Layout::settingsPanelRowCaptionIndent;
+          buildTextMesh(left0, top, width0, height, actionName, Globals::midFontSize, Layout::settingsPanelRowCaptionHeight, textColor, 1.0f, haLeft, vaCenter);
+          buildTextMesh(left1, top, width1, height, keyName, Globals::midFontSize, Layout::settingsPanelRowCaptionHeight, textColor, 1.0f, haCenter, vaCenter);
+        }
+
+
       }
-
-      LayoutObject * keyBindingTitleLayout = settingPanelLayout->getChild("KeyBindingTitle");
-
-      if (keyBindingTitleLayout)
-      {
-        const float left = keyBindingTitleLayout->getGlobalLeft() + dx;
-        const float top = keyBindingTitleLayout->getGlobalTop();
-        const float width = keyBindingTitleLayout->width;
-        const float height = keyBindingTitleLayout->height;
-        buildTextMesh(left, top, width, height, "KEY BINDING", Globals::midFontSize, height, Palette::settingsPanelTitleText, 1.0f, haLeft, vaTop);
-      }
-
-      LayoutObject * keyBindingGridLayout = settingPanelLayout->getChild("KeyBindingGrid");
-
-      for (int row = 0, count = keyBindingGridLayout->getRowCount(); row < count; row++)
-      {
-        float left0 = keyBindingGridLayout->getColumnGlobalLeft(0) + dx;
-        const float width0 = keyBindingGridLayout->getColumnWidth(0);
-        const float left1 = keyBindingGridLayout->getColumnGlobalLeft(1) + dx;
-        const float width1 = keyBindingGridLayout->getColumnWidth(1);
-        const float top = keyBindingGridLayout->getRowGlobalTop(row);
-        const float height = keyBindingGridLayout->getRowHeight(row);
-        Binding::Action action = static_cast<Binding::Action>(row);
-        const char * actionName = Binding::getActionName(action);
-        Key key = Binding::getActionKey(action);
-        const char * keyName = Keys::getName(key);
-        const glm::vec3 & bkColor = Palette::settingsInactiveRowBackground;
-        const glm::vec3 & textColor = Palette::settingsInactiveRowText;
-        buildSmoothRect(left0, top, width0, height, Globals::edgeBlurWidth, bkColor, 1.0);
-        buildSmoothRect(left1, top, width1, height, Globals::edgeBlurWidth, bkColor, 1.0);
-        left0 += Layout::settingsPanelRowCaptionIndent;
-        buildTextMesh(left0, top, width0, height, actionName, Globals::midFontSize, Layout::settingsPanelRowCaptionHeight, textColor, 1.0f, haLeft, vaCenter);
-        buildTextMesh(left1, top, width1, height, keyName, Globals::midFontSize, Layout::settingsPanelRowCaptionHeight, textColor, 1.0f, haCenter, vaCenter);
-      }
-
-
     }
   }
-
 
   //Globals::settingsWidth = float(0.75f * Globals::gameBkSize.x + 0.5f * sin(2 * M_PI * glm::fract(Time::timer * 0.25f)));
   //Globals::settingsHeight = float(0.5f * Globals::gameBkSize.y + 0.2f * cos(2 * M_PI * glm::fract(Time::timer * 0.25f)));

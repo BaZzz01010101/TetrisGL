@@ -46,10 +46,12 @@ void Control::mouseMove(float x, float y)
     switch (InterfaceLogic::state)
     {
     case InterfaceLogic::stMainMenu:
-      if (InterfaceLogic::mainMenu.state == MenuLogic::stVisible &&
-      Layout::mainMenuLayout.getCellFromPoint(x, y, &row, &col))
-        InterfaceLogic::mainMenu.select(row);
+      if (InterfaceLogic::mainMenu.state == MenuLogic::stVisible)
+        if (LayoutObject * mainMenuLayout = Layout::screen.getChild("MainMenu"))
+          if (mainMenuLayout->getCellFromPoint(mouseX, mouseY, &row, &col))
+            InterfaceLogic::mainMenu.select(row);
       break;
+
     default:
       break;
     }
@@ -60,12 +62,17 @@ void Control::mouseDown()
 {
   if (GameLogic::state == GameLogic::stPlaying)
   {
-    LayoutObject * mouseOverObject = Layout::gameLayout.getObjectFromPoint(mouseX, mouseY);
+    LayoutObject * gameLayout = Layout::screen.getChild("Game");
 
-    if (mouseOverObject && mouseOverObject->name == "ScoreBarMenuButton")
+    if (gameLayout)
     {
-      GameLogic::pauseGame();
-      InterfaceLogic::showInGameMenu();
+      LayoutObject * mouseoverObject = gameLayout->getObjectFromPoint(mouseX, mouseY);
+
+      if (mouseoverObject && mouseoverObject->name == "ScoreBarMenuButton")
+      {
+        GameLogic::pauseGame();
+        InterfaceLogic::showInGameMenu();
+      }
     }
   }
 
@@ -76,10 +83,12 @@ void Control::mouseDown()
     switch (InterfaceLogic::state)
     {
     case InterfaceLogic::stMainMenu:
-      if (InterfaceLogic::mainMenu.state == MenuLogic::stVisible && 
-      Layout::mainMenuLayout.getCellFromPoint(mouseX, mouseY, &row, &col))
-        InterfaceLogic::mainMenu.enter(row);
+      if (InterfaceLogic::mainMenu.state == MenuLogic::stVisible)
+        if(LayoutObject * mainMenuLayout = Layout::screen.getChild("MainMenu"))
+          if(mainMenuLayout->getCellFromPoint(mouseX, mouseY, &row, &col))
+            InterfaceLogic::mainMenu.enter(row);
       break;
+
     default:
       break;
     }

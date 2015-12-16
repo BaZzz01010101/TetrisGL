@@ -86,7 +86,6 @@ float Globals::settingsHidingTime = 0.3f;
 int Globals::smallFontSize = 24;
 int Globals::midFontSize = 32;
 int Globals::bigFontSize = 48;
-float Globals::edgeBlurWidth = 0.01f;
 
 Globals::Globals()
 {

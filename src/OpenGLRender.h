@@ -21,6 +21,7 @@ public:
 private:
   enum HorzAllign { haLeft, haRight, haCenter };
   enum VertAllign { vaTop, vaBottom, vaCenter };
+  const float edgeBlurWidth;
   int width;
   int height;
 

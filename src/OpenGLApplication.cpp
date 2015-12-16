@@ -156,17 +156,20 @@ void OpenGLApplication::OnMouseMove(GLFWwindow* wnd, double xpos, double ypos)
   if (app.wndWidth && app.wndHeight)
   {
     const float gameAspect = Layout::backgroundWidth / Layout::backgroundHeight;
+    const float screenAspect = float(app.wndWidth) / app.wndHeight;
 
-    if (float(app.wndWidth) / app.wndHeight > gameAspect)
+    if (screenAspect > gameAspect)
     {
-      float mouseX = float((xpos - (app.wndWidth - app.wndHeight) / 2) / app.wndHeight * 2.0f - 1.0f);
-      float mouseY = float(1.0f - ypos / app.wndHeight * 2.0f);
+      float unitPixCount = app.wndHeight / Layout::backgroundHeight;
+      float mouseX = (float(xpos) - 0.5f * (app.wndWidth - unitPixCount)) / unitPixCount;
+      float mouseY = float(ypos) / unitPixCount + 0.5f * (1.0f - Layout::backgroundHeight);
       app.control.mouseMove(mouseX, mouseY);
     }
     else
     {
-      float mouseX = float(xpos * gameAspect / app.wndWidth * 2.0f - 1.0f);
-      float mouseY = float(1.0f - (ypos - (app.wndHeight - app.wndWidth / gameAspect) / 2.0f) / (app.wndWidth / gameAspect) * 2.0f);
+      float unitPixCount = app.wndWidth / Layout::backgroundWidth;
+      float mouseX = float(xpos) / unitPixCount + 0.5f * (1.0f - Layout::backgroundWidth);
+      float mouseY = (float(ypos) - 0.5f * (app.wndHeight - unitPixCount)) / unitPixCount;
       app.control.mouseMove(mouseX, mouseY);
     }
   }

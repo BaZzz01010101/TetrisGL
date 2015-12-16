@@ -42,8 +42,9 @@ public:
   ~LayoutObject();
 
   void clear();
-  LayoutObject & addChild(const char * name, float left, float top, float width, float height);
+  LayoutObject * addChild(const char * name, float left, float top, float width, float height);
   LayoutObject * getChild(const char * name);
+  LayoutObject * getChildRecursive(const char * name);
   void addRow(float topGap, float height);
   void addColumn(float leftGap, float width);
 

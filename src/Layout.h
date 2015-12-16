@@ -47,6 +47,7 @@ public:
   static float infoPanelsCaptionHeight;
   static float holdNextPanelsHeight;
   static float levelGoalPanelsHeight;
+  static float levelGoalTextHeight;
   static float holdNextFigureScale;
 
   static float sidePanelBkTileWidth;
@@ -99,14 +100,7 @@ public:
   static float settingsProgressBarBorder;
   static float settingsProgressBarInnerGap;
 
-  static LayoutObject gameLayout;
-  static LayoutObject mainMenuLayout;
-  static LayoutObject inGameMenuLayout;
-  static LayoutObject quitConfirmationMenuLayout;
-  static LayoutObject restartConfirmationMenuLayout;
-  static LayoutObject exitToMainConfirmationMenuLayout;
-  static LayoutObject saveSettingsMenuLayout;
-  static LayoutObject settingsLayout;
+  static LayoutObject screen;
 
   static void load(const char * name);
 };

@@ -23,10 +23,11 @@ void LayoutObject::clear()
   columns.clear();
 }
 
-LayoutObject & LayoutObject::addChild(const char * name, float left, float top, float width, float height)
+LayoutObject * LayoutObject::addChild(const char * name, float left, float top, float width, float height)
 {
+  assert(childList.find(name) == childList.end());
   ChildIterator childIt = childList.emplace(name, LayoutObject(name, this, left, top, width, height)).first;
-  return childIt->second;
+  return &childIt->second;
 }
 
 LayoutObject * LayoutObject::getChild(const char * name)
@@ -38,6 +39,20 @@ LayoutObject * LayoutObject::getChild(const char * name)
     return NULL;
   
   return &childIt->second;
+}
+
+LayoutObject * LayoutObject::getChildRecursive(const char * name)
+{
+  for (ChildIterator childIt = childList.begin(); childIt != childList.end(); ++childIt)
+  {
+    if (childIt->first == name)
+      return &childIt->second;
+
+    if (LayoutObject * obj = childIt->second.getChildRecursive(name))
+      return obj;
+  }
+
+  return NULL;
 }
 
 void LayoutObject::addRow(float topGap, float height)
@@ -69,9 +84,9 @@ LayoutObject * LayoutObject::getObjectFromPoint(float x, float y)
   const float left = getGlobalLeft();
   const float top = getGlobalTop();
   const float right = left + width;
-  const float bottom = top - height;
+  const float bottom = top + height;
 
-  if (x >= left && x <= right && y <= top && y >= bottom)
+  if (x >= left && x <= right && y >= top && y <= bottom)
     return this;
 
   return NULL;
@@ -80,7 +95,7 @@ LayoutObject * LayoutObject::getObjectFromPoint(float x, float y)
 bool LayoutObject::getCellFromPoint(float x, float y, int * cellRow, int * cellColumn) const 
 {
   const float clientX = x - getGlobalLeft();
-  const float clientY = getGlobalTop() - y;
+  const float clientY = y - getGlobalTop();
 
   if (clientX < 0 || clientX > width || clientY < 0 || clientY > height)
     return false;
@@ -143,7 +158,7 @@ float LayoutObject::getColumnGlobalLeft(int column) const
 
 float LayoutObject::getRowGlobalTop(int row) const
 {
-  return getGlobalTop() - rows[row].top;
+  return getGlobalTop() + rows[row].top;
 }
 
 float LayoutObject::getColumnWidth(int column) const
@@ -166,7 +181,7 @@ LayoutObject::Rect LayoutObject::getCellGlobalRect(int row, int column) const
   const ColumnData & columnData = columns[column];
   const RowData & rowData = rows[row];
 
-  return{ getGlobalLeft() + columnData.left, getGlobalTop() - rowData.top, columnData.width, rowData.height };
+  return{ getGlobalLeft() + columnData.left, getGlobalTop() + rowData.top, columnData.width, rowData.height };
 }
 
 int LayoutObject::getRowCount()
