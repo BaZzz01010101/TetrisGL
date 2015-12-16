@@ -2,8 +2,8 @@
 
 #include "LayoutObject.h"
 
-LayoutObject::LayoutObject(const char * name, LayoutObject * parent, float left, float top, float width, float height) :
-  name(name),
+LayoutObject::LayoutObject(LayoutObjectId id, LayoutObject * parent, float left, float top, float width, float height) :
+  id(id),
   parent(parent),
   left(left),
   top(top),
@@ -23,16 +23,16 @@ void LayoutObject::clear()
   columns.clear();
 }
 
-LayoutObject * LayoutObject::addChild(const char * name, float left, float top, float width, float height)
+LayoutObject * LayoutObject::addChild(LayoutObjectId id, float left, float top, float width, float height)
 {
-  assert(childList.find(name) == childList.end());
-  ChildIterator childIt = childList.emplace(name, LayoutObject(name, this, left, top, width, height)).first;
+  assert(childList.find(id) == childList.end());
+  ChildIterator childIt = childList.emplace(id, LayoutObject(id, this, left, top, width, height)).first;
   return &childIt->second;
 }
 
-LayoutObject * LayoutObject::getChild(const char * name)
+LayoutObject * LayoutObject::getChild(LayoutObjectId id)
 {
-  ChildIterator childIt = childList.find(name);
+  ChildIterator childIt = childList.find(id);
   assert(childIt != childList.end());
 
   if (childIt == childList.end())
@@ -41,14 +41,14 @@ LayoutObject * LayoutObject::getChild(const char * name)
   return &childIt->second;
 }
 
-LayoutObject * LayoutObject::getChildRecursive(const char * name)
+LayoutObject * LayoutObject::getChildRecursive(LayoutObjectId id)
 {
   for (ChildIterator childIt = childList.begin(); childIt != childList.end(); ++childIt)
   {
-    if (childIt->first == name)
+    if (childIt->first == id)
       return &childIt->second;
 
-    if (LayoutObject * obj = childIt->second.getChildRecursive(name))
+    if (LayoutObject * obj = childIt->second.getChildRecursive(id))
       return obj;
   }
 

@@ -1,9 +1,11 @@
 #pragma once
 
+enum LayoutObjectId;
+
 class LayoutObject
 {
 private:
-  typedef std::map<std::string, LayoutObject> ChildMap;
+  typedef std::map<LayoutObjectId, LayoutObject> ChildMap;
   typedef ChildMap::iterator ChildIterator;
   const LayoutObject * parent;
   ChildMap childList;
@@ -32,19 +34,19 @@ public:
     float height;
   };
 
-  std::string name;
+  LayoutObjectId id;
   float left;
   float top;
   float width;
   float height;
 
-  LayoutObject(const char * name, LayoutObject * parent, float left, float top, float width, float height);
+  LayoutObject(LayoutObjectId id, LayoutObject * parent, float left, float top, float width, float height);
   ~LayoutObject();
 
   void clear();
-  LayoutObject * addChild(const char * name, float left, float top, float width, float height);
-  LayoutObject * getChild(const char * name);
-  LayoutObject * getChildRecursive(const char * name);
+  LayoutObject * addChild(LayoutObjectId id, float left, float top, float width, float height);
+  LayoutObject * getChild(LayoutObjectId id);
+  LayoutObject * getChildRecursive(LayoutObjectId id);
   void addRow(float topGap, float height);
   void addColumn(float leftGap, float width);
 
@@ -61,4 +63,40 @@ public:
   Rect getCellGlobalRect(int row, int column) const;
   int getRowCount();
   int getColumnCount();
+};
+
+enum LayoutObjectId
+{
+  loScreen = 0,
+  loGame,
+  loMainMenu,
+  loInGameMenu,
+  loQuitConfirmationMenu,
+  loRestartConfirmationMenu,
+  loExitToMainConfirmationMenu,
+  loSaveSettingsMenu,
+  loSettings,
+  loScoreBarCaption,
+  loScoreBarValue,
+  loScoreBarMenuButton,
+  loGlass,
+  loHoldPanelCaption,
+  loNextPanelCaption,
+  loHoldPanel,
+  loNextPanel,
+  loLevelPanelCaption,
+  loLevelPanel,
+  loGoalPanelCaption,
+  loGoalPanel,
+  loSettingsWindow,
+  loSettingsTitle,
+  loSettingsTitleShadow,
+  loSettingsPanel,
+  loVolumeTitle,
+  loSoundVolume,
+  loMusicVolume,
+  loSoundProgressBar,
+  loMusicProgressBar,
+  loKeyBindingTitle,
+  loKeyBindingGrid,
 };

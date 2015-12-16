@@ -3,6 +3,7 @@
 #include "Binding.h"
 #include "GameLogic.h"
 #include "InterfaceLogic.h"
+#include "LayoutObject.h"
 
 class Control
 {
@@ -44,7 +45,7 @@ private:
   bool mouseMoved;
 
   void updateGameControl();
-  void updateMenuControl(MenuLogic & menu, const char * layoutName);
+  void updateMenuControl(MenuLogic & menu, LayoutObjectId layoutObjectId);
   void updateSettingsControl();
   void updateLeaderboardControl();
   void updateInternalState();

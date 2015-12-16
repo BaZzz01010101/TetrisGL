@@ -194,7 +194,7 @@ void OpenGLApplication::OnMouseScroll(GLFWwindow* wnd, double dx, double dy)
 {
   OpenGLApplication & app = *reinterpret_cast<OpenGLApplication *>(glfwGetWindowUserPointer(wnd));
 
-  app.control.mouseScroll(dx, dy);
+  app.control.mouseScroll((float)dx, (float)dy);
 }
 
 void OpenGLApplication::initGlfwKeyMap()

@@ -541,7 +541,7 @@ void OpenGLRender::buildBackground()
   }
   // add glass background to the mesh
 
-  LayoutObject * glassLayout = Layout::screen.getChildRecursive("Glass");
+  LayoutObject * glassLayout = Layout::screen.getChildRecursive(loGlass);
 
   if (glassLayout)
   {
@@ -621,7 +621,7 @@ void OpenGLRender::buildBackground()
 
   // add score caption to the mesh
 
-  LayoutObject * scoreBarCaptionLayout = Layout::screen.getChildRecursive("ScoreBarCaption");
+  LayoutObject * scoreBarCaptionLayout = Layout::screen.getChildRecursive(loScoreBarCaption);
 
   if (scoreBarCaptionLayout)
   {
@@ -635,7 +635,7 @@ void OpenGLRender::buildBackground()
 
   // add score value to the mesh
 
-  LayoutObject * scoreBarValueLayout = Layout::screen.getChildRecursive("ScoreBarValue");
+  LayoutObject * scoreBarValueLayout = Layout::screen.getChildRecursive(loScoreBarValue);
 
   if (scoreBarValueLayout)
   {
@@ -649,7 +649,7 @@ void OpenGLRender::buildBackground()
 
   // add MENU button to mesh
 
-  LayoutObject * scoreBarMenuButtonLayout = Layout::screen.getChildRecursive("ScoreBarMenuButton");
+  LayoutObject * scoreBarMenuButtonLayout = Layout::screen.getChildRecursive(loScoreBarMenuButton);
 
   if (scoreBarMenuButtonLayout)
   {
@@ -668,7 +668,7 @@ void OpenGLRender::buildBackground()
 
   // add hold figure panel to mesh
 
-  LayoutObject * holdPanelCaptionLayout = Layout::screen.getChildRecursive("HoldPanelCaption");
+  LayoutObject * holdPanelCaptionLayout = Layout::screen.getChildRecursive(loHoldPanelCaption);
 
   if (holdPanelCaptionLayout)
   {
@@ -679,7 +679,7 @@ void OpenGLRender::buildBackground()
     buildTextMesh(left, top, width, height, "HOLD", Globals::smallFontSize, height, Palette::holdCaptionText, 1.0f, haCenter, vaCenter);
   }
 
-  LayoutObject * holdPanelLayout = Layout::screen.getChildRecursive("HoldPanel");
+  LayoutObject * holdPanelLayout = Layout::screen.getChildRecursive(loHoldPanel);
 
   if (holdPanelLayout)
   {
@@ -694,7 +694,7 @@ void OpenGLRender::buildBackground()
 
   // add next figure panel to mesh
 
-  LayoutObject * nextPanelCaptionLayout = Layout::screen.getChildRecursive("NextPanelCaption");
+  LayoutObject * nextPanelCaptionLayout = Layout::screen.getChildRecursive(loNextPanelCaption);
 
   if (nextPanelCaptionLayout)
   {
@@ -705,7 +705,7 @@ void OpenGLRender::buildBackground()
     buildTextMesh(left, top, width, height, "NEXT   ", Globals::smallFontSize, height, Palette::nextCaptionText, 1.0f, haCenter, vaCenter);
   }
 
-  LayoutObject * nextPanelLayout = Layout::screen.getChildRecursive("NextPanel");
+  LayoutObject * nextPanelLayout = Layout::screen.getChildRecursive(loNextPanel);
 
   if (nextPanelLayout)
   {
@@ -720,7 +720,7 @@ void OpenGLRender::buildBackground()
 
   // add level panel to mesh
 
-  LayoutObject * levelPanelCaptionLayout = Layout::screen.getChildRecursive("LevelPanelCaption");
+  LayoutObject * levelPanelCaptionLayout = Layout::screen.getChildRecursive(loLevelPanelCaption);
 
   if (levelPanelCaptionLayout)
   {
@@ -731,7 +731,7 @@ void OpenGLRender::buildBackground()
     buildTextMesh(left, top, width, height, "LEVEL", Globals::smallFontSize, height, Palette::levelCaptionText, 1.0f, haCenter, vaCenter);
   }
 
-  LayoutObject * levelPanelLayout = Layout::screen.getChildRecursive("LevelPanel");
+  LayoutObject * levelPanelLayout = Layout::screen.getChildRecursive(loLevelPanel);
 
   if (levelPanelLayout)
   {
@@ -745,7 +745,7 @@ void OpenGLRender::buildBackground()
 
   // add goal panel to mesh
 
-  LayoutObject * goalPanelCaptionLayout = Layout::screen.getChildRecursive("GoalPanelCaption");
+  LayoutObject * goalPanelCaptionLayout = Layout::screen.getChildRecursive(loGoalPanelCaption);
 
   if (goalPanelCaptionLayout)
   {
@@ -756,7 +756,7 @@ void OpenGLRender::buildBackground()
     buildTextMesh(left, top, width, height, "GOAL", Globals::smallFontSize, height, Palette::goalCaptionText, 1.0f, haCenter, vaCenter);
   }
 
-  LayoutObject * goalPanelLayout = Layout::screen.getChildRecursive("GoalPanel");
+  LayoutObject * goalPanelLayout = Layout::screen.getChildRecursive(loGoalPanel);
 
   if (goalPanelLayout)
   {
@@ -771,7 +771,7 @@ void OpenGLRender::buildBackground()
 
 void OpenGLRender::buidGlassShadow()
 {
-  LayoutObject * glassLayout = Layout::screen.getChildRecursive("Glass");
+  LayoutObject * glassLayout = Layout::screen.getChildRecursive(loGlass);
 
   if (!glassLayout)
     return;
@@ -891,7 +891,7 @@ void OpenGLRender::buidGlassShadow()
 
 void OpenGLRender::buidGlassBlocks()
 {
-  LayoutObject * glassLayout = Layout::screen.getChildRecursive("Glass");
+  LayoutObject * glassLayout = Layout::screen.getChildRecursive(loGlass);
 
   if (!glassLayout)
     return;
@@ -981,7 +981,7 @@ void OpenGLRender::buidGlassBlocks()
 
 void OpenGLRender::biuldGlassGlow()
 {
-  LayoutObject * glassLayout = Layout::screen.getChildRecursive("Glass");
+  LayoutObject * glassLayout = Layout::screen.getChildRecursive(loGlass);
 
   if (!glassLayout)
     return;
@@ -1191,8 +1191,8 @@ void OpenGLRender::biuldGlassGlow()
 
 void OpenGLRender::buildFigureBlocks()
 {
-  LayoutObject * holdPanelLayout = Layout::screen.getChildRecursive("HoldPanel");
-  LayoutObject * nextPanelLayout = Layout::screen.getChildRecursive("NextPanel");
+  LayoutObject * holdPanelLayout = Layout::screen.getChildRecursive(loHoldPanel);
+  LayoutObject * nextPanelLayout = Layout::screen.getChildRecursive(loNextPanel);
 
   if (!holdPanelLayout || !nextPanelLayout)
     return;
@@ -1353,8 +1353,8 @@ void OpenGLRender::buildFigureBlocks()
 
 void OpenGLRender::buildFigureGlow()
 {
-  LayoutObject * holdPanelLayout = Layout::screen.getChildRecursive("HoldPanel");
-  LayoutObject * nextPanelLayout = Layout::screen.getChildRecursive("NextPanel");
+  LayoutObject * holdPanelLayout = Layout::screen.getChildRecursive(loHoldPanel);
+  LayoutObject * nextPanelLayout = Layout::screen.getChildRecursive(loNextPanel);
 
   if (!holdPanelLayout || !nextPanelLayout)
     return;
@@ -1635,7 +1635,7 @@ void OpenGLRender::buildFigureGlow()
 
 void OpenGLRender::buildDropTrails()
 {
-  LayoutObject * glassLayout = Layout::screen.getChildRecursive("Glass");
+  LayoutObject * glassLayout = Layout::screen.getChildRecursive(loGlass);
 
   if (!glassLayout)
     return;
@@ -1673,7 +1673,7 @@ void OpenGLRender::buildDropTrails()
 
 void OpenGLRender::buildRowFlashes()
 {
-  LayoutObject * glassLayout = Layout::screen.getChildRecursive("Glass");
+  LayoutObject * glassLayout = Layout::screen.getChildRecursive(loGlass);
 
   if (!glassLayout)
     return;
@@ -1912,23 +1912,23 @@ void OpenGLRender::buildMenu()
   {
   case InterfaceLogic::stMainMenu:                
     menuLogic = &InterfaceLogic::mainMenu;                    
-    menuLayout = Layout::screen.getChild("MainMenu");
+    menuLayout = Layout::screen.getChild(loMainMenu);
     break;
   case InterfaceLogic::stInGameMenu:              
     menuLogic = &InterfaceLogic::inGameMenu;                  
-    menuLayout = Layout::screen.getChild("InGameMenu");
+    menuLayout = Layout::screen.getChild(loInGameMenu);
     break;
   case InterfaceLogic::stQuitConfirmation:        
     menuLogic = &InterfaceLogic::quitConfirmationMenu;        
-    menuLayout = Layout::screen.getChild("QuitConfirmationMenu");
+    menuLayout = Layout::screen.getChild(loQuitConfirmationMenu);
     break;
   case InterfaceLogic::stRestartConfirmation:     
     menuLogic = &InterfaceLogic::restartConfirmationMenu;     
-    menuLayout = Layout::screen.getChild("RestartConfirmationMenu");
+    menuLayout = Layout::screen.getChild(loRestartConfirmationMenu);
     break;
   case InterfaceLogic::stExitToMainConfirmation:  
     menuLogic = &InterfaceLogic::exitToMainConfirmationMenu;  
-    menuLayout = Layout::screen.getChild("ExitToMainConfirmationMenu");
+    menuLayout = Layout::screen.getChild(loExitToMainConfirmationMenu);
     break;
   case InterfaceLogic::stSettings: break;
   case InterfaceLogic::stLeaderboard: break;
@@ -2115,7 +2115,7 @@ void OpenGLRender::buildSettings()
   if (InterfaceLogic::state != InterfaceLogic::stSettings)
     return;
 
-  LayoutObject * settingsLayout = Layout::screen.getChild("Settings");
+  LayoutObject * settingsLayout = Layout::screen.getChild(loSettings);
 
   if (settingsLayout)
   {
@@ -2125,7 +2125,7 @@ void OpenGLRender::buildSettings()
     const float backgroundHeight = settingsLayout->height;
     buildRect(backgroundLeft, backgroundTop, backgroundWidth, backgroundHeight, glm::vec3(0.0f), Palette::backgroundShadeAlpha);
 
-    LayoutObject * settingsWindowLayout = settingsLayout->getChild("SettingsWindow");
+    LayoutObject * settingsWindowLayout = settingsLayout->getChild(loSettingsWindow);
 
     if (settingsWindowLayout)
     {
@@ -2140,7 +2140,7 @@ void OpenGLRender::buildSettings()
       const float height = settingsWindowLayout->height;
       buildSidePanel(left, top, width, height, Layout::settingsCornerSize, Layout::settingsGlowWidth, Palette::settingsBackgroundTop, Palette::settingsBackgroundBottom, Palette::settingsGlow);
 
-      LayoutObject * settingTitleShadowLayout = settingsWindowLayout->getChild("SettingsTitleShadow");
+      LayoutObject * settingTitleShadowLayout = settingsWindowLayout->getChild(loSettingsTitleShadow);
 
       if (settingTitleShadowLayout)
       {
@@ -2151,7 +2151,7 @@ void OpenGLRender::buildSettings()
         buildTextMesh(left, top, width, height, "SETTINGS", Globals::midFontSize, Layout::settingsTitleHeight, glm::vec3(0.0f), Palette::settingsTitleShadowAlpha, haLeft, vaTop);
       }
 
-      LayoutObject * settingTitleLayout = settingsWindowLayout->getChild("SettingsTitle");
+      LayoutObject * settingTitleLayout = settingsWindowLayout->getChild(loSettingsTitle);
 
       if (settingTitleLayout)
       {
@@ -2162,7 +2162,7 @@ void OpenGLRender::buildSettings()
         buildTextMesh(left, top, width, height, "SETTINGS", Globals::midFontSize, Layout::settingsTitleHeight, Palette::settingsTitleText, 1.0f, haLeft, vaCenter);
       }
 
-      LayoutObject * settingPanelLayout = settingsWindowLayout->getChild("SettingsPanel");
+      LayoutObject * settingPanelLayout = settingsWindowLayout->getChild(loSettingsPanel);
 
       if (settingPanelLayout)
       {
@@ -2173,7 +2173,7 @@ void OpenGLRender::buildSettings()
         buildVertGradientRect(left, top, width, height, Palette::settingsPanelBackgroundTop, 1.0f, Palette::settingsPanelBackgroundBottom, 1.0f);
         buildFrameRect(left, top, width, height, Layout::settingsPanelBorderWidth, Palette::settingsPanelBorder, 1.0f);
 
-        LayoutObject * volumeTitleLayout = settingPanelLayout->getChild("VolumeTitle");
+        LayoutObject * volumeTitleLayout = settingPanelLayout->getChild(loVolumeTitle);
 
         if (volumeTitleLayout)
         {
@@ -2184,7 +2184,7 @@ void OpenGLRender::buildSettings()
           buildTextMesh(left, top, width, height, "VOLUME", Globals::midFontSize, height, Palette::settingsPanelTitleText, 1.0f, haLeft, vaCenter);
         }
 
-        LayoutObject * soundVolumeRowLayout = settingPanelLayout->getChild("SoundVolume");
+        LayoutObject * soundVolumeRowLayout = settingPanelLayout->getChild(loSoundVolume);
 
         if (soundVolumeRowLayout)
         {
@@ -2197,7 +2197,7 @@ void OpenGLRender::buildSettings()
           buildSmoothRect(left, top, width, height, edgeBlurWidth, bkColor, 1.0);
           buildTextMesh(left + Layout::settingsPanelRowCaptionIndent, top, width, height, "Sound", Globals::midFontSize, Layout::settingsPanelRowCaptionHeight, textColor, 1.0f, haLeft, vaCenter);
 
-          LayoutObject * progressBarLayout = soundVolumeRowLayout->getChild("SoundProgressBar");
+          LayoutObject * progressBarLayout = soundVolumeRowLayout->getChild(loSoundProgressBar);
 
           if (progressBarLayout)
           {
@@ -2212,7 +2212,7 @@ void OpenGLRender::buildSettings()
           }
         }
 
-        LayoutObject * musicVolumeRowLayout = settingPanelLayout->getChild("MusicVolume");
+        LayoutObject * musicVolumeRowLayout = settingPanelLayout->getChild(loMusicVolume);
 
         if (musicVolumeRowLayout)
         {
@@ -2225,7 +2225,7 @@ void OpenGLRender::buildSettings()
           buildSmoothRect(left, top, width, height, edgeBlurWidth, bkColor, 1.0);
           buildTextMesh(left + Layout::settingsPanelRowCaptionIndent, top, width, height, "Music", Globals::midFontSize, Layout::settingsPanelRowCaptionHeight, textColor, 1.0f, haLeft, vaCenter);
 
-          LayoutObject * progressBarLayout = musicVolumeRowLayout->getChild("MusicProgressBar");
+          LayoutObject * progressBarLayout = musicVolumeRowLayout->getChild(loMusicProgressBar);
 
           if (progressBarLayout)
           {
@@ -2240,7 +2240,7 @@ void OpenGLRender::buildSettings()
           }
         }
 
-        LayoutObject * keyBindingTitleLayout = settingPanelLayout->getChild("KeyBindingTitle");
+        LayoutObject * keyBindingTitleLayout = settingPanelLayout->getChild(loKeyBindingTitle);
 
         if (keyBindingTitleLayout)
         {
@@ -2251,7 +2251,7 @@ void OpenGLRender::buildSettings()
           buildTextMesh(left, top, width, height, "KEY BINDING", Globals::midFontSize, height, Palette::settingsPanelTitleText, 1.0f, haLeft, vaCenter);
         }
 
-        LayoutObject * keyBindingGridLayout = settingPanelLayout->getChild("KeyBindingGrid");
+        LayoutObject * keyBindingGridLayout = settingPanelLayout->getChild(loKeyBindingGrid);
 
         for (int row = 0, count = keyBindingGridLayout->getRowCount(); row < count; row++)
         {

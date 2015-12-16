@@ -79,11 +79,11 @@ void Control::update()
   switch (InterfaceLogic::state)
   {
   case InterfaceLogic::stHidden:                  updateGameControl();                                                                          break;
-  case InterfaceLogic::stMainMenu:                updateMenuControl(InterfaceLogic::mainMenu, "MainMenu");                                      break;
-  case InterfaceLogic::stInGameMenu:              updateMenuControl(InterfaceLogic::inGameMenu, "InGameMenu");                                  break;
-  case InterfaceLogic::stQuitConfirmation:        updateMenuControl(InterfaceLogic::quitConfirmationMenu, "QuitConfirmationMenu");              break;
-  case InterfaceLogic::stRestartConfirmation:     updateMenuControl(InterfaceLogic::restartConfirmationMenu, "RestartConfirmationMenu");        break;
-  case InterfaceLogic::stExitToMainConfirmation:  updateMenuControl(InterfaceLogic::exitToMainConfirmationMenu, "ExitToMainConfirmationMenu");  break;
+  case InterfaceLogic::stMainMenu:                updateMenuControl(InterfaceLogic::mainMenu, loMainMenu);                                      break;
+  case InterfaceLogic::stInGameMenu:              updateMenuControl(InterfaceLogic::inGameMenu, loInGameMenu);                                  break;
+  case InterfaceLogic::stQuitConfirmation:        updateMenuControl(InterfaceLogic::quitConfirmationMenu, loQuitConfirmationMenu);              break;
+  case InterfaceLogic::stRestartConfirmation:     updateMenuControl(InterfaceLogic::restartConfirmationMenu, loRestartConfirmationMenu);        break;
+  case InterfaceLogic::stExitToMainConfirmation:  updateMenuControl(InterfaceLogic::exitToMainConfirmationMenu, loExitToMainConfirmationMenu);  break;
   case InterfaceLogic::stSettings:                updateSettingsControl();                                                                      break;
   case InterfaceLogic::stLeaderboard:             updateLeaderboardControl();                                                                   break;
   default:                                        assert(0);                                                                                    break;
@@ -135,11 +135,11 @@ void Control::updateGameControl()
   {
     GameLogic::menuButtonHighlighted = false;
 
-    if (LayoutObject * gameLayout = Layout::screen.getChild("Game"))
+    if (LayoutObject * gameLayout = Layout::screen.getChild(loGame))
     {
       if (LayoutObject * mouseoverObject = gameLayout->getObjectFromPoint(mouseX, mouseY))
       {
-        if (mouseoverObject->name == "ScoreBarMenuButton")
+        if (mouseoverObject->id == loScoreBarMenuButton)
         {
           if (leftButtonState.isPressed)
           {
@@ -194,7 +194,7 @@ void Control::updateGameControl()
 }
 
 
-void Control::updateMenuControl(MenuLogic & menu, const char * layoutName)
+void Control::updateMenuControl(MenuLogic & menu, LayoutObjectId layoutObjectId)
 {
   if (menu.state != MenuLogic::stVisible)
     return;
@@ -203,7 +203,7 @@ void Control::updateMenuControl(MenuLogic & menu, const char * layoutName)
 
   if (mouseMoved || leftButtonState.isPressed)
   {
-    if (LayoutObject * mainMenuLayout = Layout::screen.getChild(layoutName))
+    if (LayoutObject * mainMenuLayout = Layout::screen.getChild(layoutObjectId))
     {
       int row, col;
 
