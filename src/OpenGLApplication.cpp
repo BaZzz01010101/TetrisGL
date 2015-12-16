@@ -49,6 +49,7 @@ bool OpenGLApplication::init()
   glfwSetKeyCallback(wnd, OnKeyClick);
   glfwSetMouseButtonCallback(wnd, OnMouseClick);
   glfwSetCursorPosCallback(wnd, OnMouseMove);
+  glfwSetScrollCallback(wnd, OnMouseScroll);
 
   glewExperimental = GL_TRUE;
 
@@ -146,7 +147,21 @@ void OpenGLApplication::OnMouseClick(GLFWwindow * wnd, int button, int action, i
 {
   OpenGLApplication & app = *reinterpret_cast<OpenGLApplication *>(glfwGetWindowUserPointer(wnd));
 
-  app.control.mouseDown();
+  switch (button)
+  {
+  case GLFW_MOUSE_BUTTON_LEFT:
+    action == GLFW_PRESS ? app.control.mouseDown(MOUSE_LEFT) : app.control.mouseUp(MOUSE_LEFT);
+    break;
+  case GLFW_MOUSE_BUTTON_RIGHT:
+    action == GLFW_PRESS ? app.control.mouseDown(MOUSE_RIGHT) : app.control.mouseUp(MOUSE_RIGHT);
+    break;
+  case GLFW_MOUSE_BUTTON_MIDDLE:
+    action == GLFW_PRESS ? app.control.mouseDown(MOUSE_MIDDLE) : app.control.mouseUp(MOUSE_MIDDLE);
+    break;
+  default:
+    break;
+  }
+
 }
 
 void OpenGLApplication::OnMouseMove(GLFWwindow* wnd, double xpos, double ypos)
@@ -173,6 +188,13 @@ void OpenGLApplication::OnMouseMove(GLFWwindow* wnd, double xpos, double ypos)
       app.control.mouseMove(mouseX, mouseY);
     }
   }
+}
+
+void OpenGLApplication::OnMouseScroll(GLFWwindow* wnd, double dx, double dy)
+{
+  OpenGLApplication & app = *reinterpret_cast<OpenGLApplication *>(glfwGetWindowUserPointer(wnd));
+
+  app.control.mouseScroll(dx, dy);
 }
 
 void OpenGLApplication::initGlfwKeyMap()
@@ -298,6 +320,4 @@ void OpenGLApplication::initGlfwKeyMap()
   glfwKeyMap[GLFW_KEY_RIGHT_ALT] = KB_RIGHT_ALT;
   glfwKeyMap[GLFW_KEY_RIGHT_SUPER] = KB_RIGHT_SUPER;
   glfwKeyMap[GLFW_KEY_MENU] = KB_MENU;
-
-  //glfwKeyMap[GLFW_MOUSE_BUTTON_LEFT] = MOUSE_LEFT;
 }

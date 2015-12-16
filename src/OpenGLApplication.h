@@ -23,6 +23,7 @@ private:
   static void OnKeyClick(GLFWwindow * wnd, int key, int scancode, int action, int mods);
   static void OnMouseClick(GLFWwindow * wnd, int button, int action, int mods);
   static void OnMouseMove(GLFWwindow* wnd, double xpos, double ypos);
+  static void OnMouseScroll(GLFWwindow* wnd, double dx, double dy);
 
 public:
   OpenGLApplication();

@@ -8,7 +8,8 @@
 Control::Control() :
   freq(Crosy::getPerformanceFrequency()),
   repeatDelay(uint64_t(0.2 * freq)),
-  repeatInterval(uint64_t(freq / 30))
+  repeatInterval(uint64_t(freq / 30)),
+  mouseMoved(false)
 {
   assert(freq);
   memset(internalKeyStates, 0, sizeof(internalKeyStates));
@@ -22,7 +23,7 @@ Control::~Control()
 void Control::keyDown(Key key)
 {
   KeyInternalState & internalKeyState = internalKeyStates[key];
-  internalKeyState.keyNextRepeatCounter = currentCounter/*Crosy::getPerformanceCounter()*/ + repeatDelay;
+  internalKeyState.keyNextRepeatCounter = currentCounter + repeatDelay;
   internalKeyState.pressCount++;
   internalKeyState.wasChanged = true;
 }
@@ -38,75 +39,57 @@ void Control::mouseMove(float x, float y)
 {
   mouseX = x;
   mouseY = y;
-
-  GameLogic::menuButtonHighlighted = false;
-
-  if (GameLogic::state == GameLogic::stPlaying)
-    if (LayoutObject * gameLayout = Layout::screen.getChild("Game"))
-      if (LayoutObject * mouseoverObject = gameLayout->getObjectFromPoint(mouseX, mouseY))
-        if (mouseoverObject->name == "ScoreBarMenuButton")
-          GameLogic::menuButtonHighlighted = true;
-
-  if (InterfaceLogic::state != InterfaceLogic::stHidden)
-  {
-    int row, col;
-
-    switch (InterfaceLogic::state)
-    {
-    case InterfaceLogic::stMainMenu:
-      if (InterfaceLogic::mainMenu.state == MenuLogic::stVisible)
-        if (LayoutObject * mainMenuLayout = Layout::screen.getChild("MainMenu"))
-          if (mainMenuLayout->getCellFromPoint(mouseX, mouseY, &row, &col))
-            InterfaceLogic::mainMenu.select(row);
-      break;
-
-    default:
-      break;
-    }
-  }
+  mouseMoved = true;
 }
 
-void Control::mouseDown()
+void Control::mouseDown(Key key)
 {
-  if (GameLogic::state == GameLogic::stPlaying)
+  KeyInternalState & internalKeyState = internalKeyStates[key];
+  internalKeyState.keyNextRepeatCounter = currentCounter + repeatDelay;
+  internalKeyState.pressCount++;
+  internalKeyState.wasChanged = true;
+}
+
+void Control::mouseUp(Key key)
+{
+  KeyInternalState & internalKeyState = internalKeyStates[key];
+  internalKeyState.keyNextRepeatCounter = 0;
+  internalKeyState.wasChanged = true;
+}
+
+void Control::mouseScroll(float dx, float dy)
+{
+  if (dy > 0)
   {
-    LayoutObject * gameLayout = Layout::screen.getChild("Game");
-
-    if (gameLayout)
-    {
-      LayoutObject * mouseoverObject = gameLayout->getObjectFromPoint(mouseX, mouseY);
-
-      if (mouseoverObject && mouseoverObject->name == "ScoreBarMenuButton")
-      {
-        GameLogic::pauseGame();
-        InterfaceLogic::showInGameMenu();
-      }
-    }
+    keyDown(MOUSE_SCROLL_UP);
+    keyUp(MOUSE_SCROLL_UP);
   }
-
-  if (InterfaceLogic::state != InterfaceLogic::stHidden)
+  else if (dy < 0)
   {
-    int row, col;
-
-    switch (InterfaceLogic::state)
-    {
-    case InterfaceLogic::stMainMenu:
-      if (InterfaceLogic::mainMenu.state == MenuLogic::stVisible)
-        if(LayoutObject * mainMenuLayout = Layout::screen.getChild("MainMenu"))
-          if(mainMenuLayout->getCellFromPoint(mouseX, mouseY, &row, &col))
-            InterfaceLogic::mainMenu.enter(row);
-      break;
-
-    default:
-      break;
-    }
+    keyDown(MOUSE_SCROLL_DOWN);
+    keyUp(MOUSE_SCROLL_DOWN);
   }
 }
 
 void Control::update()
 {
+  //TODO use Timer class instead of direct getPerformanceCounter
   currentCounter = Crosy::getPerformanceCounter();
-  updateKeyboard();
+
+  switch (InterfaceLogic::state)
+  {
+  case InterfaceLogic::stHidden:                  updateGameControl();                                                                          break;
+  case InterfaceLogic::stMainMenu:                updateMenuControl(InterfaceLogic::mainMenu, "MainMenu");                                      break;
+  case InterfaceLogic::stInGameMenu:              updateMenuControl(InterfaceLogic::inGameMenu, "InGameMenu");                                  break;
+  case InterfaceLogic::stQuitConfirmation:        updateMenuControl(InterfaceLogic::quitConfirmationMenu, "QuitConfirmationMenu");              break;
+  case InterfaceLogic::stRestartConfirmation:     updateMenuControl(InterfaceLogic::restartConfirmationMenu, "RestartConfirmationMenu");        break;
+  case InterfaceLogic::stExitToMainConfirmation:  updateMenuControl(InterfaceLogic::exitToMainConfirmationMenu, "ExitToMainConfirmationMenu");  break;
+  case InterfaceLogic::stSettings:                updateSettingsControl();                                                                      break;
+  case InterfaceLogic::stLeaderboard:             updateLeaderboardControl();                                                                   break;
+  default:                                        assert(0);                                                                                    break;
+  }
+
+  updateInternalState();
 }
 
 Control::KeyState Control::getKeyState(Key key) const
@@ -123,7 +106,7 @@ Control::KeyState Control::getKeyState(Key key) const
   return keyState;
 }
 
-void Control::updateKeyStates()
+void Control::updateInternalState()
 {
   for (Key key = KB_NONE; key < KEY_COUNT; key++)
   {
@@ -137,31 +120,39 @@ void Control::updateKeyStates()
     keyInternalState.pressCount = 0;
     keyInternalState.wasChanged = false;
   }
+
+  mouseMoved = false;
 }
 
-void Control::updateKeyboard()
-{
-  switch (InterfaceLogic::state)
-  {
-  case InterfaceLogic::stHidden:                  updateGameKeyboard();                                           break;
-  case InterfaceLogic::stMainMenu:                updateMenuKeyboard(InterfaceLogic::mainMenu);                    break;
-  case InterfaceLogic::stInGameMenu:              updateMenuKeyboard(InterfaceLogic::inGameMenu);                  break;
-  case InterfaceLogic::stQuitConfirmation:        updateMenuKeyboard(InterfaceLogic::quitConfirmationMenu);        break;
-  case InterfaceLogic::stRestartConfirmation:     updateMenuKeyboard(InterfaceLogic::restartConfirmationMenu);     break;
-  case InterfaceLogic::stExitToMainConfirmation:  updateMenuKeyboard(InterfaceLogic::exitToMainConfirmationMenu);  break;
-  case InterfaceLogic::stSettings:                updateSettingsKeyboard();                                       break;
-  case InterfaceLogic::stLeaderboard:             updateLeaderboardKeyboard();                                    break;
-  default:                                        assert(0);                                                      break;
-  }
-  
-  updateKeyStates();
-}
-
-void Control::updateGameKeyboard()
+void Control::updateGameControl()
 {
   if (GameLogic::state != GameLogic::stPlaying)
     return;
 
+  KeyState leftButtonState = getKeyState(MOUSE_LEFT);
+
+  if (mouseMoved || leftButtonState.isPressed)
+  {
+    GameLogic::menuButtonHighlighted = false;
+
+    if (LayoutObject * gameLayout = Layout::screen.getChild("Game"))
+    {
+      if (LayoutObject * mouseoverObject = gameLayout->getObjectFromPoint(mouseX, mouseY))
+      {
+        if (mouseoverObject->name == "ScoreBarMenuButton")
+        {
+          if (leftButtonState.isPressed)
+          {
+            GameLogic::pauseGame();
+            InterfaceLogic::showInGameMenu();
+          }
+          else
+            GameLogic::menuButtonHighlighted = true;
+        }
+      }
+    }
+  }
+  
   for (Key key = KB_NONE; key < KEY_COUNT; key++)
   {
     KeyState keyState = getKeyState(key);
@@ -177,7 +168,6 @@ void Control::updateGameKeyboard()
 
       if (action != Binding::doNothing)
       {
-
         if (keyState.pressCount || keyState.repeatCount)
         for (int i = 0, cnt = keyState.pressCount + keyState.repeatCount; i < cnt; i++)
           switch (action)
@@ -204,10 +194,28 @@ void Control::updateGameKeyboard()
 }
 
 
-void Control::updateMenuKeyboard(MenuLogic & menu)
+void Control::updateMenuControl(MenuLogic & menu, const char * layoutName)
 {
   if (menu.state != MenuLogic::stVisible)
     return;
+
+  KeyState leftButtonState = getKeyState(MOUSE_LEFT);
+
+  if (mouseMoved || leftButtonState.isPressed)
+  {
+    if (LayoutObject * mainMenuLayout = Layout::screen.getChild(layoutName))
+    {
+      int row, col;
+
+      if (menu.state == MenuLogic::stVisible && mainMenuLayout->getCellFromPoint(mouseX, mouseY, &row, &col))
+      {
+        if (leftButtonState.isPressed)
+          menu.enter(row);
+        else
+          menu.select(row);
+      }
+    }
+  }
 
   for (Key key = KB_NONE; key < KEY_COUNT; key++)
   {
@@ -227,7 +235,7 @@ void Control::updateMenuKeyboard(MenuLogic & menu)
   }
 }
 
-void Control::updateSettingsKeyboard()
+void Control::updateSettingsControl()
 {
   if (InterfaceLogic::settingsLogic.state != SettingsLogic::stVisible)
     return;
@@ -250,7 +258,7 @@ void Control::updateSettingsKeyboard()
   }
 }
 
-void Control::updateLeaderboardKeyboard()
+void Control::updateLeaderboardControl()
 {
 
 }

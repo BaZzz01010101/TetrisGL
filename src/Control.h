@@ -13,7 +13,9 @@ public:
   void keyDown(Key key);
   void keyUp(Key key);
   void mouseMove(float x, float y);
-  void mouseDown();
+  void mouseDown(Key key);
+  void mouseUp(Key key);
+  void mouseScroll(float dx, float dy);
   void update();
 
 private:
@@ -37,15 +39,14 @@ private:
   const uint64_t repeatInterval;
   uint64_t currentCounter;
   KeyInternalState internalKeyStates[KEY_COUNT];
-
-  void updateKeyboard();
-  void updateGameKeyboard();
-  void updateMenuKeyboard(MenuLogic & menu);
-  void updateSettingsKeyboard();
-  void updateLeaderboardKeyboard();
-  void updateKeyStates();
-  KeyState getKeyState(Key key) const;
-
   float mouseX;
   float mouseY;
+  bool mouseMoved;
+
+  void updateGameControl();
+  void updateMenuControl(MenuLogic & menu, const char * layoutName);
+  void updateSettingsControl();
+  void updateLeaderboardControl();
+  void updateInternalState();
+  KeyState getKeyState(Key key) const;
 };
