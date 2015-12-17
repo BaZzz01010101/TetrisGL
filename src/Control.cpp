@@ -214,19 +214,16 @@ void Control::updateMenuControl(MenuLogic & menu, LayoutObjectId layoutObjectId)
 
   KeyState leftButtonState = getKeyState(MOUSE_LEFT);
 
-  if (mouseMoved || leftButtonState.isPressed)
+  if (LayoutObject * mainMenuLayout = Layout::screen.getChild(layoutObjectId))
   {
-    if (LayoutObject * mainMenuLayout = Layout::screen.getChild(layoutObjectId))
-    {
-      int row, col;
+    int row, col;
 
-      if (menu.state == MenuLogic::stVisible && mainMenuLayout->getCellFromPoint(mouseX, mouseY, &row, &col))
-      {
-        if (leftButtonState.isPressed)
-          menu.enter(row);
-        else
-          menu.select(row);
-      }
+    if (menu.state == MenuLogic::stVisible && mainMenuLayout->getCellFromPoint(mouseX, mouseY, &row, &col))
+    {
+      if (leftButtonState.isPressed)
+        menu.enter(row);
+      else
+        menu.select(row);
     }
   }
 
@@ -250,139 +247,139 @@ void Control::updateMenuControl(MenuLogic & menu, LayoutObjectId layoutObjectId)
 
 void Control::updateSettingsControl()
 {
-  if (InterfaceLogic::settingsLogic.state != SettingsLogic::stVisible)
-    return;
-
-  if (LayoutObject * settingsLayout = Layout::screen.getChild(loSettings))
+  if (InterfaceLogic::settingsLogic.state == SettingsLogic::stSaveConfirmation)
+    updateMenuControl(InterfaceLogic::settingsLogic.saveConfirmationMenu, loSaveSettingsMenu);
+  else if (InterfaceLogic::settingsLogic.state == SettingsLogic::stVisible)
   {
-    KeyState mouseLButtonState = getKeyState(MOUSE_LEFT);
-    LayoutObject * mouseoverObject = settingsLayout->getObjectFromPoint(mouseX, mouseY);
-    bool rowHighlighed = mouseMoved && mouseoverObject;
-    bool rowClicked = mouseLButtonState.isPressed && mouseLButtonState.wasChanged && mouseoverObject;
-    bool rowDoubleclicked = rowClicked && mouseDoubleClicked;
-
-    if (rowClicked)
+    if (LayoutObject * settingsLayout = Layout::screen.getChild(loSettings))
     {
-      if (mouseoverObject->id == loSoundProgressBar || mouseoverObject->id == loMusicProgressBar)
-        draggedProgressBarId = mouseoverObject->id;
-    }
-    else if (!mouseLButtonState.isPressed)
-      draggedProgressBarId = loNone;
+      KeyState mouseLButtonState = getKeyState(MOUSE_LEFT);
+      LayoutObject * mouseoverObject = settingsLayout->getObjectFromPoint(mouseX, mouseY);
+      bool rowHighlighed = mouseoverObject;
+      bool rowClicked = mouseLButtonState.isPressed && mouseLButtonState.wasChanged && mouseoverObject;
+      bool rowDoubleclicked = rowClicked && mouseDoubleClicked;
 
-    if (rowHighlighed)
-    {
-      int row, col;
-      InterfaceLogic::settingsLogic.backButtonHighlighted = false;
-      InterfaceLogic::settingsLogic.highlightedControl = SettingsLogic::ctrlNone;
-
-      switch (mouseoverObject->id)
+      if (rowClicked)
       {
-      case loSettingsBackButton:
-        InterfaceLogic::settingsLogic.backButtonHighlighted = true;
-        break;
+        if (mouseoverObject->id == loSoundProgressBar || mouseoverObject->id == loMusicProgressBar)
+          draggedProgressBarId = mouseoverObject->id;
+      }
+      else if (!mouseLButtonState.isPressed)
+        draggedProgressBarId = loNone;
 
-      case loSoundVolume:
-      case loSoundProgressBar:
-        InterfaceLogic::settingsLogic.highlightedControl = SettingsLogic::ctrlSoundVolume;
-        break;
+      if (rowHighlighed)
+      {
+        int row, col;
+        InterfaceLogic::settingsLogic.backButtonHighlighted = false;
+        InterfaceLogic::settingsLogic.highlightedControl = SettingsLogic::ctrlNone;
 
-      case loMusicVolume:
-      case loMusicProgressBar:
-        InterfaceLogic::settingsLogic.highlightedControl = SettingsLogic::ctrlMusicVolume;
-        break;
+        switch (mouseoverObject->id)
+        {
+        case loSettingsBackButton:
+          InterfaceLogic::settingsLogic.backButtonHighlighted = true;
+          break;
 
-      case loKeyBindingGrid:
-        InterfaceLogic::settingsLogic.highlightedControl = SettingsLogic::ctrlKeyBindTable;
+        case loSoundVolume:
+        case loSoundProgressBar:
+          InterfaceLogic::settingsLogic.highlightedControl = SettingsLogic::ctrlSoundVolume;
+          break;
 
-        if (mouseoverObject->getCellFromPoint(mouseX, mouseY, &row, &col))
-          InterfaceLogic::settingsLogic.highlightedAction = (Binding::Action)row;
-        break;
+        case loMusicVolume:
+        case loMusicProgressBar:
+          InterfaceLogic::settingsLogic.highlightedControl = SettingsLogic::ctrlMusicVolume;
+          break;
 
-      default:
-        break;
+        case loKeyBindingGrid:
+          InterfaceLogic::settingsLogic.highlightedControl = SettingsLogic::ctrlKeyBindTable;
+
+          if (mouseoverObject->getCellFromPoint(mouseX, mouseY, &row, &col))
+            InterfaceLogic::settingsLogic.highlightedAction = (Binding::Action)row;
+          break;
+
+        default:
+          break;
+        }
+      }
+
+      if (rowClicked)
+      {
+        int row, col;
+
+        switch (mouseoverObject->id)
+        {
+        case loSettingsBackButton:
+          InterfaceLogic::settingsLogic.escape();
+          break;
+
+        case loSoundVolume:
+          InterfaceLogic::settingsLogic.selectedControl = SettingsLogic::ctrlSoundVolume;
+          break;
+
+        case loSoundProgressBar:
+          InterfaceLogic::settingsLogic.selectedControl = SettingsLogic::ctrlSoundVolume;
+          break;
+
+        case loMusicVolume:
+          InterfaceLogic::settingsLogic.selectedControl = SettingsLogic::ctrlMusicVolume;
+          break;
+
+        case loMusicProgressBar:
+          InterfaceLogic::settingsLogic.selectedControl = SettingsLogic::ctrlMusicVolume;
+          break;
+
+        case loKeyBindingGrid:
+          InterfaceLogic::settingsLogic.selectedControl = SettingsLogic::ctrlKeyBindTable;
+
+          if (mouseoverObject->getCellFromPoint(mouseX, mouseY, &row, &col))
+            InterfaceLogic::settingsLogic.selectedAction = (Binding::Action)row;
+          break;
+
+        default:
+          break;
+        }
+      }
+
+      if (rowDoubleclicked)
+      {
+        int i = 0;
+      }
+
+      if (draggedProgressBarId != loNone)
+      {
+        LayoutObject * progressBarLayout = settingsLayout->getChildRecursive(draggedProgressBarId);
+        const float progressBarLeft = progressBarLayout->getGlobalLeft() + Layout::settingsProgressBarBorder + Layout::settingsProgressBarInnerGap;
+        const float progressBarWidth = progressBarLayout->width - 2.0f * Layout::settingsProgressBarBorder - 2.0f * Layout::settingsProgressBarInnerGap;
+        const float progress = glm::clamp((mouseX - progressBarLeft) / progressBarWidth, 0.0f, 1.0f);
+
+        switch (draggedProgressBarId)
+        {
+        case loSoundProgressBar:
+          InterfaceLogic::settingsLogic.setSoundVolume(progress);
+          break;
+        case loMusicProgressBar:
+          InterfaceLogic::settingsLogic.setMusicVolume(progress);
+          break;
+        default:
+          assert(0);
+        }
       }
     }
 
-    if (rowClicked)
+    for (Key key = KB_NONE; key < KEY_COUNT; key++)
     {
-      int row, col;
+      KeyState keyState = getKeyState(key);
 
-      switch (mouseoverObject->id)
+      if (keyState.pressCount || keyState.repeatCount)
+        switch (key)
       {
-      case loSettingsBackButton:
-        InterfaceLogic::settingsLogic.escape();
-        break;
-
-      case loSoundVolume:
-        InterfaceLogic::settingsLogic.selectedControl = SettingsLogic::ctrlSoundVolume;
-        break;
-
-      case loSoundProgressBar:
-        InterfaceLogic::settingsLogic.selectedControl = SettingsLogic::ctrlSoundVolume;
-        InterfaceLogic::settingsLogic.soundVolume = glm::clamp((mouseX - mouseoverObject->getGlobalLeft()) / mouseoverObject->width, 0.0f, 1.0f);
-        break;
-
-      case loMusicVolume:
-        InterfaceLogic::settingsLogic.selectedControl = SettingsLogic::ctrlMusicVolume;
-        break;
-
-      case loMusicProgressBar:
-        InterfaceLogic::settingsLogic.selectedControl = SettingsLogic::ctrlMusicVolume;
-        InterfaceLogic::settingsLogic.musicVolume = glm::clamp((mouseX - mouseoverObject->getGlobalLeft()) / mouseoverObject->width, 0.0f, 1.0f);
-        break;
-
-      case loKeyBindingGrid:
-        InterfaceLogic::settingsLogic.selectedControl = SettingsLogic::ctrlKeyBindTable;
-
-        if (mouseoverObject->getCellFromPoint(mouseX, mouseY, &row, &col))
-          InterfaceLogic::settingsLogic.selectedAction = (Binding::Action)row;
-        break;
-
-      default:
-        break;
+        case KB_UP:     break;
+        case KB_DOWN:   break;
+        case KB_ENTER:
+        case KB_KP_ENTER:
+        case KB_SPACE:  break;
+        case KB_ESCAPE: InterfaceLogic::settingsLogic.escape();  break;
+        default: break;
       }
-    }
-
-    if (rowDoubleclicked)
-    {
-      int i = 0;
-    }
-
-    if (draggedProgressBarId != loNone)
-    {
-      LayoutObject * progressBarLayout = settingsLayout->getChildRecursive(draggedProgressBarId);
-      const float progressBarLeft = progressBarLayout->getGlobalLeft() + Layout::settingsProgressBarBorder + Layout::settingsProgressBarInnerGap;
-      const float progressBarWidth = progressBarLayout->width - 2.0f * Layout::settingsProgressBarBorder - 2.0f * Layout::settingsProgressBarInnerGap;
-      const float progress = glm::clamp((mouseX - progressBarLeft) / progressBarWidth, 0.0f, 1.0f);
-
-      switch (draggedProgressBarId)
-      {
-      case loSoundProgressBar:
-        InterfaceLogic::settingsLogic.soundVolume = progress;
-        break;
-      case loMusicProgressBar:
-        InterfaceLogic::settingsLogic.musicVolume = progress;
-        break;
-      default:
-        assert(0);
-      }
-    }
-  }
-
-  for (Key key = KB_NONE; key < KEY_COUNT; key++)
-  {
-    KeyState keyState = getKeyState(key);
-
-    if (keyState.pressCount || keyState.repeatCount)
-      switch (key)
-    {
-      case KB_UP:     break;
-      case KB_DOWN:   break;
-      case KB_ENTER:
-      case KB_KP_ENTER:
-      case KB_SPACE:  break;
-      case KB_ESCAPE: InterfaceLogic::settingsLogic.escape();  break;
-      default: break;
     }
   }
 }

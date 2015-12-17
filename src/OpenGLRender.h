@@ -5,6 +5,7 @@
 #include "Figure.h"
 #include "GameLogic.h"
 #include "InterfaceLogic.h"
+#include "LayoutObject.h"
 
 class OpenGLRender
 {
@@ -76,6 +77,7 @@ private:
   void buildRowFlashes();
   void buildSidePanel(float left, float top, float width, float height, float cornerSize, float glowWidth, const glm::vec3 & topColor, const glm::vec3 & bottomColor, const glm::vec3 & glowColor);
   void buildMenu();
+  void buildMenu(MenuLogic * menuLogic, LayoutObject * menuLayout);
   void buildTextMesh(float left, float top, float width, float height, const char * str, int fontSize, float scale, const glm::vec3 & color, float alpha, HorzAllign horzAllign = haLeft, VertAllign vertAllign = vaTop);
   void buildSettings();
 };

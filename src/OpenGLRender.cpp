@@ -115,6 +115,7 @@ void OpenGLRender::init(int width, int height)
     loadGlyph(ch, Globals::smallFontSize);
 
   loadGlyph(' ', Globals::smallFontSize);
+  loadGlyph('\'', Globals::smallFontSize);
 
   err = FT_Set_Char_Size(ftFace, Globals::midFontSize * 64, Globals::midFontSize * 64, 64, 64);
   assert(!err);
@@ -129,6 +130,7 @@ void OpenGLRender::init(int width, int height)
     loadGlyph(ch, Globals::midFontSize);
 
   loadGlyph(' ', Globals::midFontSize);
+  loadGlyph('\'', Globals::midFontSize);
 
   err = FT_Set_Char_Size(ftFace, Globals::bigFontSize * 64, Globals::bigFontSize * 64, 64, 64);
   assert(!err);
@@ -143,6 +145,7 @@ void OpenGLRender::init(int width, int height)
     loadGlyph(ch, Globals::bigFontSize);
 
   loadGlyph(' ', Globals::bigFontSize);
+  loadGlyph('\'', Globals::bigFontSize);
 
   glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
   assert(!checkGlErrors());
@@ -1884,24 +1887,24 @@ void OpenGLRender::buildMenu()
 
   switch (InterfaceLogic::state)
   {
-  case InterfaceLogic::stMainMenu:                
-    menuLogic = &InterfaceLogic::mainMenu;                    
+  case InterfaceLogic::stMainMenu:
+    menuLogic = &InterfaceLogic::mainMenu;
     menuLayout = Layout::screen.getChild(loMainMenu);
     break;
-  case InterfaceLogic::stInGameMenu:              
-    menuLogic = &InterfaceLogic::inGameMenu;                  
+  case InterfaceLogic::stInGameMenu:
+    menuLogic = &InterfaceLogic::inGameMenu;
     menuLayout = Layout::screen.getChild(loInGameMenu);
     break;
-  case InterfaceLogic::stQuitConfirmation:        
-    menuLogic = &InterfaceLogic::quitConfirmationMenu;        
+  case InterfaceLogic::stQuitConfirmation:
+    menuLogic = &InterfaceLogic::quitConfirmationMenu;
     menuLayout = Layout::screen.getChild(loQuitConfirmationMenu);
     break;
-  case InterfaceLogic::stRestartConfirmation:     
-    menuLogic = &InterfaceLogic::restartConfirmationMenu;     
+  case InterfaceLogic::stRestartConfirmation:
+    menuLogic = &InterfaceLogic::restartConfirmationMenu;
     menuLayout = Layout::screen.getChild(loRestartConfirmationMenu);
     break;
-  case InterfaceLogic::stExitToMainConfirmation:  
-    menuLogic = &InterfaceLogic::exitToMainConfirmationMenu;  
+  case InterfaceLogic::stExitToMainConfirmation:
+    menuLogic = &InterfaceLogic::exitToMainConfirmationMenu;
     menuLayout = Layout::screen.getChild(loExitToMainConfirmationMenu);
     break;
   case InterfaceLogic::stSettings: break;
@@ -1917,37 +1920,41 @@ void OpenGLRender::buildMenu()
     const float bkWidth = menuLayout->width;
     const float bkHeight = menuLayout->height;
     buildRect(bkLeft, bkTop, bkWidth, bkHeight, glm::vec3(0.0f), Palette::backgroundShadeAlpha * InterfaceLogic::menuShadeProgress);
+    buildMenu(menuLogic, menuLayout);
+  }
+}
 
-    for (int row = 0, cnt = menuLogic->rowCount; row < cnt; row++)
+void OpenGLRender::buildMenu(MenuLogic * menuLogic, LayoutObject * menuLayout)
+{
+  for (int row = 0, cnt = menuLogic->rowCount; row < cnt; row++)
+  {
+    const float rowLag = 0.2f;
+    float rowProgress;
+
+    switch (menuLogic->state)
     {
-      const float rowLag = 0.2f;
-      float rowProgress;
-
-      switch (menuLogic->state)
-      {
-      case MenuLogic::stShowing:
-        rowProgress = 1.0f - glm::clamp(menuLogic->transitionProgress * (1.0f + rowLag * cnt) - rowLag * row, 0.0f, 1.0f);
-        break;
-      case MenuLogic::stHiding:
-        rowProgress = 1.0f - glm::clamp(menuLogic->transitionProgress * (1.0f + rowLag * cnt) - rowLag * (cnt - row), 0.0f, 1.0f);
-        break;
-      default:
-        rowProgress = 1.0f - menuLogic->transitionProgress;
-        break;
-      }
-      LayoutObject::Rect menuRowRect = menuLayout->getCellGlobalRect(row, 0);
-      menuRowRect.left -= (menuRowRect.width + Layout::menuRowGlowWidth) * rowProgress * rowProgress;
-      const bool highlight = (row == menuLogic->selectedRow);
-      const glm::vec3 & panelTopColor = highlight ? Palette::menuSelectedRowBackgroundTop : Palette::menuNormalRowBackgroundTop;
-      const glm::vec3 & panelBottomColor = highlight ? Palette::menuSelectedRowBackgroundBottom : Palette::menuNormalRowBackgroundBottom;
-      const glm::vec3 & panelGlowColor = highlight ? Palette::menuSelectedRowGlow : Palette::menuNormalRowGlow;
-      buildSidePanel(menuRowRect.left, menuRowRect.top, menuRowRect.width, menuRowRect.height, Layout::menuRowCornerSize, Layout::menuRowGlowWidth, panelTopColor, panelBottomColor, panelGlowColor);
-      menuRowRect.left += Layout::menuRowTextOffset;
-      const float textHeight = 0.08f;
-      const glm::vec3 & textColor = highlight ? Palette::menuSelectedRowText : Palette::menuNormalRowText;
-      const char * text = menuLogic->getText(row);
-      buildTextMesh(menuRowRect.left, menuRowRect.top, menuRowRect.width, menuRowRect.height, text, Globals::midFontSize, Layout::menuFontHeight, textColor, 1.0f, haLeft, vaCenter);
+    case MenuLogic::stShowing:
+      rowProgress = 1.0f - glm::clamp(menuLogic->transitionProgress * (1.0f + rowLag * cnt) - rowLag * row, 0.0f, 1.0f);
+      break;
+    case MenuLogic::stHiding:
+      rowProgress = 1.0f - glm::clamp(menuLogic->transitionProgress * (1.0f + rowLag * cnt) - rowLag * (cnt - row), 0.0f, 1.0f);
+      break;
+    default:
+      rowProgress = 1.0f - menuLogic->transitionProgress;
+      break;
     }
+    LayoutObject::Rect menuRowRect = menuLayout->getCellGlobalRect(row, 0);
+    menuRowRect.left -= (menuRowRect.width + Layout::menuRowGlowWidth) * rowProgress * rowProgress;
+    const bool highlight = (row == menuLogic->selectedRow);
+    const glm::vec3 & panelTopColor = highlight ? Palette::menuSelectedRowBackgroundTop : Palette::menuNormalRowBackgroundTop;
+    const glm::vec3 & panelBottomColor = highlight ? Palette::menuSelectedRowBackgroundBottom : Palette::menuNormalRowBackgroundBottom;
+    const glm::vec3 & panelGlowColor = highlight ? Palette::menuSelectedRowGlow : Palette::menuNormalRowGlow;
+    buildSidePanel(menuRowRect.left, menuRowRect.top, menuRowRect.width, menuRowRect.height, Layout::menuRowCornerSize, Layout::menuRowGlowWidth, panelTopColor, panelBottomColor, panelGlowColor);
+    menuRowRect.left += Layout::menuRowTextOffset;
+    const float textHeight = 0.08f;
+    const glm::vec3 & textColor = highlight ? Palette::menuSelectedRowText : Palette::menuNormalRowText;
+    const char * text = menuLogic->getText(row);
+    buildTextMesh(menuRowRect.left, menuRowRect.top, menuRowRect.width, menuRowRect.height, text, Globals::midFontSize, Layout::menuFontHeight, textColor, 1.0f, haLeft, vaCenter);
   }
 }
 
@@ -2086,191 +2093,204 @@ void OpenGLRender::buildTextMesh(float left, float top, float width, float heigh
 
 void OpenGLRender::buildSettings()
 {
-  if (InterfaceLogic::state != InterfaceLogic::stSettings)
-    return;
-
-  if (LayoutObject * settingsLayout = Layout::screen.getChild(loSettings))
+  if (InterfaceLogic::state == InterfaceLogic::stSettings)
   {
-    const float backgroundLeft = settingsLayout->getGlobalLeft();
-    const float backgroundTop = settingsLayout->getGlobalTop();
-    const float backgroundWidth = settingsLayout->width;
-    const float backgroundHeight = settingsLayout->height;
-    buildRect(backgroundLeft, backgroundTop, backgroundWidth, backgroundHeight, glm::vec3(0.0f), Palette::backgroundShadeAlpha);
-
-    if (LayoutObject * settingsWindowLayout = settingsLayout->getChild(loSettingsWindow))
+    if (LayoutObject * settingsLayout = Layout::screen.getChild(loSettings))
     {
-      const float opProgress = 1.0f - InterfaceLogic::settingsLogic.transitionProgress;
-      const float sqOpProgress = opProgress * opProgress;
-      const float fullSettingsWidth = settingsWindowLayout->width + Layout::settingsGlowWidth;
-      const float shift = -sqOpProgress * fullSettingsWidth;
+      const float backgroundLeft = settingsLayout->getGlobalLeft();
+      const float backgroundTop = settingsLayout->getGlobalTop();
+      const float backgroundWidth = settingsLayout->width;
+      const float backgroundHeight = settingsLayout->height;
+      buildRect(backgroundLeft, backgroundTop, backgroundWidth, backgroundHeight, glm::vec3(0.0f), Palette::backgroundShadeAlpha);
 
-      const float left = settingsWindowLayout->getGlobalLeft() + shift;
-      const float top = settingsWindowLayout->getGlobalTop();
-      const float width = settingsWindowLayout->width;
-      const float height = settingsWindowLayout->height;
-      buildSidePanel(left, top, width, height, Layout::settingsCornerSize, Layout::settingsGlowWidth, Palette::settingsBackgroundTop, Palette::settingsBackgroundBottom, Palette::settingsGlow);
-
-      if (LayoutObject * settingTitleShadowLayout = settingsWindowLayout->getChild(loSettingsTitleShadow))
+      if (LayoutObject * settingsWindowLayout = settingsLayout->getChild(loSettingsWindow))
       {
-        const float left = settingTitleShadowLayout->getGlobalLeft() + shift;
-        const float top = settingTitleShadowLayout->getGlobalTop();
-        const float width = settingTitleShadowLayout->width;
-        const float height = settingTitleShadowLayout->height;
-        buildTextMesh(left, top, width, height, "SETTINGS", Globals::midFontSize, Layout::settingsTitleHeight, glm::vec3(0.0f), Palette::settingsTitleShadowAlpha, haLeft, vaTop);
-      }
+        const float opProgress = 1.0f - InterfaceLogic::settingsLogic.transitionProgress;
+        const float sqOpProgress = opProgress * opProgress;
+        const float fullSettingsWidth = settingsWindowLayout->width + Layout::settingsGlowWidth;
+        const float shift = -sqOpProgress * fullSettingsWidth;
 
-      if (LayoutObject * settingTitleLayout = settingsWindowLayout->getChild(loSettingsTitle))
-      {
-        const float left = settingTitleLayout->getGlobalLeft() + shift;
-        const float top = settingTitleLayout->getGlobalTop();
-        const float width = settingTitleLayout->width;
-        const float height = settingTitleLayout->height;
-        buildTextMesh(left, top, width, height, "SETTINGS", Globals::midFontSize, Layout::settingsTitleHeight, Palette::settingsTitleText, 1.0f, haLeft, vaCenter);
-      }
+        const float left = settingsWindowLayout->getGlobalLeft() + shift;
+        const float top = settingsWindowLayout->getGlobalTop();
+        const float width = settingsWindowLayout->width;
+        const float height = settingsWindowLayout->height;
+        buildSidePanel(left, top, width, height, Layout::settingsCornerSize, Layout::settingsGlowWidth, Palette::settingsBackgroundTop, Palette::settingsBackgroundBottom, Palette::settingsGlow);
 
-      if (LayoutObject * settingPanelLayout = settingsWindowLayout->getChild(loSettingsPanel))
-      {
-        const float left = settingPanelLayout->getGlobalLeft() + shift;
-        const float top = settingPanelLayout->getGlobalTop();
-        const float width = settingPanelLayout->width;
-        const float height = settingPanelLayout->height;
-        buildVertGradientRect(left, top, width, height, Palette::settingsPanelBackgroundTop, 1.0f, Palette::settingsPanelBackgroundBottom, 1.0f);
-        buildFrameRect(left, top, width, height, Layout::settingsPanelBorderWidth, Palette::settingsPanelBorder, 1.0f);
-
-        if (LayoutObject * volumeTitleLayout = settingPanelLayout->getChild(loVolumeTitle))
+        if (LayoutObject * settingTitleShadowLayout = settingsWindowLayout->getChild(loSettingsTitleShadow))
         {
-          const float left = volumeTitleLayout->getGlobalLeft() + shift;
-          const float top = volumeTitleLayout->getGlobalTop();
-          const float width = volumeTitleLayout->width;
-          const float height = volumeTitleLayout->height;
-          buildTextMesh(left, top, width, height, "VOLUME", Globals::midFontSize, height, Palette::settingsPanelTitleText, 1.0f, haLeft, vaCenter);
+          const float left = settingTitleShadowLayout->getGlobalLeft() + shift;
+          const float top = settingTitleShadowLayout->getGlobalTop();
+          const float width = settingTitleShadowLayout->width;
+          const float height = settingTitleShadowLayout->height;
+          buildTextMesh(left, top, width, height, "SETTINGS", Globals::midFontSize, Layout::settingsTitleHeight, glm::vec3(0.0f), Palette::settingsTitleShadowAlpha, haLeft, vaTop);
         }
 
-        if (LayoutObject * soundVolumeRowLayout = settingPanelLayout->getChild(loSoundVolume))
+        if (LayoutObject * settingTitleLayout = settingsWindowLayout->getChild(loSettingsTitle))
         {
-          const float left = soundVolumeRowLayout->getGlobalLeft() + shift;
-          const float top = soundVolumeRowLayout->getGlobalTop();
-          const float width = soundVolumeRowLayout->width;
-          const float height = soundVolumeRowLayout->height;
-          const glm::vec3 & bkColor = 
-            InterfaceLogic::settingsLogic.selectedControl == SettingsLogic::ctrlSoundVolume ? Palette::settingsActiveRowBackground : 
-            InterfaceLogic::settingsLogic.highlightedControl == SettingsLogic::ctrlSoundVolume ? Palette::settingsMouseoverRowBackground :
-            Palette::settingsInactiveRowBackground;
-          const glm::vec3 & textColor = 
-            InterfaceLogic::settingsLogic.selectedControl == SettingsLogic::ctrlSoundVolume ? Palette::settingsActiveRowText :
-            InterfaceLogic::settingsLogic.highlightedControl == SettingsLogic::ctrlSoundVolume ? Palette::settingsMouseoverRowText :
-            Palette::settingsInactiveRowText;
-          buildSmoothRect(left, top, width, height, edgeBlurWidth, bkColor, 1.0);
-          buildTextMesh(left + Layout::settingsPanelRowCaptionIndent, top, width, height, "Sound", Globals::midFontSize, Layout::settingsPanelRowCaptionHeight, textColor, 1.0f, haLeft, vaCenter);
+          const float left = settingTitleLayout->getGlobalLeft() + shift;
+          const float top = settingTitleLayout->getGlobalTop();
+          const float width = settingTitleLayout->width;
+          const float height = settingTitleLayout->height;
+          buildTextMesh(left, top, width, height, "SETTINGS", Globals::midFontSize, Layout::settingsTitleHeight, Palette::settingsTitleText, 1.0f, haLeft, vaCenter);
+        }
 
-          if (LayoutObject * progressBarLayout = soundVolumeRowLayout->getChild(loSoundProgressBar))
+        if (LayoutObject * settingPanelLayout = settingsWindowLayout->getChild(loSettingsPanel))
+        {
+          const float left = settingPanelLayout->getGlobalLeft() + shift;
+          const float top = settingPanelLayout->getGlobalTop();
+          const float width = settingPanelLayout->width;
+          const float height = settingPanelLayout->height;
+          buildVertGradientRect(left, top, width, height, Palette::settingsPanelBackgroundTop, 1.0f, Palette::settingsPanelBackgroundBottom, 1.0f);
+          buildFrameRect(left, top, width, height, Layout::settingsPanelBorderWidth, Palette::settingsPanelBorder, 1.0f);
+
+          if (LayoutObject * volumeTitleLayout = settingPanelLayout->getChild(loVolumeTitle))
           {
-            const float left = progressBarLayout->getGlobalLeft() + shift;
-            const float top = progressBarLayout->getGlobalTop();
-            const float width = progressBarLayout->width;
-            const float height = progressBarLayout->height;
-            const glm::vec3 & bkColor = Palette::settingsProgressBarBackground;
-            const glm::vec3 & barColor = Palette::settingsProgressBarForeground;
-            const glm::vec3 & borderColor =
-              InterfaceLogic::settingsLogic.selectedControl == SettingsLogic::ctrlSoundVolume ? Palette::settingsProgressBarBackground :
-              Palette::settingsProgressBarForeground;
-            const float progress = InterfaceLogic::settingsLogic.soundVolume;
-            buildProgressBar(left, top, width, height, bkColor, borderColor, barColor, 1.0f, progress);
+            const float left = volumeTitleLayout->getGlobalLeft() + shift;
+            const float top = volumeTitleLayout->getGlobalTop();
+            const float width = volumeTitleLayout->width;
+            const float height = volumeTitleLayout->height;
+            buildTextMesh(left, top, width, height, "VOLUME", Globals::midFontSize, height, Palette::settingsPanelTitleText, 1.0f, haLeft, vaCenter);
           }
-        }
 
-        if (LayoutObject * musicVolumeRowLayout = settingPanelLayout->getChild(loMusicVolume))
-        {
-          const float left = musicVolumeRowLayout->getGlobalLeft() + shift;
-          const float top = musicVolumeRowLayout->getGlobalTop();
-          const float width = musicVolumeRowLayout->width;
-          const float height = musicVolumeRowLayout->height;
-          const glm::vec3 & bkColor =
-            InterfaceLogic::settingsLogic.selectedControl == SettingsLogic::ctrlMusicVolume ? Palette::settingsActiveRowBackground :
-            InterfaceLogic::settingsLogic.highlightedControl == SettingsLogic::ctrlMusicVolume ? Palette::settingsMouseoverRowBackground :
-            Palette::settingsInactiveRowBackground;
-          const glm::vec3 & textColor =
-            InterfaceLogic::settingsLogic.selectedControl == SettingsLogic::ctrlMusicVolume ? Palette::settingsActiveRowText :
-            InterfaceLogic::settingsLogic.highlightedControl == SettingsLogic::ctrlMusicVolume ? Palette::settingsMouseoverRowText :
-            Palette::settingsInactiveRowText;
-          buildSmoothRect(left, top, width, height, edgeBlurWidth, bkColor, 1.0);
-          buildTextMesh(left + Layout::settingsPanelRowCaptionIndent, top, width, height, "Music", Globals::midFontSize, Layout::settingsPanelRowCaptionHeight, textColor, 1.0f, haLeft, vaCenter);
-
-          if (LayoutObject * progressBarLayout = musicVolumeRowLayout->getChild(loMusicProgressBar))
+          if (LayoutObject * soundVolumeRowLayout = settingPanelLayout->getChild(loSoundVolume))
           {
-            const float left = progressBarLayout->getGlobalLeft() + shift;
-            const float top = progressBarLayout->getGlobalTop();
-            const float width = progressBarLayout->width;
-            const float height = progressBarLayout->height;
-            const glm::vec3 & bkColor = Palette::settingsProgressBarBackground;
-            const glm::vec3 & barColor = Palette::settingsProgressBarForeground;
-            const glm::vec3 & borderColor =
-              InterfaceLogic::settingsLogic.selectedControl == SettingsLogic::ctrlMusicVolume ? Palette::settingsProgressBarBackground :
-              Palette::settingsProgressBarForeground;
-            const float progress = InterfaceLogic::settingsLogic.musicVolume;
-            buildProgressBar(left, top, width, height, bkColor, borderColor, barColor, 1.0f, progress);
-          }
-        }
-
-        if (LayoutObject * keyBindingTitleLayout = settingPanelLayout->getChild(loKeyBindingTitle))
-        {
-          const float left = keyBindingTitleLayout->getGlobalLeft() + shift;
-          const float top = keyBindingTitleLayout->getGlobalTop();
-          const float width = keyBindingTitleLayout->width;
-          const float height = keyBindingTitleLayout->height;
-          buildTextMesh(left, top, width, height, "KEY BINDING", Globals::midFontSize, height, Palette::settingsPanelTitleText, 1.0f, haLeft, vaCenter);
-        }
-
-        if (LayoutObject * keyBindingGridLayout = settingPanelLayout->getChild(loKeyBindingGrid))
-        {
-          const int selectedRow = 
-            InterfaceLogic::settingsLogic.selectedControl == SettingsLogic::ctrlKeyBindTable ? 
-            (int)InterfaceLogic::settingsLogic.selectedAction : -1;
-          const int highlightedRow = 
-            InterfaceLogic::settingsLogic.highlightedControl == SettingsLogic::ctrlKeyBindTable ?
-            (int)InterfaceLogic::settingsLogic.highlightedAction : -1;
-
-          for (int row = 0, count = keyBindingGridLayout->getRowCount(); row < count; row++)
-          {
-            float left0 = keyBindingGridLayout->getColumnGlobalLeft(0) + shift;
-            const float width0 = keyBindingGridLayout->getColumnWidth(0);
-            const float left1 = keyBindingGridLayout->getColumnGlobalLeft(1) + shift;
-            const float width1 = keyBindingGridLayout->getColumnWidth(1);
-            const float top = keyBindingGridLayout->getRowGlobalTop(row);
-            const float height = keyBindingGridLayout->getRowHeight(row);
-            Binding::Action action = static_cast<Binding::Action>(row);
-            const char * actionName = Binding::getActionName(action);
-            Key key = Binding::getActionKey(action);
-            const char * keyName = Keys::getName(key);
-            const glm::vec3 & bkColor = 
-              row == selectedRow ? Palette::settingsActiveRowBackground :
-              row == highlightedRow ? Palette::settingsMouseoverRowBackground :
+            const float left = soundVolumeRowLayout->getGlobalLeft() + shift;
+            const float top = soundVolumeRowLayout->getGlobalTop();
+            const float width = soundVolumeRowLayout->width;
+            const float height = soundVolumeRowLayout->height;
+            const glm::vec3 & bkColor =
+              InterfaceLogic::settingsLogic.selectedControl == SettingsLogic::ctrlSoundVolume ? Palette::settingsActiveRowBackground :
+              InterfaceLogic::settingsLogic.highlightedControl == SettingsLogic::ctrlSoundVolume ? Palette::settingsMouseoverRowBackground :
               Palette::settingsInactiveRowBackground;
-            const glm::vec3 & fgColor = 
-              row == selectedRow ? Palette::settingsActiveRowText :
-              row == highlightedRow ? Palette::settingsMouseoverRowText :
+            const glm::vec3 & textColor =
+              InterfaceLogic::settingsLogic.selectedControl == SettingsLogic::ctrlSoundVolume ? Palette::settingsActiveRowText :
+              InterfaceLogic::settingsLogic.highlightedControl == SettingsLogic::ctrlSoundVolume ? Palette::settingsMouseoverRowText :
               Palette::settingsInactiveRowText;
-            buildSmoothRect(left0, top, width0, height, edgeBlurWidth, bkColor, 1.0);
-            buildSmoothRect(left1, top, width1, height, edgeBlurWidth, bkColor, 1.0);
-            left0 += Layout::settingsPanelRowCaptionIndent;
-            buildTextMesh(left0, top, width0, height, actionName, Globals::midFontSize, Layout::settingsPanelRowCaptionHeight, fgColor, 1.0f, haLeft, vaCenter);
-            buildTextMesh(left1, top, width1, height, keyName, Globals::midFontSize, Layout::settingsPanelRowCaptionHeight, fgColor, 1.0f, haCenter, vaCenter);
+            buildSmoothRect(left, top, width, height, edgeBlurWidth, bkColor, 1.0);
+            buildTextMesh(left + Layout::settingsPanelRowCaptionIndent, top, width, height, "Sound", Globals::midFontSize, Layout::settingsPanelRowCaptionHeight, textColor, 1.0f, haLeft, vaCenter);
+
+            if (LayoutObject * progressBarLayout = soundVolumeRowLayout->getChild(loSoundProgressBar))
+            {
+              const float left = progressBarLayout->getGlobalLeft() + shift;
+              const float top = progressBarLayout->getGlobalTop();
+              const float width = progressBarLayout->width;
+              const float height = progressBarLayout->height;
+              const glm::vec3 & bkColor = Palette::settingsProgressBarBackground;
+              const glm::vec3 & barColor = Palette::settingsProgressBarForeground;
+              const glm::vec3 & borderColor =
+                InterfaceLogic::settingsLogic.selectedControl == SettingsLogic::ctrlSoundVolume ? Palette::settingsProgressBarBackground :
+                Palette::settingsProgressBarForeground;
+              const float progress = InterfaceLogic::settingsLogic.getSoundVolume();
+              buildProgressBar(left, top, width, height, bkColor, borderColor, barColor, 1.0f, progress);
+            }
+          }
+
+          if (LayoutObject * musicVolumeRowLayout = settingPanelLayout->getChild(loMusicVolume))
+          {
+            const float left = musicVolumeRowLayout->getGlobalLeft() + shift;
+            const float top = musicVolumeRowLayout->getGlobalTop();
+            const float width = musicVolumeRowLayout->width;
+            const float height = musicVolumeRowLayout->height;
+            const glm::vec3 & bkColor =
+              InterfaceLogic::settingsLogic.selectedControl == SettingsLogic::ctrlMusicVolume ? Palette::settingsActiveRowBackground :
+              InterfaceLogic::settingsLogic.highlightedControl == SettingsLogic::ctrlMusicVolume ? Palette::settingsMouseoverRowBackground :
+              Palette::settingsInactiveRowBackground;
+            const glm::vec3 & textColor =
+              InterfaceLogic::settingsLogic.selectedControl == SettingsLogic::ctrlMusicVolume ? Palette::settingsActiveRowText :
+              InterfaceLogic::settingsLogic.highlightedControl == SettingsLogic::ctrlMusicVolume ? Palette::settingsMouseoverRowText :
+              Palette::settingsInactiveRowText;
+            buildSmoothRect(left, top, width, height, edgeBlurWidth, bkColor, 1.0);
+            buildTextMesh(left + Layout::settingsPanelRowCaptionIndent, top, width, height, "Music", Globals::midFontSize, Layout::settingsPanelRowCaptionHeight, textColor, 1.0f, haLeft, vaCenter);
+
+            if (LayoutObject * progressBarLayout = musicVolumeRowLayout->getChild(loMusicProgressBar))
+            {
+              const float left = progressBarLayout->getGlobalLeft() + shift;
+              const float top = progressBarLayout->getGlobalTop();
+              const float width = progressBarLayout->width;
+              const float height = progressBarLayout->height;
+              const glm::vec3 & bkColor = Palette::settingsProgressBarBackground;
+              const glm::vec3 & barColor = Palette::settingsProgressBarForeground;
+              const glm::vec3 & borderColor =
+                InterfaceLogic::settingsLogic.selectedControl == SettingsLogic::ctrlMusicVolume ? Palette::settingsProgressBarBackground :
+                Palette::settingsProgressBarForeground;
+              const float progress = InterfaceLogic::settingsLogic.getMusicVolume();
+              buildProgressBar(left, top, width, height, bkColor, borderColor, barColor, 1.0f, progress);
+            }
+          }
+
+          if (LayoutObject * keyBindingTitleLayout = settingPanelLayout->getChild(loKeyBindingTitle))
+          {
+            const float left = keyBindingTitleLayout->getGlobalLeft() + shift;
+            const float top = keyBindingTitleLayout->getGlobalTop();
+            const float width = keyBindingTitleLayout->width;
+            const float height = keyBindingTitleLayout->height;
+            buildTextMesh(left, top, width, height, "KEY BINDING", Globals::midFontSize, height, Palette::settingsPanelTitleText, 1.0f, haLeft, vaCenter);
+          }
+
+          if (LayoutObject * keyBindingGridLayout = settingPanelLayout->getChild(loKeyBindingGrid))
+          {
+            const int selectedRow =
+              InterfaceLogic::settingsLogic.selectedControl == SettingsLogic::ctrlKeyBindTable ?
+              (int)InterfaceLogic::settingsLogic.selectedAction : -1;
+            const int highlightedRow =
+              InterfaceLogic::settingsLogic.highlightedControl == SettingsLogic::ctrlKeyBindTable ?
+              (int)InterfaceLogic::settingsLogic.highlightedAction : -1;
+
+            for (int row = 0, count = keyBindingGridLayout->getRowCount(); row < count; row++)
+            {
+              float left0 = keyBindingGridLayout->getColumnGlobalLeft(0) + shift;
+              const float width0 = keyBindingGridLayout->getColumnWidth(0);
+              const float left1 = keyBindingGridLayout->getColumnGlobalLeft(1) + shift;
+              const float width1 = keyBindingGridLayout->getColumnWidth(1);
+              const float top = keyBindingGridLayout->getRowGlobalTop(row);
+              const float height = keyBindingGridLayout->getRowHeight(row);
+              Binding::Action action = static_cast<Binding::Action>(row);
+              const char * actionName = Binding::getActionName(action);
+              Key key = Binding::getActionKey(action);
+              const char * keyName = Keys::getName(key);
+              const glm::vec3 & bkColor =
+                row == selectedRow ? Palette::settingsActiveRowBackground :
+                row == highlightedRow ? Palette::settingsMouseoverRowBackground :
+                Palette::settingsInactiveRowBackground;
+              const glm::vec3 & fgColor =
+                row == selectedRow ? Palette::settingsActiveRowText :
+                row == highlightedRow ? Palette::settingsMouseoverRowText :
+                Palette::settingsInactiveRowText;
+              buildSmoothRect(left0, top, width0, height, edgeBlurWidth, bkColor, 1.0);
+              buildSmoothRect(left1, top, width1, height, edgeBlurWidth, bkColor, 1.0);
+              left0 += Layout::settingsPanelRowCaptionIndent;
+              buildTextMesh(left0, top, width0, height, actionName, Globals::midFontSize, Layout::settingsPanelRowCaptionHeight, fgColor, 1.0f, haLeft, vaCenter);
+              buildTextMesh(left1, top, width1, height, keyName, Globals::midFontSize, Layout::settingsPanelRowCaptionHeight, fgColor, 1.0f, haCenter, vaCenter);
+            }
+          }
+        }
+
+        if (LayoutObject * backButtonLayout = settingsWindowLayout->getChild(loSettingsBackButton))
+        {
+          for (int column = 0, count = backButtonLayout->getColumnCount(); column < count; column++)
+          {
+            const float shevronLeft = backButtonLayout->getColumnGlobalLeft(column) + shift;
+            const float shevronTop = backButtonLayout->getGlobalTop();
+            const float shevronWidth = backButtonLayout->getColumnWidth(column);
+            const float shevronHeight = backButtonLayout->height;
+            const glm::vec3 & shevronColor = InterfaceLogic::settingsLogic.backButtonHighlighted ? Palette::settingsBackButtonHighlighted : Palette::settingsBackButton;
+
+            buildTexturedRect(shevronLeft, shevronTop, shevronWidth, shevronHeight, Globals::levelBackShevronTexIndex, shevronColor, 1.0f);
           }
         }
       }
+    }
 
-      if (LayoutObject * backButtonLayout = settingsWindowLayout->getChild(loSettingsBackButton))
+    if (InterfaceLogic::settingsLogic.state == SettingsLogic::stSaveConfirmation)
+    {
+      if (LayoutObject * menuLayout = Layout::screen.getChild(loSaveSettingsMenu))
       {
-        for (int column = 0, count = backButtonLayout->getColumnCount(); column < count; column++)
-        {
-          const float shevronLeft = backButtonLayout->getColumnGlobalLeft(column) + shift;
-          const float shevronTop = backButtonLayout->getGlobalTop();
-          const float shevronWidth = backButtonLayout->getColumnWidth(column);
-          const float shevronHeight = backButtonLayout->height;
-          const glm::vec3 & shevronColor = InterfaceLogic::settingsLogic.backButtonHighlighted ? Palette::settingsBackButtonHighlighted : Palette::settingsBackButton;
-
-          buildTexturedRect(shevronLeft, shevronTop, shevronWidth, shevronHeight, Globals::levelBackShevronTexIndex, shevronColor, 1.0f);
-        }
+        const float bkLeft = menuLayout->getGlobalLeft();
+        const float bkTop = menuLayout->getGlobalTop();
+        const float bkWidth = menuLayout->width;
+        const float bkHeight = menuLayout->height;
+        buildRect(bkLeft, bkTop, bkWidth, bkHeight, glm::vec3(0.0f), Palette::backgroundShadeAlpha * InterfaceLogic::settingsLogic.saveConfirmationMenu.transitionProgress);
+        buildMenu(&InterfaceLogic::settingsLogic.saveConfirmationMenu, menuLayout);
       }
     }
   }

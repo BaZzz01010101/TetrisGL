@@ -5,14 +5,13 @@
 class InterfaceLogic
 {
 public:
-  enum State { stHidden, stMainMenu, stInGameMenu, stSettings, stLeaderboard, stQuitConfirmation, stRestartConfirmation, stExitToMainConfirmation, stSaveConfirmation };
+  enum State { stHidden, stMainMenu, stInGameMenu, stSettings, stLeaderboard, stQuitConfirmation, stRestartConfirmation, stExitToMainConfirmation};
   enum Result { resNone, resNewGame, resContinueGame, resStopGame, resCloseApp };
   static MenuLogic mainMenu;
   static MenuLogic inGameMenu;
   static MenuLogic quitConfirmationMenu;
   static MenuLogic restartConfirmationMenu;
   static MenuLogic exitToMainConfirmationMenu;
-  static MenuLogic saveSettingsMenu;
   static SettingsLogic settingsLogic;
   static State state;
   static float menuShadeProgress;
@@ -37,6 +36,7 @@ private:
   static void quitConfirmationUpdate();
   static void restartConfirmationUpdate();
   static void exitToMainConfirmationUpdate();
+  static void saveConfirmationUpdate();
   static State goNextState(State nextState);
   static State goPreviousState();
   static void closeInterface(Result result);

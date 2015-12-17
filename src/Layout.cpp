@@ -264,7 +264,7 @@ void Layout::load(const char * name)
 
   saveSettingsMenuLayout->addColumn(0.0f, menuRowWidth);
 
-  for (int i = 0; i < InterfaceLogic::saveSettingsMenu.rowCount; i++)
+  for (int i = 0; i < InterfaceLogic::settingsLogic.saveConfirmationMenu.rowCount; i++)
     saveSettingsMenuLayout->addRow(i ? menuRowInterval : menuTop, menuRowHeight);
 
   

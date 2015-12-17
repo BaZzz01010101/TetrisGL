@@ -11,7 +11,6 @@ MenuLogic InterfaceLogic::inGameMenu(MenuLogic::resContinue);
 MenuLogic InterfaceLogic::quitConfirmationMenu(MenuLogic::resBack);
 MenuLogic InterfaceLogic::restartConfirmationMenu(MenuLogic::resBack);
 MenuLogic InterfaceLogic::exitToMainConfirmationMenu(MenuLogic::resBack);
-MenuLogic InterfaceLogic::saveSettingsMenu(MenuLogic::resBack);
 SettingsLogic InterfaceLogic::settingsLogic;
 float InterfaceLogic::menuShadeProgress = 1.0f;
 std::vector<InterfaceLogic::State> InterfaceLogic::statesStack;
@@ -36,10 +35,6 @@ void InterfaceLogic::init()
 
   exitToMainConfirmationMenu.add("EXIT", MenuLogic::resExitToMain);
   exitToMainConfirmationMenu.add("BACK", MenuLogic::resBack, true);
-
-  saveSettingsMenu.add("SAVE", MenuLogic::resSave, true);
-  saveSettingsMenu.add("DON'T SAVE", MenuLogic::resDontSave);
-  saveSettingsMenu.add("BACK", MenuLogic::resBack);
 }
 
 InterfaceLogic::Result InterfaceLogic::update()
@@ -115,12 +110,8 @@ void InterfaceLogic::inGameMenuUpdate()
 
 void InterfaceLogic::settingsUpdate()
 {
-  switch (settingsLogic.update())
-  {
-  case SettingsLogic::resSaveConfirmation:  goNextState(stSaveConfirmation);  break;
-  case SettingsLogic::resClose:             goPreviousState();                break;
-  default: break;
-  }
+  if (settingsLogic.update() == SettingsLogic::resClose)
+    goPreviousState();
 }
 
 void InterfaceLogic::leaderboardUpdate()

@@ -6,9 +6,9 @@
 
 
 SettingsLogic::SettingsLogic() :
+  saveConfirmationMenu(MenuLogic::resBack),
   changed(false),
   state(stHidden),
-  result(resNone),
   transitionProgress(0.0f),
   soundVolume(0.66f),
   musicVolume(0.75f),
@@ -18,6 +18,9 @@ SettingsLogic::SettingsLogic() :
   highlightedAction(Binding::doNothing),
   backButtonHighlighted(false)
 {
+  saveConfirmationMenu.add("SAVE", MenuLogic::resSave, true);
+  saveConfirmationMenu.add("DON'T SAVE", MenuLogic::resDontSave);
+  saveConfirmationMenu.add("BACK", MenuLogic::resBack);
 }
 
 
@@ -32,7 +35,6 @@ SettingsLogic::Result SettingsLogic::update()
   switch (state)
   {
   case stHidden:
-    result = resNone;
     state = stShowing;
     break;
 
@@ -53,9 +55,13 @@ SettingsLogic::Result SettingsLogic::update()
     {
       transitionProgress = 0.0f;
       state = stHidden;
-      retResult = result;
+      retResult = resClose;
     }
 
+    break;
+
+  case stSaveConfirmation:
+    saveConfirmationUpdate();
     break;
 
   default:
@@ -66,18 +72,79 @@ SettingsLogic::Result SettingsLogic::update()
   return retResult;
 }
 
+void SettingsLogic::saveConfirmationUpdate()
+{
+  switch (saveConfirmationMenu.update())
+  {
+  case MenuLogic::resSave:        saveAndExit();     break;
+  case MenuLogic::resDontSave:    cancelAndExit();   break;
+  case MenuLogic::resBack:        state = stVisible; break;
+  default: break;
+  }
+}
+
 void SettingsLogic::escape()
 {
   assert(state == stVisible);
 
   if (changed)
-  {
-    result = resSaveConfirmation;
     state = stSaveConfirmation;
-  }
   else
-  {
-    result = resClose;
     state = stHiding;
-  }
+}
+
+void SettingsLogic::load()
+{
+  changed = false;
+}
+
+void SettingsLogic::save()
+{
+  changed = false;
+}
+
+void SettingsLogic::setSoundVolume(float volume)
+{
+  soundVolume = volume;
+  changed = true;
+}
+
+void SettingsLogic::setMusicVolume(float volume)
+{
+  musicVolume = volume;
+  changed = true;
+}
+
+void SettingsLogic::setKeyBind(Binding::Action action, Key key)
+{
+
+  changed = true;
+}
+
+float SettingsLogic::getSoundVolume()
+{
+  return soundVolume;
+}
+
+float SettingsLogic::getMusicVolume()
+{
+  return musicVolume;
+}
+
+Key getKeyBind(Binding::Action action)
+{
+
+  return Binding::getActionKey(action);
+}
+
+void SettingsLogic::saveAndExit()
+{
+  save();
+  state = stHiding;
+}
+
+void SettingsLogic::cancelAndExit()
+{
+  load();
+  state = stHiding;
 }
