@@ -71,7 +71,7 @@ void LayoutObject::addColumn(float leftGap, float width)
   columns.back().width = width;
 }
 
-LayoutObject * LayoutObject::getObjectFromPoint(float x, float y) 
+LayoutObject * LayoutObject::getObjectFromPoint(float x, float y)
 {
   for (ChildIterator childIt = childList.begin(); childIt != childList.end(); ++childIt)
   {
@@ -184,12 +184,12 @@ LayoutObject::Rect LayoutObject::getCellGlobalRect(int row, int column) const
   return{ getGlobalLeft() + columnData.left, getGlobalTop() + rowData.top, columnData.width, rowData.height };
 }
 
-int LayoutObject::getRowCount()
+int LayoutObject::getRowCount() const
 {
   return rows.size();
 }
 
-int LayoutObject::getColumnCount()
+int LayoutObject::getColumnCount() const
 {
   return columns.size();
 }

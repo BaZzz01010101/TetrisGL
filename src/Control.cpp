@@ -3,13 +3,15 @@
 #include "Control.h"
 #include "Crosy.h"
 #include "Layout.h"
+#include "Time.h"
 
 
 Control::Control() :
   freq(Crosy::getPerformanceFrequency()),
   repeatDelay(uint64_t(0.2 * freq)),
   repeatInterval(uint64_t(freq / 30)),
-  mouseMoved(false)
+  mouseMoved(false),
+  mouseDoubleClicked(false)
 {
   assert(freq);
   memset(internalKeyStates, 0, sizeof(internalKeyStates));
@@ -48,6 +50,16 @@ void Control::mouseDown(Key key)
   internalKeyState.keyNextRepeatCounter = currentCounter + repeatDelay;
   internalKeyState.pressCount++;
   internalKeyState.wasChanged = true;
+  const double doubleclickTime = 0.4;
+  const float doubleclickRange = 0.005f;
+  mouseDoubleClicked = (Time::timer - lastLButtonClickTimer < doubleclickTime &&
+    glm::length(glm::vec2(mouseX, mouseY) - lastLButtonClickPos) < doubleclickRange);
+
+  if (!mouseDoubleClicked)
+  {
+    lastLButtonClickTimer = Time::timer;
+    lastLButtonClickPos = glm::vec2(mouseX, mouseY);
+  }
 }
 
 void Control::mouseUp(Key key)
@@ -122,6 +134,7 @@ void Control::updateInternalState()
   }
 
   mouseMoved = false;
+  mouseDoubleClicked = false;
 }
 
 void Control::updateGameControl()
@@ -239,6 +252,122 @@ void Control::updateSettingsControl()
 {
   if (InterfaceLogic::settingsLogic.state != SettingsLogic::stVisible)
     return;
+
+  if (LayoutObject * settingsLayout = Layout::screen.getChild(loSettings))
+  {
+    KeyState mouseLButtonState = getKeyState(MOUSE_LEFT);
+    LayoutObject * mouseoverObject = settingsLayout->getObjectFromPoint(mouseX, mouseY);
+    bool rowHighlighed = mouseMoved && mouseoverObject;
+    bool rowClicked = mouseLButtonState.isPressed && mouseLButtonState.wasChanged && mouseoverObject;
+    bool rowDoubleclicked = rowClicked && mouseDoubleClicked;
+
+    if (mouseoverObject && mouseLButtonState.isPressed)
+    {
+      if (mouseoverObject->id == loSoundProgressBar || mouseoverObject->id == loMusicProgressBar)
+        draggedProgressBarId = mouseoverObject->id;
+    }
+    else
+      draggedProgressBarId = loNone;
+
+    if (rowHighlighed)
+    {
+      int row, col;
+      InterfaceLogic::settingsLogic.backButtonHighlighted = false;
+      InterfaceLogic::settingsLogic.highlightedControl = SettingsLogic::ctrlNone;
+
+      switch (mouseoverObject->id)
+      {
+      case loSettingsBackButton:
+        InterfaceLogic::settingsLogic.backButtonHighlighted = true;
+        break;
+
+      case loSoundVolume:
+      case loSoundProgressBar:
+        InterfaceLogic::settingsLogic.highlightedControl = SettingsLogic::ctrlSoundVolume;
+        break;
+
+      case loMusicVolume:
+      case loMusicProgressBar:
+        InterfaceLogic::settingsLogic.highlightedControl = SettingsLogic::ctrlMusicVolume;
+        break;
+
+      case loKeyBindingGrid:
+        InterfaceLogic::settingsLogic.highlightedControl = SettingsLogic::ctrlKeyBindTable;
+
+        if (mouseoverObject->getCellFromPoint(mouseX, mouseY, &row, &col))
+          InterfaceLogic::settingsLogic.highlightedAction = (Binding::Action)row;
+        break;
+
+      default:
+        break;
+      }
+    }
+
+    if (rowClicked)
+    {
+      int row, col;
+
+      switch (mouseoverObject->id)
+      {
+      case loSettingsBackButton:
+        InterfaceLogic::settingsLogic.escape();
+        break;
+
+      case loSoundVolume:
+        InterfaceLogic::settingsLogic.selectedControl = SettingsLogic::ctrlSoundVolume;
+        break;
+
+      case loSoundProgressBar:
+        InterfaceLogic::settingsLogic.selectedControl = SettingsLogic::ctrlSoundVolume;
+        InterfaceLogic::settingsLogic.soundVolume = glm::clamp((mouseX - mouseoverObject->getGlobalLeft()) / mouseoverObject->width, 0.0f, 1.0f);
+        break;
+
+      case loMusicVolume:
+        InterfaceLogic::settingsLogic.selectedControl = SettingsLogic::ctrlMusicVolume;
+        break;
+
+      case loMusicProgressBar:
+        InterfaceLogic::settingsLogic.selectedControl = SettingsLogic::ctrlMusicVolume;
+        InterfaceLogic::settingsLogic.musicVolume = glm::clamp((mouseX - mouseoverObject->getGlobalLeft()) / mouseoverObject->width, 0.0f, 1.0f);
+        break;
+
+      case loKeyBindingGrid:
+        InterfaceLogic::settingsLogic.selectedControl = SettingsLogic::ctrlKeyBindTable;
+
+        if (mouseoverObject->getCellFromPoint(mouseX, mouseY, &row, &col))
+          InterfaceLogic::settingsLogic.selectedAction = (Binding::Action)row;
+        break;
+
+      default:
+        break;
+      }
+    }
+
+    if (rowDoubleclicked)
+    {
+      int i = 0;
+    }
+
+    if (draggedProgressBarId != loNone)
+    {
+      LayoutObject * progressBarLayout = settingsLayout->getChildRecursive(draggedProgressBarId);
+      const float progressBarLeft = progressBarLayout->getGlobalLeft() + Layout::settingsProgressBarBorder + Layout::settingsProgressBarInnerGap;
+      const float progressBarWidth = progressBarLayout->width - 2.0f * Layout::settingsProgressBarBorder - 2.0f * Layout::settingsProgressBarInnerGap;
+      const float progress = glm::clamp((mouseX - progressBarLeft) / progressBarWidth, 0.0f, 1.0f);
+
+      switch (draggedProgressBarId)
+      {
+      case loSoundProgressBar:
+        InterfaceLogic::settingsLogic.soundVolume = progress;
+        break;
+      case loMusicProgressBar:
+        InterfaceLogic::settingsLogic.musicVolume = progress;
+        break;
+      default:
+        assert(0);
+      }
+    }
+  }
 
   for (Key key = KB_NONE; key < KEY_COUNT; key++)
   {

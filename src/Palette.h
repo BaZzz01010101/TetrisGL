@@ -64,7 +64,9 @@ public:
   static glm::vec3 settingsMouseoverRowText;
   static glm::vec3 settingsProgressBarForeground;
   static glm::vec3 settingsProgressBarBackground;
-  
+  static glm::vec3 settingsBackButton;
+  static glm::vec3 settingsBackButtonHighlighted;
+
   static float backgroundShadeAlpha;
   static float figureGlowOuterBright;
   static float figureGlowInnerBright;

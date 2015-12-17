@@ -7,7 +7,7 @@ class SettingsLogic
 public:
   enum State { stHidden, stShowing, stVisible, stSaveConfirmation, stHiding };
   enum Result { resNone, resSaveConfirmation, resClose };
-  enum Control { ctrlSoundVolume, ctrlMusicVolume, ctrlKeyBindTable };
+  enum Control { ctrlNone, ctrlSoundVolume, ctrlMusicVolume, ctrlKeyBindTable, ctrlBackButton };
 
   State state;
   Result result;
@@ -15,7 +15,11 @@ public:
   float soundVolume;
   float musicVolume;
   Control selectedControl;
+  Control highlightedControl;
   Binding::Action selectedAction;
+  Binding::Action highlightedAction;
+  bool backButtonHighlighted;
+
 
   SettingsLogic();
   ~SettingsLogic();

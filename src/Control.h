@@ -40,9 +40,13 @@ private:
   const uint64_t repeatInterval;
   uint64_t currentCounter;
   KeyInternalState internalKeyStates[KEY_COUNT];
+  double lastLButtonClickTimer;
+  glm::vec2 lastLButtonClickPos;
   float mouseX;
   float mouseY;
   bool mouseMoved;
+  bool mouseDoubleClicked;
+  LayoutObjectId draggedProgressBarId;
 
   void updateGameControl();
   void updateMenuControl(MenuLogic & menu, LayoutObjectId layoutObjectId);

@@ -13,7 +13,10 @@ SettingsLogic::SettingsLogic() :
   soundVolume(0.66f),
   musicVolume(0.75f),
   selectedControl(ctrlSoundVolume),
-  selectedAction(Binding::doNothing)
+  highlightedControl(ctrlNone),
+  selectedAction(Binding::doNothing),
+  highlightedAction(Binding::doNothing),
+  backButtonHighlighted(false)
 {
 }
 

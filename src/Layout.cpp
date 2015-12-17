@@ -73,7 +73,7 @@ float Layout::settingsPanelRightGap = 0.05f;
 float Layout::settingsPanelBottomGap = 0.08f;
 float Layout::settingsPanelBorderWidth = 0.005f;
 
-float Layout::settingsBackShevronHeight = 0.05f;
+float Layout::settingsBackShevronSize = 0.05f;
 float Layout::settingsBackShevronStep = 0.04f;
 float Layout::settingsBackShevronRightGap = 0.05f;
 
@@ -183,7 +183,7 @@ void Layout::load(const char * name)
     loadValue(intrfaceSection, "SettingsPanelBottomGap", &settingsPanelBottomGap);
     loadValue(intrfaceSection, "SettingsPanelBorderWidth", &settingsPanelBorderWidth);
 
-    loadValue(intrfaceSection, "SettingsBackShevronHeight", &settingsBackShevronHeight);
+    loadValue(intrfaceSection, "SettingsBackShevronSize", &settingsBackShevronSize);
     loadValue(intrfaceSection, "SettingsBackShevronStep", &settingsBackShevronStep);
     loadValue(intrfaceSection, "SettingsBackShevronRightGap", &settingsBackShevronRightGap);
 
@@ -307,11 +307,23 @@ void Layout::load(const char * name)
     const float topGap = (action == Binding::doNothing + 1) ? 0.0f : settingsPanelRowVertGap;
     keyBindingGridLayout->addRow(topGap, settingsPanelRowHeight);
   }
+
+  const float settingsBackButtonWidth = settingsBackShevronSize + 2.0f * settingsBackShevronStep;
+  const float settingsBackButtonLeft = settingsWidth - settingsBackShevronRightGap - settingsBackButtonWidth;
+  const float settingsBackButtonTop = 0.5f * (settingsWindowLayout->height + settingsPanelLayout->top + settingsPanelLayout->height - settingsBackShevronSize);
+  LayoutObject * settingsBackButtonLayout = settingsWindowLayout->addChild(loSettingsBackButton, settingsBackButtonLeft, settingsBackButtonTop, settingsBackButtonWidth, settingsBackShevronSize);
+  settingsBackButtonLayout->addRow(0.0f, settingsBackShevronSize);
+  const float columnShift = settingsBackShevronStep - settingsBackShevronSize;
+
+  for (int i = 0; i < 3; i++)
+    settingsBackButtonLayout->addColumn(i ? columnShift : 0.0f, settingsBackShevronSize);
+
 }
 
 void Layout::loadValue(rapidjson::Value & source, const char * name, float * result)
 {
   assert(source.HasMember(name));
+
   if (source.HasMember(name))
     *result = float(source[name].GetDouble());
 }

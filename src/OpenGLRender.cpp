@@ -332,6 +332,7 @@ void OpenGLRender::buildRect(float left, float top, float width, float height, c
 
 void OpenGLRender::buildSmoothRect(float left, float top, float width, float height, float blur, const glm::vec3 & color, float alpha)
 {
+  blur = glm::min(glm::min(blur, 0.5f * width), 0.5f * height);
   const float halfBlur = 0.5f * blur;
   buildRect(left + halfBlur, top + halfBlur, width - blur, height - blur, color, alpha);
   buildFrameRect(left, top, width, height, blur, color, alpha);
@@ -464,16 +465,19 @@ void OpenGLRender::buildFrameRect(float left, float top, float width, float heig
 void OpenGLRender::buildProgressBar(float left, float top, float width, float height, const glm::vec3 & bkColor, const glm::vec3 & fgColor, float alpha, float progress)
 {
   const float borderWidth = Layout::settingsProgressBarBorder;
-  const float gapWidth = Layout::settingsProgressBarInnerGap;
+  const float gapWidth = 0.5f * Layout::settingsProgressBarInnerGap;
 
   buildRect(left + 0.5f * borderWidth, top + 0.5f * borderWidth, width - borderWidth, height - borderWidth, bkColor, alpha);
-  buildFrameRect(left, top, width, height, borderWidth, fgColor, alpha);
+  buildFrameRect(left, top, width, height, borderWidth, Palette::settingsInactiveRowBackground, alpha);
 
   left += borderWidth + gapWidth;
   top += borderWidth + gapWidth;
   width -= 2.0f * (borderWidth + gapWidth);
   height -= 2.0f * (borderWidth + gapWidth);
 
+  buildFrameRect(left, top, width, height, borderWidth, fgColor, alpha);
+
+  if (progress > 0.0f)
   buildSmoothRect(left, top, width * progress, height, edgeBlurWidth, fgColor, alpha);
 }
 
@@ -2154,8 +2158,14 @@ void OpenGLRender::buildSettings()
           const float top = soundVolumeRowLayout->getGlobalTop();
           const float width = soundVolumeRowLayout->width;
           const float height = soundVolumeRowLayout->height;
-          const glm::vec3 & bkColor = Palette::settingsInactiveRowBackground;
-          const glm::vec3 & textColor = Palette::settingsInactiveRowText;
+          const glm::vec3 & bkColor = 
+            InterfaceLogic::settingsLogic.selectedControl == SettingsLogic::ctrlSoundVolume ? Palette::settingsActiveRowBackground : 
+            InterfaceLogic::settingsLogic.highlightedControl == SettingsLogic::ctrlSoundVolume ? Palette::settingsMouseoverRowBackground :
+            Palette::settingsInactiveRowBackground;
+          const glm::vec3 & textColor = 
+            InterfaceLogic::settingsLogic.selectedControl == SettingsLogic::ctrlSoundVolume ? Palette::settingsActiveRowText :
+            InterfaceLogic::settingsLogic.highlightedControl == SettingsLogic::ctrlSoundVolume ? Palette::settingsMouseoverRowText :
+            Palette::settingsInactiveRowText;
           buildSmoothRect(left, top, width, height, edgeBlurWidth, bkColor, 1.0);
           buildTextMesh(left + Layout::settingsPanelRowCaptionIndent, top, width, height, "Sound", Globals::midFontSize, Layout::settingsPanelRowCaptionHeight, textColor, 1.0f, haLeft, vaCenter);
 
@@ -2178,8 +2188,14 @@ void OpenGLRender::buildSettings()
           const float top = musicVolumeRowLayout->getGlobalTop();
           const float width = musicVolumeRowLayout->width;
           const float height = musicVolumeRowLayout->height;
-          const glm::vec3 & bkColor = Palette::settingsInactiveRowBackground;
-          const glm::vec3 & textColor = Palette::settingsInactiveRowText;
+          const glm::vec3 & bkColor =
+            InterfaceLogic::settingsLogic.selectedControl == SettingsLogic::ctrlMusicVolume ? Palette::settingsActiveRowBackground :
+            InterfaceLogic::settingsLogic.highlightedControl == SettingsLogic::ctrlMusicVolume ? Palette::settingsMouseoverRowBackground :
+            Palette::settingsInactiveRowBackground;
+          const glm::vec3 & textColor =
+            InterfaceLogic::settingsLogic.selectedControl == SettingsLogic::ctrlMusicVolume ? Palette::settingsActiveRowText :
+            InterfaceLogic::settingsLogic.highlightedControl == SettingsLogic::ctrlMusicVolume ? Palette::settingsMouseoverRowText :
+            Palette::settingsInactiveRowText;
           buildSmoothRect(left, top, width, height, edgeBlurWidth, bkColor, 1.0);
           buildTextMesh(left + Layout::settingsPanelRowCaptionIndent, top, width, height, "Music", Globals::midFontSize, Layout::settingsPanelRowCaptionHeight, textColor, 1.0f, haLeft, vaCenter);
 
@@ -2207,6 +2223,13 @@ void OpenGLRender::buildSettings()
 
         if (LayoutObject * keyBindingGridLayout = settingPanelLayout->getChild(loKeyBindingGrid))
         {
+          const int selectedRow = 
+            InterfaceLogic::settingsLogic.selectedControl == SettingsLogic::ctrlKeyBindTable ? 
+            (int)InterfaceLogic::settingsLogic.selectedAction : -1;
+          const int highlightedRow = 
+            InterfaceLogic::settingsLogic.highlightedControl == SettingsLogic::ctrlKeyBindTable ?
+            (int)InterfaceLogic::settingsLogic.highlightedAction : -1;
+
           for (int row = 0, count = keyBindingGridLayout->getRowCount(); row < count; row++)
           {
             float left0 = keyBindingGridLayout->getColumnGlobalLeft(0) + shift;
@@ -2219,14 +2242,34 @@ void OpenGLRender::buildSettings()
             const char * actionName = Binding::getActionName(action);
             Key key = Binding::getActionKey(action);
             const char * keyName = Keys::getName(key);
-            const glm::vec3 & bkColor = Palette::settingsInactiveRowBackground;
-            const glm::vec3 & textColor = Palette::settingsInactiveRowText;
+            const glm::vec3 & bkColor = 
+              row == selectedRow ? Palette::settingsActiveRowBackground :
+              row == highlightedRow ? Palette::settingsMouseoverRowBackground :
+              Palette::settingsInactiveRowBackground;
+            const glm::vec3 & fgColor = 
+              row == selectedRow ? Palette::settingsActiveRowText :
+              row == highlightedRow ? Palette::settingsMouseoverRowText :
+              Palette::settingsInactiveRowText;
             buildSmoothRect(left0, top, width0, height, edgeBlurWidth, bkColor, 1.0);
             buildSmoothRect(left1, top, width1, height, edgeBlurWidth, bkColor, 1.0);
             left0 += Layout::settingsPanelRowCaptionIndent;
-            buildTextMesh(left0, top, width0, height, actionName, Globals::midFontSize, Layout::settingsPanelRowCaptionHeight, textColor, 1.0f, haLeft, vaCenter);
-            buildTextMesh(left1, top, width1, height, keyName, Globals::midFontSize, Layout::settingsPanelRowCaptionHeight, textColor, 1.0f, haCenter, vaCenter);
+            buildTextMesh(left0, top, width0, height, actionName, Globals::midFontSize, Layout::settingsPanelRowCaptionHeight, fgColor, 1.0f, haLeft, vaCenter);
+            buildTextMesh(left1, top, width1, height, keyName, Globals::midFontSize, Layout::settingsPanelRowCaptionHeight, fgColor, 1.0f, haCenter, vaCenter);
           }
+        }
+      }
+
+      if (LayoutObject * backButtonLayout = settingsWindowLayout->getChild(loSettingsBackButton))
+      {
+        for (int column = 0, count = backButtonLayout->getColumnCount(); column < count; column++)
+        {
+          const float shevronLeft = backButtonLayout->getColumnGlobalLeft(column) + shift;
+          const float shevronTop = backButtonLayout->getGlobalTop();
+          const float shevronWidth = backButtonLayout->getColumnWidth(column);
+          const float shevronHeight = backButtonLayout->height;
+          const glm::vec3 & shevronColor = InterfaceLogic::settingsLogic.backButtonHighlighted ? Palette::settingsBackButtonHighlighted : Palette::settingsBackButton;
+
+          buildTexturedRect(shevronLeft, shevronTop, shevronWidth, shevronHeight, Globals::levelBackShevronTexIndex, shevronColor, 1.0f);
         }
       }
     }

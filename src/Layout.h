@@ -80,7 +80,7 @@ public:
   static float settingsPanelBottomGap;
   static float settingsPanelBorderWidth;
 
-  static float settingsBackShevronHeight;
+  static float settingsBackShevronSize;
   static float settingsBackShevronStep;
   static float settingsBackShevronRightGap;
 

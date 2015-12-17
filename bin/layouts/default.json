@@ -49,7 +49,7 @@
 
 		"SettingsTop" : 0.25,
 		"SettingsWidth" : 0.7,
-		"SettingsHeight" : 0.53,
+		"SettingsHeight" : 0.54,
 		"SettingsGlowWidth" : 0.025,
 		"SettingsCornerSize" : 0.05,
 
@@ -62,12 +62,12 @@
 		"SettingsPanelLeft" : 0.025,
 		"SettingsPanelTop" : 0.075,
 		"SettingsPanelRightGap" : 0.025,
-		"SettingsPanelBottomGap" : 0.04,
+		"SettingsPanelBottomGap" : 0.05,
 		"SettingsPanelBorderWidth" : 0.0025,
 
-		"SettingsBackShevronHeight" : 0.025,
+		"SettingsBackShevronSize" : 0.025,
 		"SettingsBackShevronStep" : 0.02,
-		"SettingsBackShevronRightGap" : 0.025,
+		"SettingsBackShevronRightGap" : 0.035,
 
 		"SettingsPanelTitleLeft" : 0.025,
 		"SettingsPanelTitleTopGap" : 0.015,

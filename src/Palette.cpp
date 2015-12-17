@@ -63,6 +63,8 @@ glm::vec3 Palette::settingsInactiveRowText(0.75f, 0.75f, 0.75f);
 glm::vec3 Palette::settingsMouseoverRowText(0.75f, 0.75f, 0.75f);
 glm::vec3 Palette::settingsProgressBarForeground(0.25f, 0.25f, 0.25f);
 glm::vec3 Palette::settingsProgressBarBackground(1.0f, 1.0f, 1.0f);
+glm::vec3 Palette::settingsBackButton(0.5f, 0.5f, 0.5f);
+glm::vec3 Palette::settingsBackButtonHighlighted(1.0f, 1.0f, 1.0f);
 
 float Palette::backgroundShadeAlpha = 0.75f;
 float Palette::figureGlowOuterBright = 0.01f;
@@ -140,7 +142,9 @@ void Palette::load(const char * name)
   loadValue(doc, "SettingsMouseoverRowText", &settingsMouseoverRowText);
   loadValue(doc, "SettingsProgressBarForeground", &settingsProgressBarForeground);
   loadValue(doc, "SettingsProgressBarBackground", &settingsProgressBarBackground);
-  
+  loadValue(doc, "SettingsBackButton", &settingsBackButton);
+  loadValue(doc, "SettingsBackButtonHighlighted", &settingsBackButtonHighlighted);
+
   loadValue(doc, "BackgroundShadeAlpha", &backgroundShadeAlpha);
   loadValue(doc, "FigureGlowOuterBright", &figureGlowOuterBright);
   loadValue(doc, "FigureGlowInnerBright", &figureGlowInnerBright);

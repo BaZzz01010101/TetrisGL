@@ -61,13 +61,14 @@ public:
   float getRowHeight(int row) const;
   Rect getGlobalRect() const;
   Rect getCellGlobalRect(int row, int column) const;
-  int getRowCount();
-  int getColumnCount();
+  int getRowCount() const;
+  int getColumnCount() const;
 };
 
 enum LayoutObjectId
 {
-  loScreen = 0,
+  loNone = -1,
+  loScreen,
   loGame,
   loMainMenu,
   loInGameMenu,
@@ -92,6 +93,7 @@ enum LayoutObjectId
   loSettingsTitle,
   loSettingsTitleShadow,
   loSettingsPanel,
+  loSettingsBackButton,
   loVolumeTitle,
   loSoundVolume,
   loMusicVolume,
