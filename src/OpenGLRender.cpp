@@ -462,23 +462,17 @@ void OpenGLRender::buildFrameRect(float left, float top, float width, float heig
   }
 }
 
-void OpenGLRender::buildProgressBar(float left, float top, float width, float height, const glm::vec3 & bkColor, const glm::vec3 & fgColor, float alpha, float progress)
+void OpenGLRender::buildProgressBar(float left, float top, float width, float height, const glm::vec3 & bkColor, const glm::vec3 & borderColor, const glm::vec3 & barColor, float alpha, float progress)
 {
   const float borderWidth = Layout::settingsProgressBarBorder;
   const float gapWidth = 0.5f * Layout::settingsProgressBarInnerGap;
 
   buildRect(left + 0.5f * borderWidth, top + 0.5f * borderWidth, width - borderWidth, height - borderWidth, bkColor, alpha);
-  buildFrameRect(left, top, width, height, borderWidth, Palette::settingsInactiveRowBackground, alpha);
-
-  left += borderWidth + gapWidth;
-  top += borderWidth + gapWidth;
-  width -= 2.0f * (borderWidth + gapWidth);
-  height -= 2.0f * (borderWidth + gapWidth);
-
-  buildFrameRect(left, top, width, height, borderWidth, fgColor, alpha);
 
   if (progress > 0.0f)
-  buildSmoothRect(left, top, width * progress, height, edgeBlurWidth, fgColor, alpha);
+    buildSmoothRect(left + 0.5f * borderWidth, top + 0.5f * borderWidth, (width - borderWidth) * progress, height - borderWidth, edgeBlurWidth, barColor, alpha);
+
+  buildFrameRect(left, top, width, height, borderWidth, borderColor, alpha);
 }
 
 void OpenGLRender::buildBackground()
@@ -2176,9 +2170,12 @@ void OpenGLRender::buildSettings()
             const float width = progressBarLayout->width;
             const float height = progressBarLayout->height;
             const glm::vec3 & bkColor = Palette::settingsProgressBarBackground;
-            const glm::vec3 & fgColor = Palette::settingsProgressBarForeground;
+            const glm::vec3 & barColor = Palette::settingsProgressBarForeground;
+            const glm::vec3 & borderColor =
+              InterfaceLogic::settingsLogic.selectedControl == SettingsLogic::ctrlSoundVolume ? Palette::settingsProgressBarBackground :
+              Palette::settingsProgressBarForeground;
             const float progress = InterfaceLogic::settingsLogic.soundVolume;
-            buildProgressBar(left, top, width, height, bkColor, fgColor, 1.0f, progress);
+            buildProgressBar(left, top, width, height, bkColor, borderColor, barColor, 1.0f, progress);
           }
         }
 
@@ -2206,9 +2203,12 @@ void OpenGLRender::buildSettings()
             const float width = progressBarLayout->width;
             const float height = progressBarLayout->height;
             const glm::vec3 & bkColor = Palette::settingsProgressBarBackground;
-            const glm::vec3 & fgColor = Palette::settingsProgressBarForeground;
+            const glm::vec3 & barColor = Palette::settingsProgressBarForeground;
+            const glm::vec3 & borderColor =
+              InterfaceLogic::settingsLogic.selectedControl == SettingsLogic::ctrlMusicVolume ? Palette::settingsProgressBarBackground :
+              Palette::settingsProgressBarForeground;
             const float progress = InterfaceLogic::settingsLogic.musicVolume;
-            buildProgressBar(left, top, width, height, bkColor, fgColor, 1.0f, progress);
+            buildProgressBar(left, top, width, height, bkColor, borderColor, barColor, 1.0f, progress);
           }
         }
 

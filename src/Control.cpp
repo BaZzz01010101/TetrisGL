@@ -261,12 +261,12 @@ void Control::updateSettingsControl()
     bool rowClicked = mouseLButtonState.isPressed && mouseLButtonState.wasChanged && mouseoverObject;
     bool rowDoubleclicked = rowClicked && mouseDoubleClicked;
 
-    if (mouseoverObject && mouseLButtonState.isPressed)
+    if (rowClicked)
     {
       if (mouseoverObject->id == loSoundProgressBar || mouseoverObject->id == loMusicProgressBar)
         draggedProgressBarId = mouseoverObject->id;
     }
-    else
+    else if (!mouseLButtonState.isPressed)
       draggedProgressBarId = loNone;
 
     if (rowHighlighed)

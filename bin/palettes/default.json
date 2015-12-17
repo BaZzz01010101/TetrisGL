@@ -55,8 +55,8 @@
 	"SettingsMouseoverRowText" : [0.9, 0.9, 1.0],
 	"SettingsProgressBarForeground" : [0.9, 0.9, 1.0],
 	"SettingsProgressBarBackground" : [0.0, 0.05, 0.1],
-	"SettingsBackButton" : [0.5, 0.5, 0.5],
-	"SettingsBackButtonHighlighted" : [1.0, 1.0, 1.0],
+	"SettingsBackButton" : [0.5, 0.5, 0.6],
+	"SettingsBackButtonHighlighted" : [0.9, 0.9, 1.0],
 
 	"BackgroundShadeAlpha" : 0.75,
 	"FigureGlowOuterBright" : 0.01,

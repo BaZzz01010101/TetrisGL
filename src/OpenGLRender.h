@@ -64,7 +64,7 @@ private:
   void buildVertGradientRect(float left, float top, float width, float height, const glm::vec3 & topColor, float topAlpha, const glm::vec3 & bottomColor, float bottomAlpha);
   void buildLine(float x0, float y0, float x1, float y1, float width, const glm::vec3 & color, float alpha);
   void buildFrameRect(float left, float top, float width, float height, float borderWidth, const glm::vec3 & borderColor, float borderAlpha);
-  void buildProgressBar(float left, float top, float width, float height, const glm::vec3 & bkColor, const glm::vec3 & fgColor, float alpha, float progress);
+  void buildProgressBar(float left, float top, float width, float height, const glm::vec3 & bkColor, const glm::vec3 & borderColor, const glm::vec3 & barColor, float alpha, float progress);
   void buildBackground();
   void buildFigureBackgroundsMesh();
   void buidGlassShadow();
