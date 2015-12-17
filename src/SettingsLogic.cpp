@@ -64,6 +64,9 @@ SettingsLogic::Result SettingsLogic::update()
     saveConfirmationUpdate();
     break;
 
+  case stKeyWaiting:
+    break;
+
   default:
     assert(0);
     break;
@@ -115,9 +118,12 @@ void SettingsLogic::setMusicVolume(float volume)
   changed = true;
 }
 
-void SettingsLogic::setKeyBind(Binding::Action action, Key key)
+void SettingsLogic::setCurrentActionKey(Key key)
 {
+  assert(selectedControl == ctrlKeyBindTable);
+  assert(state == stKeyWaiting);
 
+  Binding::setKeyBinding(key, selectedAction);
   changed = true;
 }
 

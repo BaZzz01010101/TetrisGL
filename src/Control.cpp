@@ -96,7 +96,17 @@ void Control::update()
   case InterfaceLogic::stQuitConfirmation:        updateMenuControl(InterfaceLogic::quitConfirmationMenu, loQuitConfirmationMenu);              break;
   case InterfaceLogic::stRestartConfirmation:     updateMenuControl(InterfaceLogic::restartConfirmationMenu, loRestartConfirmationMenu);        break;
   case InterfaceLogic::stExitToMainConfirmation:  updateMenuControl(InterfaceLogic::exitToMainConfirmationMenu, loExitToMainConfirmationMenu);  break;
-  case InterfaceLogic::stSettings:                updateSettingsControl();                                                                      break;
+
+  case InterfaceLogic::stSettings:
+    switch (InterfaceLogic::settingsLogic.state)
+    {
+    case SettingsLogic::stSaveConfirmation:       updateMenuControl(InterfaceLogic::settingsLogic.saveConfirmationMenu, loSaveSettingsMenu);    break;
+    case SettingsLogic::stVisible:                updateSettingsControl();                                                                      break;
+    case SettingsLogic::stKeyWaiting:             updateSettingsKeyBindControl();                                                               break;
+    default: break;
+    }
+    break;
+
   case InterfaceLogic::stLeaderboard:             updateLeaderboardControl();                                                                   break;
   default:                                        assert(0);                                                                                    break;
   }
@@ -247,121 +257,116 @@ void Control::updateMenuControl(MenuLogic & menu, LayoutObjectId layoutObjectId)
 
 void Control::updateSettingsControl()
 {
-  if (InterfaceLogic::settingsLogic.state == SettingsLogic::stSaveConfirmation)
-    updateMenuControl(InterfaceLogic::settingsLogic.saveConfirmationMenu, loSaveSettingsMenu);
-  else if (InterfaceLogic::settingsLogic.state == SettingsLogic::stVisible)
+  if (LayoutObject * settingsLayout = Layout::screen.getChild(loSettings))
   {
-    if (LayoutObject * settingsLayout = Layout::screen.getChild(loSettings))
+    KeyState mouseLButtonState = getKeyState(MOUSE_LEFT);
+    LayoutObject * mouseoverObject = settingsLayout->getObjectFromPoint(mouseX, mouseY);
+    bool rowHighlighed = (mouseoverObject != NULL);
+    bool rowClicked = mouseLButtonState.isPressed && mouseLButtonState.wasChanged && mouseoverObject;
+    bool rowDoubleclicked = rowClicked && mouseDoubleClicked;
+
+    if (rowClicked)
     {
-      KeyState mouseLButtonState = getKeyState(MOUSE_LEFT);
-      LayoutObject * mouseoverObject = settingsLayout->getObjectFromPoint(mouseX, mouseY);
-      bool rowHighlighed = mouseoverObject;
-      bool rowClicked = mouseLButtonState.isPressed && mouseLButtonState.wasChanged && mouseoverObject;
-      bool rowDoubleclicked = rowClicked && mouseDoubleClicked;
+      if (mouseoverObject->id == loSoundProgressBar || mouseoverObject->id == loMusicProgressBar)
+        draggedProgressBarId = mouseoverObject->id;
+    }
+    else if (!mouseLButtonState.isPressed)
+      draggedProgressBarId = loNone;
 
-      if (rowClicked)
+    if (rowHighlighed)
+    {
+      int row, col;
+      InterfaceLogic::settingsLogic.backButtonHighlighted = false;
+      InterfaceLogic::settingsLogic.highlightedControl = SettingsLogic::ctrlNone;
+
+      switch (mouseoverObject->id)
       {
-        if (mouseoverObject->id == loSoundProgressBar || mouseoverObject->id == loMusicProgressBar)
-          draggedProgressBarId = mouseoverObject->id;
+      case loSettingsBackButton:
+        InterfaceLogic::settingsLogic.backButtonHighlighted = true;
+        break;
+
+      case loSoundVolume:
+      case loSoundProgressBar:
+        InterfaceLogic::settingsLogic.highlightedControl = SettingsLogic::ctrlSoundVolume;
+        break;
+
+      case loMusicVolume:
+      case loMusicProgressBar:
+        InterfaceLogic::settingsLogic.highlightedControl = SettingsLogic::ctrlMusicVolume;
+        break;
+
+      case loKeyBindingGrid:
+        InterfaceLogic::settingsLogic.highlightedControl = SettingsLogic::ctrlKeyBindTable;
+
+        if (mouseoverObject->getCellFromPoint(mouseX, mouseY, &row, &col))
+          InterfaceLogic::settingsLogic.highlightedAction = (Binding::Action)row;
+        break;
+
+      default:
+        break;
       }
-      else if (!mouseLButtonState.isPressed)
-        draggedProgressBarId = loNone;
+    }
 
-      if (rowHighlighed)
+    if (rowClicked)
+    {
+      int row, col;
+
+      switch (mouseoverObject->id)
       {
-        int row, col;
-        InterfaceLogic::settingsLogic.backButtonHighlighted = false;
-        InterfaceLogic::settingsLogic.highlightedControl = SettingsLogic::ctrlNone;
+      case loSettingsBackButton:
+        InterfaceLogic::settingsLogic.escape();
+        break;
 
-        switch (mouseoverObject->id)
-        {
-        case loSettingsBackButton:
-          InterfaceLogic::settingsLogic.backButtonHighlighted = true;
-          break;
+      case loSoundVolume:
+        InterfaceLogic::settingsLogic.selectedControl = SettingsLogic::ctrlSoundVolume;
+        break;
 
-        case loSoundVolume:
-        case loSoundProgressBar:
-          InterfaceLogic::settingsLogic.highlightedControl = SettingsLogic::ctrlSoundVolume;
-          break;
+      case loSoundProgressBar:
+        InterfaceLogic::settingsLogic.selectedControl = SettingsLogic::ctrlSoundVolume;
+        break;
 
-        case loMusicVolume:
-        case loMusicProgressBar:
-          InterfaceLogic::settingsLogic.highlightedControl = SettingsLogic::ctrlMusicVolume;
-          break;
+      case loMusicVolume:
+        InterfaceLogic::settingsLogic.selectedControl = SettingsLogic::ctrlMusicVolume;
+        break;
 
-        case loKeyBindingGrid:
-          InterfaceLogic::settingsLogic.highlightedControl = SettingsLogic::ctrlKeyBindTable;
+      case loMusicProgressBar:
+        InterfaceLogic::settingsLogic.selectedControl = SettingsLogic::ctrlMusicVolume;
+        break;
 
-          if (mouseoverObject->getCellFromPoint(mouseX, mouseY, &row, &col))
-            InterfaceLogic::settingsLogic.highlightedAction = (Binding::Action)row;
-          break;
+      case loKeyBindingGrid:
+        InterfaceLogic::settingsLogic.selectedControl = SettingsLogic::ctrlKeyBindTable;
 
-        default:
-          break;
-        }
+        if (mouseoverObject->getCellFromPoint(mouseX, mouseY, &row, &col))
+          InterfaceLogic::settingsLogic.selectedAction = (Binding::Action)row;
+        break;
+
+      default:
+        break;
       }
+    }
 
-      if (rowClicked)
+    if (rowDoubleclicked)
+    {
+      InterfaceLogic::settingsLogic.state = SettingsLogic::stKeyWaiting;
+    }
+
+    if (draggedProgressBarId != loNone)
+    {
+      LayoutObject * progressBarLayout = settingsLayout->getChildRecursive(draggedProgressBarId);
+      const float progressBarLeft = progressBarLayout->getGlobalLeft() + Layout::settingsProgressBarBorder + Layout::settingsProgressBarInnerGap;
+      const float progressBarWidth = progressBarLayout->width - 2.0f * Layout::settingsProgressBarBorder - 2.0f * Layout::settingsProgressBarInnerGap;
+      const float progress = glm::clamp((mouseX - progressBarLeft) / progressBarWidth, 0.0f, 1.0f);
+
+      switch (draggedProgressBarId)
       {
-        int row, col;
-
-        switch (mouseoverObject->id)
-        {
-        case loSettingsBackButton:
-          InterfaceLogic::settingsLogic.escape();
-          break;
-
-        case loSoundVolume:
-          InterfaceLogic::settingsLogic.selectedControl = SettingsLogic::ctrlSoundVolume;
-          break;
-
-        case loSoundProgressBar:
-          InterfaceLogic::settingsLogic.selectedControl = SettingsLogic::ctrlSoundVolume;
-          break;
-
-        case loMusicVolume:
-          InterfaceLogic::settingsLogic.selectedControl = SettingsLogic::ctrlMusicVolume;
-          break;
-
-        case loMusicProgressBar:
-          InterfaceLogic::settingsLogic.selectedControl = SettingsLogic::ctrlMusicVolume;
-          break;
-
-        case loKeyBindingGrid:
-          InterfaceLogic::settingsLogic.selectedControl = SettingsLogic::ctrlKeyBindTable;
-
-          if (mouseoverObject->getCellFromPoint(mouseX, mouseY, &row, &col))
-            InterfaceLogic::settingsLogic.selectedAction = (Binding::Action)row;
-          break;
-
-        default:
-          break;
-        }
-      }
-
-      if (rowDoubleclicked)
-      {
-        int i = 0;
-      }
-
-      if (draggedProgressBarId != loNone)
-      {
-        LayoutObject * progressBarLayout = settingsLayout->getChildRecursive(draggedProgressBarId);
-        const float progressBarLeft = progressBarLayout->getGlobalLeft() + Layout::settingsProgressBarBorder + Layout::settingsProgressBarInnerGap;
-        const float progressBarWidth = progressBarLayout->width - 2.0f * Layout::settingsProgressBarBorder - 2.0f * Layout::settingsProgressBarInnerGap;
-        const float progress = glm::clamp((mouseX - progressBarLeft) / progressBarWidth, 0.0f, 1.0f);
-
-        switch (draggedProgressBarId)
-        {
-        case loSoundProgressBar:
-          InterfaceLogic::settingsLogic.setSoundVolume(progress);
-          break;
-        case loMusicProgressBar:
-          InterfaceLogic::settingsLogic.setMusicVolume(progress);
-          break;
-        default:
-          assert(0);
-        }
+      case loSoundProgressBar:
+        InterfaceLogic::settingsLogic.setSoundVolume(progress);
+        break;
+      case loMusicProgressBar:
+        InterfaceLogic::settingsLogic.setMusicVolume(progress);
+        break;
+      default:
+        assert(0);
       }
     }
 
@@ -380,6 +385,23 @@ void Control::updateSettingsControl()
         case KB_ESCAPE: InterfaceLogic::settingsLogic.escape();  break;
         default: break;
       }
+    }
+  }
+}
+
+void Control::updateSettingsKeyBindControl()
+{
+  for (Key key = KB_NONE; key < KEY_COUNT; key++)
+  {
+    KeyState keyState = getKeyState(key);
+
+    if (keyState.isPressed && keyState.wasChanged)
+    {
+      if (key != KB_ESCAPE)
+        InterfaceLogic::settingsLogic.setCurrentActionKey(key);
+
+      InterfaceLogic::settingsLogic.state = SettingsLogic::stVisible;
+      break;
     }
   }
 }

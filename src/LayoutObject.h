@@ -101,4 +101,5 @@ enum LayoutObjectId
   loMusicProgressBar,
   loKeyBindingTitle,
   loKeyBindingGrid,
+  loBindingMessage,
 };

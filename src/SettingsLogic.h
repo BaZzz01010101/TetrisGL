@@ -6,7 +6,7 @@
 class SettingsLogic
 {
 public:
-  enum State { stHidden, stShowing, stVisible, stSaveConfirmation, stHiding };
+  enum State { stHidden, stShowing, stVisible, stSaveConfirmation, stKeyWaiting, stHiding };
   enum Result { resNone, resClose };
   enum Control { ctrlNone, ctrlSoundVolume, ctrlMusicVolume, ctrlKeyBindTable, ctrlBackButton };
 
@@ -28,7 +28,7 @@ public:
   void save();
   void setSoundVolume(float volume);
   void setMusicVolume(float volume);
-  void setKeyBind(Binding::Action action, Key key);
+  void setCurrentActionKey(Key key);
   float getSoundVolume();
   float getMusicVolume();
   Key getKeyBind(Binding::Action action);

@@ -18,7 +18,7 @@ private:
   ~Binding();
 
   static const char * const actionNames[ACTION_COUNT];
-  static Action keyActions[KEY_COUNT];
+  static Key actionKeys[ACTION_COUNT];
 };
 
 Binding::Action operator++(Binding::Action & action);

@@ -13,7 +13,7 @@ const char * const Binding::actionNames[Binding::ACTION_COUNT] =
   "Hold",
 };
 
-Binding::Action Binding::keyActions[Key::KEY_COUNT];
+Key Binding::actionKeys[Action::ACTION_COUNT];
 
 Binding::Binding()
 {
@@ -27,34 +27,38 @@ Binding::~Binding()
 
 void Binding::init()
 {
-  std::fill_n(keyActions, (int)Key::KEY_COUNT, doNothing);
+  std::fill_n(actionKeys, (int)Action::ACTION_COUNT, Key::KB_NONE);
 
-  keyActions[KB_LEFT] = moveLeft;
-  keyActions[KB_RIGHT] = moveRight;
-  keyActions[KB_UP] = rotateLeft;
-  keyActions[KB_DOWN] = rotateRight;
-  keyActions[KB_ENTER] = fastDown;
-  keyActions[KB_SPACE] = dropDown;
-  keyActions[KB_RIGHT_CONTROL] = swapHold;
+  actionKeys[moveLeft] = KB_LEFT;
+  actionKeys[moveRight] = KB_RIGHT;
+  actionKeys[rotateLeft] = KB_UP;
+  actionKeys[rotateRight] = KB_DOWN;
+  actionKeys[fastDown] = KB_ENTER;
+  actionKeys[dropDown] = KB_SPACE;
+  actionKeys[swapHold] = KB_RIGHT_CONTROL;
 }
 
 void Binding::setKeyBinding(Key key, Action action)
 {
-  keyActions[key] = action;
+  for (Binding::Action a = doNothing + 1; a < ACTION_COUNT; a++)
+    if (actionKeys[a] == key)
+      actionKeys[a] = KB_NONE;
+
+  actionKeys[action] = key;
 }
 
 Binding::Action Binding::getKeyAction(Key key) 
 {
-  return keyActions[key];
+  for (Binding::Action action = doNothing + 1; action < ACTION_COUNT; action++)
+    if (actionKeys[action] == key)
+      return action;
+
+  return doNothing;
 }
 
 Key Binding::getActionKey(Action action) 
 {
-  for (int key = 0; key < KEY_COUNT; key++)
-    if (keyActions[key] == action)
-      return Key(key);
-
-  return KB_NONE;
+  return actionKeys[action];
 }
 
 const char * Binding::getActionName(Action action)

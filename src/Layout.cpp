@@ -92,6 +92,11 @@ float Layout::settingsProgressBarOuterGap = 0.01f;
 float Layout::settingsProgressBarBorder = 0.005f;
 float Layout::settingsProgressBarInnerGap = 0.01f;
 
+float Layout::settingsBindingMsgWidth = 0.4f;
+float Layout::settingsBindingMsgHeight = 0.2f;
+float Layout::settingsBindingMsgBorder = 0.01f;
+float Layout::settingsBindingMsgTextHeight = 0.05f;
+
 LayoutObject Layout::screen(loScreen, NULL, screenLeft, screenTop, screenWidth, screenHeight);
 
 void Layout::load(const char * name)
@@ -203,6 +208,11 @@ void Layout::load(const char * name)
     loadValue(intrfaceSection, "SettingsProgressBarOuterGap", &settingsProgressBarOuterGap);
     loadValue(intrfaceSection, "SettingsProgressBarBorder", &settingsProgressBarBorder);
     loadValue(intrfaceSection, "SettingsProgressBarInnerGap", &settingsProgressBarInnerGap);
+
+    loadValue(intrfaceSection, "SettingsBindingMsgWidth", &settingsBindingMsgWidth);
+    loadValue(intrfaceSection, "SettingsBindingMsgHeight", &settingsBindingMsgHeight);
+    loadValue(intrfaceSection, "SettingsBindingMsgBorder", &settingsBindingMsgBorder);
+    loadValue(intrfaceSection, "SettingsBindingMsgTextHeight", &settingsBindingMsgTextHeight);
   }
 
   screen.clear();
@@ -318,6 +328,9 @@ void Layout::load(const char * name)
   for (int i = 0; i < 3; i++)
     settingsBackButtonLayout->addColumn(i ? columnShift : 0.0f, settingsBackShevronSize);
 
+  const float settingsBindingMsgLeft = 0.5f * (settingsLayout->width - settingsBindingMsgWidth);
+  const float settingsBindingMsgTop = 0.5f * (settingsLayout->height - settingsBindingMsgHeight);
+  settingsLayout->addChild(loBindingMessage, settingsBindingMsgLeft, settingsBindingMsgTop, settingsBindingMsgWidth, settingsBindingMsgHeight);
 }
 
 void Layout::loadValue(rapidjson::Value & source, const char * name, float * result)

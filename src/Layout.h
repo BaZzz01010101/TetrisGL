@@ -100,6 +100,11 @@ public:
   static float settingsProgressBarBorder;
   static float settingsProgressBarInnerGap;
 
+  static float settingsBindingMsgWidth;
+  static float settingsBindingMsgHeight;
+  static float settingsBindingMsgBorder;
+  static float settingsBindingMsgTextHeight;
+
   static LayoutObject screen;
 
   static void load(const char * name);

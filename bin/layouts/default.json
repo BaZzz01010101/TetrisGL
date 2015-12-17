@@ -54,8 +54,8 @@
 		"SettingsCornerSize" : 0.05,
 
 		"SettingsTitleLeft" : 0.0375,
-		"SettingsTitleTop" : 0.02,
-		"SettingsTitleHeight" : 0.04,
+		"SettingsTitleTop" : 0.014,
+		"SettingsTitleHeight" : 0.055,
 		"SettingsTitleShadowDX" : 0.0035,
 		"SettingsTitleShadowDY" : 0.0035,
 
@@ -83,7 +83,13 @@
 		"SettingsProgressBarWidth" : 0.35,
 		"SettingsProgressBarOuterGap" : 0.003,
 		"SettingsProgressBarBorder" : 0.0025,
-		"SettingsProgressBarInnerGap" : 0.001
+		"SettingsProgressBarInnerGap" : 0.001,
+
+		"SettingsBindingMsgWidth" : 0.2,
+		"SettingsBindingMsgHeight" : 0.1,
+		"SettingsBindingMsgBorder" : 0.0025,
+		"SettingsBindingMsgTextHeight" : 0.05
+
 	}
 
 }

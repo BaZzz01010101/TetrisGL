@@ -66,6 +66,9 @@ public:
   static glm::vec3 settingsProgressBarBackground;
   static glm::vec3 settingsBackButton;
   static glm::vec3 settingsBackButtonHighlighted;
+  static glm::vec3 settingsBindingMsgBackground;
+  static glm::vec3 settingsBindingMsgBorder;
+  static glm::vec3 settingsBindingMsgText;
 
   static float backgroundShadeAlpha;
   static float figureGlowOuterBright;

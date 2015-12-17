@@ -57,6 +57,9 @@
 	"SettingsProgressBarBackground" : [0.0, 0.05, 0.1],
 	"SettingsBackButton" : [0.5, 0.5, 0.6],
 	"SettingsBackButtonHighlighted" : [0.9, 0.9, 1.0],
+	"SettingsBindingMsgBackground" : [0.1, 0.2, 0.3],
+	"SettingsBindingMsgBorder" : [0.5, 0.45, 0.2],
+	"SettingsBindingMsgText" : [0.9, 0.9, 1.0],
 
 	"BackgroundShadeAlpha" : 0.75,
 	"FigureGlowOuterBright" : 0.01,

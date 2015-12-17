@@ -851,7 +851,7 @@ void OpenGLRender::buidGlassShadow()
 
         if (rightBottomCell && rightBottomCell->figureId != cell->figureId && bottomCell && bottomCell->figureId != cell->figureId)
         {
-          verts[2].y += pixSize;
+          verts[2].y -= pixSize;
           verts[3].y += shadowWidth;
         }
 
@@ -2067,27 +2067,30 @@ void OpenGLRender::buildTextMesh(float left, float top, float width, float heigh
     penX += scale * glyph.metrics.horiAdvance / 64 / fontSize;
   }
 
-  float meshWidth = verts.back().x - verts.front().x;
-  glm::vec2 origin(left, top + scale * ftFace->ascender / ftFace->height);
-
-  if (horzAllign == haRight)
-    origin.x += width - meshWidth;
-  else if (horzAllign == haCenter)
-    origin.x += 0.5f * (width - meshWidth);
-
-  if (vertAllign == vaBottom)
-    origin.y += height - scale;
-  else if (vertAllign == vaCenter)
-    origin.y += 0.5f * (height - scale);
-
-  for (int i = 0, cnt = (int)strlen(str); i < cnt; i++)
+  if (!verts.empty())
   {
-    addVertex(origin + verts[i * 4 + 0], uv[i * 4 + 0], glyphTexIndex[i], color, alpha);
-    addVertex(origin + verts[i * 4 + 1], uv[i * 4 + 1], glyphTexIndex[i], color, alpha);
-    addVertex(origin + verts[i * 4 + 2], uv[i * 4 + 2], glyphTexIndex[i], color, alpha);
-    addVertex(origin + verts[i * 4 + 1], uv[i * 4 + 1], glyphTexIndex[i], color, alpha);
-    addVertex(origin + verts[i * 4 + 2], uv[i * 4 + 2], glyphTexIndex[i], color, alpha);
-    addVertex(origin + verts[i * 4 + 3], uv[i * 4 + 3], glyphTexIndex[i], color, alpha);
+    float meshWidth = verts.back().x - verts.front().x;
+    glm::vec2 origin(left, top + scale * ftFace->ascender / ftFace->height);
+
+    if (horzAllign == haRight)
+      origin.x += width - meshWidth;
+    else if (horzAllign == haCenter)
+      origin.x += 0.5f * (width - meshWidth);
+
+    if (vertAllign == vaBottom)
+      origin.y += height - scale;
+    else if (vertAllign == vaCenter)
+      origin.y += 0.5f * (height - scale);
+
+    for (int i = 0, cnt = (int)strlen(str); i < cnt; i++)
+    {
+      addVertex(origin + verts[i * 4 + 0], uv[i * 4 + 0], glyphTexIndex[i], color, alpha);
+      addVertex(origin + verts[i * 4 + 1], uv[i * 4 + 1], glyphTexIndex[i], color, alpha);
+      addVertex(origin + verts[i * 4 + 2], uv[i * 4 + 2], glyphTexIndex[i], color, alpha);
+      addVertex(origin + verts[i * 4 + 1], uv[i * 4 + 1], glyphTexIndex[i], color, alpha);
+      addVertex(origin + verts[i * 4 + 2], uv[i * 4 + 2], glyphTexIndex[i], color, alpha);
+      addVertex(origin + verts[i * 4 + 3], uv[i * 4 + 3], glyphTexIndex[i], color, alpha);
+    }
   }
 }
 
@@ -2279,6 +2282,36 @@ void OpenGLRender::buildSettings()
           }
         }
       }
+
+      static float keyBindBkShade = 0.0f;
+      const float keyBindBkShadingSpeed = 5.0f;
+
+      if (keyBindBkShade > 0.0f)
+      {
+        const float left = settingsLayout->getGlobalLeft();
+        const float top = settingsLayout->getGlobalTop();
+        const float width = settingsLayout->width;
+        const float height = settingsLayout->height;
+        buildRect(left, top, width, height, glm::vec3(0.0f), Palette::backgroundShadeAlpha * keyBindBkShade);
+      }
+
+      if (InterfaceLogic::settingsLogic.state == SettingsLogic::stKeyWaiting)
+      {
+        keyBindBkShade = glm::clamp(keyBindBkShade + keyBindBkShadingSpeed * Time::timerDelta, 0.0f, 1.0f);
+
+        if (LayoutObject * bindingMsgLayout = settingsLayout->getChild(loBindingMessage))
+        {
+          const float left = bindingMsgLayout->getGlobalLeft();
+          const float top = bindingMsgLayout->getGlobalTop();
+          const float width = bindingMsgLayout->width;
+          const float height = bindingMsgLayout->height;
+          buildRect(left, top, width, height, Palette::settingsBindingMsgBackground, 1.0f);
+          buildFrameRect(left, top, width, height, Layout::settingsBindingMsgBorder, Palette::settingsBindingMsgBorder, 1.0f);
+          buildTextMesh(left, top, width, height, "PRESS KEY", Globals::midFontSize, Layout::settingsPanelRowCaptionHeight, Palette::settingsBindingMsgText, 1.0f, haCenter, vaCenter);
+        }
+      }
+      else
+        keyBindBkShade = glm::clamp(keyBindBkShade - keyBindBkShadingSpeed * Time::timerDelta, 0.0f, 1.0f);
     }
 
     if (InterfaceLogic::settingsLogic.state == SettingsLogic::stSaveConfirmation)

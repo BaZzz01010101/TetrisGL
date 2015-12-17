@@ -51,6 +51,7 @@ private:
   void updateGameControl();
   void updateMenuControl(MenuLogic & menu, LayoutObjectId layoutObjectId);
   void updateSettingsControl();
+  void updateSettingsKeyBindControl();
   void updateLeaderboardControl();
   void updateInternalState();
   KeyState getKeyState(Key key) const;

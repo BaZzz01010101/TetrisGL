@@ -65,6 +65,9 @@ glm::vec3 Palette::settingsProgressBarForeground(0.25f, 0.25f, 0.25f);
 glm::vec3 Palette::settingsProgressBarBackground(1.0f, 1.0f, 1.0f);
 glm::vec3 Palette::settingsBackButton(0.5f, 0.5f, 0.5f);
 glm::vec3 Palette::settingsBackButtonHighlighted(1.0f, 1.0f, 1.0f);
+glm::vec3 Palette::settingsBindingMsgBackground(0.1f, 0.2f, 0.3f);
+glm::vec3 Palette::settingsBindingMsgBorder(0.9f, 0.9f, 1.0f);
+glm::vec3 Palette::settingsBindingMsgText(0.9f, 0.9f, 1.0f);
 
 float Palette::backgroundShadeAlpha = 0.75f;
 float Palette::figureGlowOuterBright = 0.01f;
@@ -144,6 +147,9 @@ void Palette::load(const char * name)
   loadValue(doc, "SettingsProgressBarBackground", &settingsProgressBarBackground);
   loadValue(doc, "SettingsBackButton", &settingsBackButton);
   loadValue(doc, "SettingsBackButtonHighlighted", &settingsBackButtonHighlighted);
+  loadValue(doc, "SettingsBindingMsgBackground", &settingsBindingMsgBackground);
+  loadValue(doc, "SettingsBindingMsgBorder", &settingsBindingMsgBorder);
+  loadValue(doc, "SettingsBindingMsgText", &settingsBindingMsgText);
 
   loadValue(doc, "BackgroundShadeAlpha", &backgroundShadeAlpha);
   loadValue(doc, "FigureGlowOuterBright", &figureGlowOuterBright);
