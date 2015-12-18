@@ -124,6 +124,9 @@ void OpenGLApplication::OnFramebufferSize(GLFWwindow * wnd, int width, int heigh
 
 void OpenGLApplication::OnKeyClick(GLFWwindow * wnd, int key, int scancode, int action, int mods)
 {
+  if (key == GLFW_KEY_UNKNOWN)
+    return;
+
   OpenGLApplication & app = *reinterpret_cast<OpenGLApplication *>(glfwGetWindowUserPointer(wnd));
 
   if (action == GLFW_PRESS && key == GLFW_KEY_F11)

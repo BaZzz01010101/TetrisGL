@@ -23,4 +23,7 @@ private:
 
 Binding::Action operator++(Binding::Action & action);
 Binding::Action operator++(Binding::Action & action, int);
+Binding::Action operator--(Binding::Action & action);
+Binding::Action operator--(Binding::Action & action, int);
 Binding::Action operator+(Binding::Action action, int value);
+Binding::Action operator-(Binding::Action action, int value);

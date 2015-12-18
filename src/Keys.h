@@ -142,7 +142,7 @@ inline Key operator++(Key & key)
   key = static_cast <Key>(key + 1);
 
   if (key > KEY_COUNT)
-    key = KB_NONE;
+    key = KEY_COUNT;
 
   return key;
 }
@@ -153,7 +153,7 @@ inline Key operator++(Key & key, int)
   key = static_cast <Key>(key + 1);
 
   if (key > KEY_COUNT)
-    key = KB_NONE;
+    key = KEY_COUNT;
 
   return k;
 }

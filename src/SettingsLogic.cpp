@@ -154,3 +154,42 @@ void SettingsLogic::cancelAndExit()
   load();
   state = stHiding;
 }
+
+void SettingsLogic::selectNext()
+{
+  switch (selectedControl)
+  {
+  case ctrlSoundVolume:
+    selectedControl = ctrlMusicVolume;
+    break;
+  case ctrlMusicVolume:
+    selectedControl = ctrlKeyBindTable;
+    selectedAction = Binding::doNothing + 1;
+    break;
+  case ctrlKeyBindTable:
+    if (++selectedAction == Binding::ACTION_COUNT)
+      selectedControl = ctrlSoundVolume;
+    break;
+  default: assert(0);
+  }
+}
+
+void SettingsLogic::selectPrevious()
+{
+  switch (selectedControl)
+  {
+  case ctrlSoundVolume:
+    selectedControl = ctrlKeyBindTable;
+    selectedAction = Binding::ACTION_COUNT - 1;
+    break;
+  case ctrlMusicVolume:
+    selectedControl = ctrlSoundVolume;
+    break;
+  case ctrlKeyBindTable:
+    if (--selectedAction == Binding::doNothing)
+      selectedControl = ctrlMusicVolume;
+    break;
+  default: assert(0);
+  }
+}
+

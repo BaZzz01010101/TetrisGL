@@ -189,7 +189,7 @@ void Control::updateGameControl()
     {
       Binding::Action action = Binding::getKeyAction(key);
 
-      if (action != Binding::doNothing)
+      if (!GameLogic::haveFallingRows && action != Binding::doNothing)
       {
         if (keyState.pressCount || keyState.repeatCount)
         for (int i = 0, cnt = keyState.pressCount + keyState.repeatCount; i < cnt; i++)
@@ -257,6 +257,8 @@ void Control::updateMenuControl(MenuLogic & menu, LayoutObjectId layoutObjectId)
 
 void Control::updateSettingsControl()
 {
+  SettingsLogic & settingsLogic = InterfaceLogic::settingsLogic;
+
   if (LayoutObject * settingsLayout = Layout::screen.getChild(loSettings))
   {
     KeyState mouseLButtonState = getKeyState(MOUSE_LEFT);
@@ -276,30 +278,30 @@ void Control::updateSettingsControl()
     if (rowHighlighed)
     {
       int row, col;
-      InterfaceLogic::settingsLogic.backButtonHighlighted = false;
-      InterfaceLogic::settingsLogic.highlightedControl = SettingsLogic::ctrlNone;
+      settingsLogic.backButtonHighlighted = false;
+      settingsLogic.highlightedControl = SettingsLogic::ctrlNone;
 
       switch (mouseoverObject->id)
       {
       case loSettingsBackButton:
-        InterfaceLogic::settingsLogic.backButtonHighlighted = true;
+        settingsLogic.backButtonHighlighted = true;
         break;
 
       case loSoundVolume:
       case loSoundProgressBar:
-        InterfaceLogic::settingsLogic.highlightedControl = SettingsLogic::ctrlSoundVolume;
+        settingsLogic.highlightedControl = SettingsLogic::ctrlSoundVolume;
         break;
 
       case loMusicVolume:
       case loMusicProgressBar:
-        InterfaceLogic::settingsLogic.highlightedControl = SettingsLogic::ctrlMusicVolume;
+        settingsLogic.highlightedControl = SettingsLogic::ctrlMusicVolume;
         break;
 
       case loKeyBindingGrid:
-        InterfaceLogic::settingsLogic.highlightedControl = SettingsLogic::ctrlKeyBindTable;
+        settingsLogic.highlightedControl = SettingsLogic::ctrlKeyBindTable;
 
         if (mouseoverObject->getCellFromPoint(mouseX, mouseY, &row, &col))
-          InterfaceLogic::settingsLogic.highlightedAction = (Binding::Action)row;
+          settingsLogic.highlightedAction = (Binding::Action)row;
         break;
 
       default:
@@ -314,30 +316,30 @@ void Control::updateSettingsControl()
       switch (mouseoverObject->id)
       {
       case loSettingsBackButton:
-        InterfaceLogic::settingsLogic.escape();
+        settingsLogic.escape();
         break;
 
       case loSoundVolume:
-        InterfaceLogic::settingsLogic.selectedControl = SettingsLogic::ctrlSoundVolume;
+        settingsLogic.selectedControl = SettingsLogic::ctrlSoundVolume;
         break;
 
       case loSoundProgressBar:
-        InterfaceLogic::settingsLogic.selectedControl = SettingsLogic::ctrlSoundVolume;
+        settingsLogic.selectedControl = SettingsLogic::ctrlSoundVolume;
         break;
 
       case loMusicVolume:
-        InterfaceLogic::settingsLogic.selectedControl = SettingsLogic::ctrlMusicVolume;
+        settingsLogic.selectedControl = SettingsLogic::ctrlMusicVolume;
         break;
 
       case loMusicProgressBar:
-        InterfaceLogic::settingsLogic.selectedControl = SettingsLogic::ctrlMusicVolume;
+        settingsLogic.selectedControl = SettingsLogic::ctrlMusicVolume;
         break;
 
       case loKeyBindingGrid:
-        InterfaceLogic::settingsLogic.selectedControl = SettingsLogic::ctrlKeyBindTable;
+        settingsLogic.selectedControl = SettingsLogic::ctrlKeyBindTable;
 
         if (mouseoverObject->getCellFromPoint(mouseX, mouseY, &row, &col))
-          InterfaceLogic::settingsLogic.selectedAction = (Binding::Action)row;
+          settingsLogic.selectedAction = (Binding::Action)row;
         break;
 
       default:
@@ -347,7 +349,7 @@ void Control::updateSettingsControl()
 
     if (rowDoubleclicked)
     {
-      InterfaceLogic::settingsLogic.state = SettingsLogic::stKeyWaiting;
+      settingsLogic.state = SettingsLogic::stKeyWaiting;
     }
 
     if (draggedProgressBarId != loNone)
@@ -360,10 +362,10 @@ void Control::updateSettingsControl()
       switch (draggedProgressBarId)
       {
       case loSoundProgressBar:
-        InterfaceLogic::settingsLogic.setSoundVolume(progress);
+        settingsLogic.setSoundVolume(progress);
         break;
       case loMusicProgressBar:
-        InterfaceLogic::settingsLogic.setMusicVolume(progress);
+        settingsLogic.setMusicVolume(progress);
         break;
       default:
         assert(0);
@@ -377,12 +379,38 @@ void Control::updateSettingsControl()
       if (keyState.pressCount || keyState.repeatCount)
         switch (key)
       {
-        case KB_UP:     break;
-        case KB_DOWN:   break;
+        case KB_UP:     settingsLogic.selectPrevious(); break;
+        case KB_DOWN:   settingsLogic.selectNext(); break;
+        case KB_LEFT:
+          switch (settingsLogic.selectedControl)
+          {
+          case SettingsLogic::ctrlSoundVolume:
+            settingsLogic.setSoundVolume(glm::clamp(settingsLogic.getSoundVolume() - 0.05f, 0.0f, 1.0f));
+            break;
+          case SettingsLogic::ctrlMusicVolume:
+            settingsLogic.setMusicVolume(glm::clamp(settingsLogic.getMusicVolume() - 0.05f, 0.0f, 1.0f));
+            break;
+          default: break;
+          }
+          break;
+        case KB_RIGHT:
+          switch (settingsLogic.selectedControl)
+          {
+          case SettingsLogic::ctrlSoundVolume:
+            settingsLogic.setSoundVolume(glm::clamp(settingsLogic.getSoundVolume() + 0.05f, 0.0f, 1.0f));
+            break;
+          case SettingsLogic::ctrlMusicVolume:
+            settingsLogic.setMusicVolume(glm::clamp(settingsLogic.getMusicVolume() + 0.05f, 0.0f, 1.0f));
+            break;
+          default: break;
+          }
+          break;
         case KB_ENTER:
         case KB_KP_ENTER:
-        case KB_SPACE:  break;
-        case KB_ESCAPE: InterfaceLogic::settingsLogic.escape();  break;
+          if (settingsLogic.selectedControl == SettingsLogic::ctrlKeyBindTable)
+            settingsLogic.state = SettingsLogic::stKeyWaiting;
+          break;
+        case KB_ESCAPE: settingsLogic.escape();  break;
         default: break;
       }
     }

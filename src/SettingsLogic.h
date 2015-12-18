@@ -32,6 +32,8 @@ public:
   float getSoundVolume();
   float getMusicVolume();
   Key getKeyBind(Binding::Action action);
+  void selectNext();
+  void selectPrevious();
 
 private:
   bool changed;
