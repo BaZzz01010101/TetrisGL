@@ -277,8 +277,8 @@ void Layout::load(const char * name)
   for (int i = 0; i < InterfaceLogic::settingsLogic.saveConfirmationMenu.rowCount; i++)
     saveSettingsMenuLayout->addRow(i ? menuRowInterval : menuTop, menuRowHeight);
 
-  
-  LayoutObject * settingsWindowLayout = settingsLayout->addChild(loSettingsWindow, 0.0f, settingsTop, settingsWidth, settingsHeight);
+  const float settingsLeft = 0.5f * (settingsLayout->width - settingsWidth);
+  LayoutObject * settingsWindowLayout = settingsLayout->addChild(loSettingsWindow, settingsLeft, settingsTop, settingsWidth, settingsHeight);
   settingsWindowLayout->addChild(loSettingsTitle, settingsTitleLeft, settingsTitleTop, 0.0, settingsTitleHeight);
   const float settingsTitleShadowLeft = settingsTitleLeft + settingsTitleShadowDX;
   const float settingsTitleShadowTop = settingsTitleTop + settingsTitleShadowDY;
