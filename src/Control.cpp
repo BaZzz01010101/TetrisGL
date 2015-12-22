@@ -443,9 +443,13 @@ void Control::updateLeaderboardControl()
     KeyState mouseLButtonState = getKeyState(MOUSE_LEFT);
     LayoutObject * mouseoverObject = leaderboardLayout->getObjectFromPoint(mouseX, mouseY);
 
-    leaderboardLogic.backButtonHighlighted = (mouseoverObject && mouseoverObject->id == loLeaderboardBackButton);
+    leaderboardLogic.backButtonHighlighted = (mouseoverObject && mouseoverObject->id == loLeaderboardBackButton && leaderboardLogic.editRow < 0);
 
-    if (mouseLButtonState.isPressed && mouseLButtonState.wasChanged && mouseoverObject && mouseoverObject->id == loLeaderboardBackButton)
+    if (mouseLButtonState.isPressed && 
+    mouseLButtonState.wasChanged && 
+    mouseoverObject && 
+    mouseoverObject->id == loLeaderboardBackButton && 
+    leaderboardLogic.editRow < 0)
       leaderboardLogic.escape();
   }
 
