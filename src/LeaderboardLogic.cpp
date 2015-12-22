@@ -83,21 +83,22 @@ void LeaderboardLogic::load()
   fseek(file, 0, SEEK_END);
   const int size = ftell(file);
   fseek(file, 0, SEEK_SET);
+  const int chunkSize = sizeof(uint32_t);
 
-  if (size % 4 == 0)
+  if (size % chunkSize == 0)
   {
-    std::vector<uint32_t> buf(size / 4);
+    std::vector<uint32_t> buf(size / chunkSize);
     fread(buf.data(), 1, size, file);
     uint32_t checksum = 0;
 
-    for (int i = 0; i < size / 4; i++)
+    for (int i = 0; i < size / chunkSize; i++)
       checksum = checksum ^ buf[i];
 
     if (!checksum)
     {
-      if ((size - 4) % sizeof(LeaderData) == 0)
+      if ((size - chunkSize) % sizeof(LeaderData) == 0)
       {
-        const int fileLeadersCount = (size - 4) / sizeof(LeaderData);
+        const int fileLeadersCount = (size - chunkSize) / sizeof(LeaderData);
         leaders.resize(glm::min(fileLeadersCount, leadersMaxCount));
         memcpy(leaders.data(), buf.data(), leaders.size() * sizeof(LeaderData));
       }
@@ -112,17 +113,18 @@ void LeaderboardLogic::save()
   std::string fileName = Crosy::getExePath() + "leaderboard.dat";
   FILE * file = fopen(fileName.c_str(), "wb+");
   const int leadersSize = getLeadersCount() * sizeof(LeaderData);
-  const int size = leadersSize / 4 * 4 + ((leadersSize % 4 > 0) ? 8 : 4);
-  std::vector<uint32_t> buf(size / 4);
+  const int chunkSize = sizeof(uint32_t);
+  const int size = leadersSize / chunkSize * chunkSize + ((leadersSize % chunkSize > 0) ? 2 * chunkSize : chunkSize);
+  std::vector<uint32_t> buf(size / chunkSize);
   memset(buf.data(), 0, size);
   memcpy(buf.data(), leaders.data(), leaders.size() * sizeof(LeaderData));
 
   uint32_t checksum = 0;
 
-  for (int i = 0; i < size / 4; i++)
+  for (int i = 0; i < size / chunkSize; i++)
     checksum = checksum ^ buf[i];
 
-  buf[size / 4 - 1] = checksum;
+  buf[size / chunkSize - 1] = checksum;
   fwrite(buf.data(), 1, size, file);
   fclose(file);
 }
