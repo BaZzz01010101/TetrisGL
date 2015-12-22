@@ -2,8 +2,6 @@
 
 const char * const Keys::names[KEY_COUNT] = 
 {
-  "",
-
   /* Printable keys */
   "SPACE",
   "APOSTROPHE",

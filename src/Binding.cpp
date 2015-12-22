@@ -40,7 +40,7 @@ void Binding::init()
 
 void Binding::setKeyBinding(Key key, Action action)
 {
-  for (Binding::Action a = doNothing + 1; a < ACTION_COUNT; a++)
+  for (Action a = FIRST_ACTION; a < ACTION_COUNT; a++)
     if (actionKeys[a] == key)
       actionKeys[a] = KB_NONE;
 
@@ -49,7 +49,7 @@ void Binding::setKeyBinding(Key key, Action action)
 
 Binding::Action Binding::getKeyAction(Key key) 
 {
-  for (Binding::Action action = doNothing + 1; action < ACTION_COUNT; action++)
+  for (Action action = FIRST_ACTION; action < ACTION_COUNT; action++)
     if (actionKeys[action] == key)
       return action;
 

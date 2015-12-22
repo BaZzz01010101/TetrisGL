@@ -2,10 +2,11 @@
 
 enum Key
 {
-  KB_NONE = 0,
+  KB_NONE = -1,
+  FIRST_KEY = 0,
 
   /* Printable keys */
-  KB_SPACE,
+  KB_SPACE = 0,
   KB_APOSTROPHE,
   KB_COMMA,
   KB_MINUS,
@@ -167,6 +168,6 @@ private:
   ~Keys();
 
 public:
-  static const char * getName(Key key) { return names[key]; }
+  static const char * getName(Key key) { return key == KB_NONE ? "" : names[key]; }
 };
 

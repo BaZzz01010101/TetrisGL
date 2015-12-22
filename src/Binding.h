@@ -5,7 +5,7 @@
 class Binding
 {
 public:
-  enum Action { doNothing = -1, moveLeft, moveRight, rotateLeft, rotateRight, fastDown, dropDown, swapHold, ACTION_COUNT };
+  enum Action { doNothing = -1, FIRST_ACTION = 0, moveLeft = 0, moveRight, rotateLeft, rotateRight, fastDown, dropDown, swapHold, ACTION_COUNT };
 
   static void init();
   static void setKeyBinding(Key key, Action action);

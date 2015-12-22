@@ -387,9 +387,9 @@ void Layout::load(const char * name)
   keyBindingGridLayout->addColumn(0.0f, settingsKeyBindingCaptionWidth);
   keyBindingGridLayout->addColumn(settingsPanelRowHorzGap, settingsPanelRowWidth - settingsKeyBindingCaptionWidth - settingsPanelRowHorzGap);
 
-  for (Binding::Action action = Binding::doNothing + 1; action < Binding::ACTION_COUNT; action++)
+  for (Binding::Action action = Binding::FIRST_ACTION; action < Binding::ACTION_COUNT; action++)
   {
-    const float topGap = (action == Binding::doNothing + 1) ? 0.0f : settingsPanelRowVertGap;
+    const float topGap = (action == Binding::FIRST_ACTION) ? 0.0f : settingsPanelRowVertGap;
     keyBindingGridLayout->addRow(topGap, settingsPanelRowHeight);
   }
 

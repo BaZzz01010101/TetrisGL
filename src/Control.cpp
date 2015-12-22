@@ -130,7 +130,7 @@ Control::KeyState Control::getKeyState(Key key) const
 
 void Control::updateInternalState()
 {
-  for (Key key = KB_NONE; key < KEY_COUNT; key++)
+  for (Key key = FIRST_KEY; key < KEY_COUNT; key++)
   {
     KeyInternalState & keyInternalState = internalKeyStates[key];
     bool isPressed = (keyInternalState.keyNextRepeatCounter > 0);
@@ -176,7 +176,7 @@ void Control::updateGameControl()
     }
   }
   
-  for (Key key = KB_NONE; key < KEY_COUNT; key++)
+  for (Key key = FIRST_KEY; key < KEY_COUNT; key++)
   {
     KeyState keyState = getKeyState(key);
 
@@ -237,7 +237,7 @@ void Control::updateMenuControl(MenuLogic & menu, LayoutObjectId layoutObjectId)
     }
   }
 
-  for (Key key = KB_NONE; key < KEY_COUNT; key++)
+  for (Key key = FIRST_KEY; key < KEY_COUNT; key++)
   {
     KeyState keyState = getKeyState(key);
 
@@ -372,7 +372,7 @@ void Control::updateSettingsControl()
       }
     }
 
-    for (Key key = KB_NONE; key < KEY_COUNT; key++)
+    for (Key key = FIRST_KEY; key < KEY_COUNT; key++)
     {
       KeyState keyState = getKeyState(key);
 
@@ -419,7 +419,7 @@ void Control::updateSettingsControl()
 
 void Control::updateSettingsKeyBindControl()
 {
-  for (Key key = KB_NONE; key < KEY_COUNT; key++)
+  for (Key key = FIRST_KEY; key < KEY_COUNT; key++)
   {
     KeyState keyState = getKeyState(key);
 
@@ -453,7 +453,7 @@ void Control::updateLeaderboardControl()
       leaderboardLogic.escape();
   }
 
-  for (Key key = KB_NONE; key < KEY_COUNT; key++)
+  for (Key key = FIRST_KEY; key < KEY_COUNT; key++)
   {
     KeyState keyState = getKeyState(key);
 
