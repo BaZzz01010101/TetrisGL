@@ -157,17 +157,11 @@ bool LeaderboardLogic::addResult(int level, int score)
 
     if (score > leader.score || (score == leader.score && level > leader.level))
     {
-      LeaderData * src = &leader;
-      LeaderData * dst = src + 1;
-      int s = sizeof(LeaderData);
-      const int size = sizeof(LeaderData) * (&leaders.back() - src);
+      const LeaderData newLeader = { { '\0' }, level, score };
+      leaders.insert(leaders.begin() + i, newLeader);
 
-      if (size > 0)
-        memmove(dst, src, size);
-
-      leader.level = level;
-      leader.score = score;
-      leader.name[0] = '\0';
+      if (leaders.size() > leadersMaxCount)
+        leaders.resize(leadersMaxCount);
 
       editRow = i;
       return true;
@@ -216,5 +210,6 @@ void LeaderboardLogic::commit()
   {
     editRow = -1;
     save();
+    escape();
   }
 }
