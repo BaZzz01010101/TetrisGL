@@ -10,6 +10,19 @@ public:
   enum Result { resNone, resClose };
   enum Control { ctrlNone, ctrlSoundVolume, ctrlMusicVolume, ctrlKeyBindTable, ctrlBackButton };
 
+#pragma pack(push, 1)
+
+  struct SaveData
+  {
+    float soundVolume;
+    float musicVolume;
+    Key actionKeys[Binding::ACTION_COUNT];
+    uint32_t dummy;
+    uint32_t checksum;
+  } saveData;
+
+#pragma pack(pop)
+
   MenuLogic saveConfirmationMenu;
   State state;
   float transitionProgress;
@@ -36,6 +49,7 @@ public:
   void selectPrevious();
 
 private:
+  static const char * fileName;
   bool changed;
   float soundVolume;
   float musicVolume;

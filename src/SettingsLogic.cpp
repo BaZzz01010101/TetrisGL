@@ -3,24 +3,27 @@
 #include "SettingsLogic.h"
 #include "Globals.h"
 #include "Time.h"
+#include "Crosy.h"
 
+const char * SettingsLogic::fileName = "settings.dat";
 
 SettingsLogic::SettingsLogic() :
   saveConfirmationMenu(MenuLogic::resBack),
   changed(false),
   state(stHidden),
   transitionProgress(0.0f),
-  soundVolume(0.66f),
-  musicVolume(0.75f),
+  soundVolume(0.5f),
+  musicVolume(0.5f),
   selectedControl(ctrlSoundVolume),
   highlightedControl(ctrlNone),
   selectedAction(Binding::doNothing),
   highlightedAction(Binding::doNothing),
   backButtonHighlighted(false)
 {
-  saveConfirmationMenu.add("SAVE", MenuLogic::resSave, true);
+  saveConfirmationMenu.add("SAVE", MenuLogic::resSave);
   saveConfirmationMenu.add("DON'T SAVE", MenuLogic::resDontSave);
-  saveConfirmationMenu.add("BACK", MenuLogic::resBack);
+  saveConfirmationMenu.add("BACK", MenuLogic::resBack, true);
+  load();
 }
 
 
@@ -98,11 +101,67 @@ void SettingsLogic::escape()
 
 void SettingsLogic::load()
 {
+  std::string fileName = Crosy::getExePath() + SettingsLogic::fileName;
+  FILE * file = fopen(fileName.c_str(), "rb+");
+
+  if (file)
+  {
+    int success = fread(&saveData, sizeof(saveData), 1, file);
+    fclose(file);
+
+    if (success)
+    {
+      uint32_t * plainData = (uint32_t *)&saveData;
+      int chunkCount = (sizeof(saveData)-sizeof(saveData.checksum)) / sizeof(uint32_t);
+      uint32_t checksum = 0;
+
+      for (int i = 0; i < chunkCount; i++)
+        checksum ^= plainData[i];
+
+      if (checksum == saveData.checksum)
+      {
+        soundVolume = saveData.soundVolume;
+        musicVolume = saveData.musicVolume;
+
+        for (Binding::Action action = Binding::FIRST_ACTION; action < Binding::ACTION_COUNT; action++)
+          Binding::setKeyBinding(saveData.actionKeys[action], action);
+      }
+      else save();
+    }
+    else save();
+  }
+  else save();
+
   changed = false;
 }
 
 void SettingsLogic::save()
 {
+  std::string fileName = Crosy::getExePath() + SettingsLogic::fileName;
+  FILE * file = fopen(fileName.c_str(), "wb+");
+  assert(file);
+
+  if (file)
+  {
+    saveData.soundVolume = soundVolume;
+    saveData.musicVolume = musicVolume;
+    saveData.dummy = 0;
+    saveData.checksum = 0;
+
+    for (Binding::Action action = Binding::FIRST_ACTION; action < Binding::ACTION_COUNT; action++)
+      saveData.actionKeys[action] = Binding::getActionKey(action);
+
+    uint32_t * plainData = (uint32_t *)&saveData;
+    int chunkCount = (sizeof(saveData)-sizeof(saveData.checksum)) / sizeof(uint32_t);
+
+    for (int i = 0; i < chunkCount; i++)
+      saveData.checksum ^= plainData[i];
+
+    int success = fwrite(&saveData, sizeof(saveData), 1, file);
+    assert(success);
+    fclose(file);
+  }
+
   changed = false;
 }
 
@@ -164,7 +223,7 @@ void SettingsLogic::selectNext()
     break;
   case ctrlMusicVolume:
     selectedControl = ctrlKeyBindTable;
-    selectedAction = Binding::doNothing + 1;
+    selectedAction = Binding::FIRST_ACTION;
     break;
   case ctrlKeyBindTable:
     if (++selectedAction == Binding::ACTION_COUNT)
