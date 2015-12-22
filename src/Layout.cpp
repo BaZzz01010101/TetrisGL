@@ -403,6 +403,10 @@ void Layout::load(const char * name)
   for (int i = 0; i < 3; i++)
     settingsBackButtonLayout->addColumn(i ? settingsBackButtonColumnShift : 0.0f, settingsBackShevronSize);
 
+  const float settingsBindingMsgLeft = 0.5f * (settingsLayout->width - settingsBindingMsgWidth);
+  const float settingsBindingMsgTop = 0.5f * (settingsLayout->height - settingsBindingMsgHeight);
+  settingsLayout->addChild(loBindingMessage, settingsBindingMsgLeft, settingsBindingMsgTop, settingsBindingMsgWidth, settingsBindingMsgHeight);
+  
 // Leaderboard layout
 
   const float leaderboardWidth = 
