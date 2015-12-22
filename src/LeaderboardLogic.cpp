@@ -5,6 +5,8 @@
 #include "Time.h"
 #include "Crosy.h"
 
+const char * LeaderboardLogic::fileName = "leaderboard.dat";
+
 LeaderboardLogic::LeaderboardLogic() :
   state(stHidden),
   transitionProgress(0.0f),
@@ -78,7 +80,7 @@ void LeaderboardLogic::escape()
 
 void LeaderboardLogic::load()
 {
-  std::string fileName = Crosy::getExePath() + "leaderboard.dat";
+  std::string fileName = Crosy::getExePath() + LeaderboardLogic::fileName;
   FILE * file = fopen(fileName.c_str(), "rb+");
   assert(file);
 
@@ -115,7 +117,7 @@ void LeaderboardLogic::load()
 
 void LeaderboardLogic::save()
 {
-  std::string fileName = Crosy::getExePath() + "leaderboard.dat";
+  std::string fileName = Crosy::getExePath() + LeaderboardLogic::fileName;
   FILE * file = fopen(fileName.c_str(), "wb+");
   assert(file);
 

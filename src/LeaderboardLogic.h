@@ -34,6 +34,7 @@ public:
   void commit();
 
 private:
+  static const char * fileName;
   std::vector<LeaderData> leaders;
 };
 
