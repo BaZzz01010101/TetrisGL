@@ -66,7 +66,6 @@ float Layout::settingsTitleHeight = 0.08f;
 float Layout::settingsTitleShadowDX = 0.01f;
 float Layout::settingsTitleShadowDY = 0.01f;
 
-float Layout::settingsPanelTitleLeft = 0.04f;
 float Layout::settingsPanelLeft = 0.05f;
 float Layout::settingsPanelTop = 0.12f;
 float Layout::settingsPanelRightGap = 0.05f;
@@ -77,6 +76,7 @@ float Layout::settingsBackShevronSize = 0.05f;
 float Layout::settingsBackShevronStep = 0.04f;
 float Layout::settingsBackShevronRightGap = 0.05f;
 
+float Layout::settingsPanelTitleLeft = 0.04f;
 float Layout::settingsPanelTitleTopGap = 0.02f;
 float Layout::settingsPanelTitleBottomGap = 0.01f;
 float Layout::settingsPanelTitleHeight = 0.08f;
@@ -96,6 +96,41 @@ float Layout::settingsBindingMsgWidth = 0.4f;
 float Layout::settingsBindingMsgHeight = 0.2f;
 float Layout::settingsBindingMsgBorder = 0.01f;
 float Layout::settingsBindingMsgTextHeight = 0.05f;
+
+float Layout::leaderboardTop = -0.5f;
+float Layout::leaderboardWidth = 1.25f;
+float Layout::leaderboardHeight = 1.0f;
+float Layout::leaderboardGlowWidth = 0.05f;
+float Layout::leaderboardCornerSize = 0.08f;
+
+float Layout::leaderboardTitleLeft = 0.05f;
+float Layout::leaderboardTitleTop = -0.08f;
+float Layout::leaderboardTitleHeight = 0.08f;
+float Layout::leaderboardTitleShadowDX = 0.01f;
+float Layout::leaderboardTitleShadowDY = 0.01f;
+
+float Layout::leaderboardPanelLeft = 0.05f;
+float Layout::leaderboardPanelTop = 0.12f;
+float Layout::leaderboardPanelRightGap = 0.05f;
+float Layout::leaderboardPanelBottomGap = 0.08f;
+float Layout::leaderboardPanelBorderWidth = 0.005f;
+
+float Layout::leaderboardBackShevronSize = 0.05f;
+float Layout::leaderboardBackShevronStep = 0.04f;
+float Layout::leaderboardBackShevronRightGap = 0.05f;
+
+float Layout::leaderboardPanelHeaderTop = 0.01f;
+float Layout::leaderboardPanelHeaderHeight = 0.05f;
+float Layout::leaderboardPanelHeaderTextHeight = 0.04f;
+float Layout::leaderboardPanelRowHeight = 0.035f;
+float Layout::leaderboardPanelRowTextHeight = 0.03f;
+float Layout::leaderboardPanelColPlaceWidth = 0.05f;
+float Layout::leaderboardPanelColNameWidth = 0.4f;
+float Layout::leaderboardPanelColLevelWidth = 0.05f;
+float Layout::leaderboardPanelColScoreWidth = 0.4f;
+float Layout::leaderboardPanelNameLeftIndent = 0.01f;
+float Layout::leaderboardPanelScoreRightIndent = 0.01f;
+float Layout::leaderboardPanelLastRowBottomGap = 0.01f;
 
 LayoutObject Layout::screen(loScreen, NULL, screenLeft, screenTop, screenWidth, screenHeight);
 
@@ -213,6 +248,39 @@ void Layout::load(const char * name)
     loadValue(intrfaceSection, "SettingsBindingMsgHeight", &settingsBindingMsgHeight);
     loadValue(intrfaceSection, "SettingsBindingMsgBorder", &settingsBindingMsgBorder);
     loadValue(intrfaceSection, "SettingsBindingMsgTextHeight", &settingsBindingMsgTextHeight);
+
+    loadValue(intrfaceSection, "LeaderboardTop", &leaderboardTop);
+    loadValue(intrfaceSection, "LeaderboardGlowWidth", &leaderboardGlowWidth);
+    loadValue(intrfaceSection, "LeaderboardCornerSize", &leaderboardCornerSize);
+
+    loadValue(intrfaceSection, "LeaderboardTitleLeft", &leaderboardTitleLeft);
+    loadValue(intrfaceSection, "LeaderboardTitleTop", &leaderboardTitleTop);
+    loadValue(intrfaceSection, "LeaderboardTitleHeight", &leaderboardTitleHeight);
+    loadValue(intrfaceSection, "LeaderboardTitleShadowDX", &leaderboardTitleShadowDX);
+    loadValue(intrfaceSection, "LeaderboardTitleShadowDY", &leaderboardTitleShadowDY);
+
+    loadValue(intrfaceSection, "LeaderboardPanelLeft", &leaderboardPanelLeft);
+    loadValue(intrfaceSection, "LeaderboardPanelTop", &leaderboardPanelTop);
+    loadValue(intrfaceSection, "LeaderboardPanelRightGap", &leaderboardPanelRightGap);
+    loadValue(intrfaceSection, "LeaderboardPanelBottomGap", &leaderboardPanelBottomGap);
+    loadValue(intrfaceSection, "LeaderboardPanelBorderWidth", &leaderboardPanelBorderWidth);
+
+    loadValue(intrfaceSection, "LeaderboardBackShevronSize", &leaderboardBackShevronSize);
+    loadValue(intrfaceSection, "LeaderboardBackShevronStep", &leaderboardBackShevronStep);
+    loadValue(intrfaceSection, "LeaderboardBackShevronRightGap", &leaderboardBackShevronRightGap);
+
+    loadValue(intrfaceSection, "LeaderboardPanelHeaderTop", &leaderboardPanelHeaderTop);
+    loadValue(intrfaceSection, "LeaderboardPanelHeaderHeight", &leaderboardPanelHeaderHeight);
+    loadValue(intrfaceSection, "LeaderboardPanelHeaderTextHeight", &leaderboardPanelHeaderTextHeight);
+    loadValue(intrfaceSection, "LeaderboardPanelRowHeight", &leaderboardPanelRowHeight);
+    loadValue(intrfaceSection, "LeaderboardPanelRowTextHeight", &leaderboardPanelRowTextHeight);
+    loadValue(intrfaceSection, "LeaderboardPanelColPlaceWidth", &leaderboardPanelColPlaceWidth);
+    loadValue(intrfaceSection, "LeaderboardPanelColNameWidth", &leaderboardPanelColNameWidth);
+    loadValue(intrfaceSection, "LeaderboardPanelColLevelWidth", &leaderboardPanelColLevelWidth);
+    loadValue(intrfaceSection, "LeaderboardPanelColScoreWidth", &leaderboardPanelColScoreWidth);
+    loadValue(intrfaceSection, "LeaderboardPanelNameLeftIndent", &leaderboardPanelNameLeftIndent);
+    loadValue(intrfaceSection, "LeaderboardPanelScoreRightIndent", &leaderboardPanelScoreRightIndent);
+    loadValue(intrfaceSection, "LeaderboardPanelLastRowBottomGap", &leaderboardPanelLastRowBottomGap);
   }
 
   screen.clear();
@@ -225,6 +293,9 @@ void Layout::load(const char * name)
   LayoutObject * exitToMainConfirmationMenuLayout = screen.addChild(loExitToMainConfirmationMenu, backgroundLeft, backgroundTop, backgroundWidth, backgroundHeight);
   LayoutObject * saveSettingsMenuLayout = screen.addChild(loSaveSettingsMenu, backgroundLeft, backgroundTop, backgroundWidth, backgroundHeight);
   LayoutObject * settingsLayout = screen.addChild(loSettings, backgroundLeft, backgroundTop, backgroundWidth, backgroundHeight);
+  LayoutObject * leaderboardLayout = screen.addChild(loLeaderboard, backgroundLeft, backgroundTop, backgroundWidth, backgroundHeight);
+
+// Game layout
 
   const float scoreBarValueLeft = scoreBarLeftGap + scoreBarCaptionWidth + scoreBarSeparatorGap;
   const float scoreBarValueWidth = backgroundWidth - scoreBarLeftGap - scoreBarCaptionWidth - scoreBarSeparatorGap - scoreBarSeparatorGap - scoreBarMenuButtonWidth - scoreBarRightGap;
@@ -246,6 +317,8 @@ void Layout::load(const char * name)
   gameLayout->addChild(loLevelPanel, leftSidePanelsLeft, levelPanelTop, infoPanelsWidth, levelGoalPanelsHeight);
   gameLayout->addChild(loGoalPanelCaption, leftSidePanelsLeft, goalCaptionTop, infoPanelsWidth, infoPanelsCaptionHeight);
   gameLayout->addChild(loGoalPanel, leftSidePanelsLeft, goalPanelTop, infoPanelsWidth, levelGoalPanelsHeight);
+
+// Menus layout
 
   mainMenuLayout->addColumn(0.0f, menuRowWidth);
 
@@ -276,6 +349,8 @@ void Layout::load(const char * name)
 
   for (int i = 0; i < InterfaceLogic::settingsLogic.saveConfirmationMenu.rowCount; i++)
     saveSettingsMenuLayout->addRow(i ? menuRowInterval : menuTop, menuRowHeight);
+
+// Settings layout
 
   const float settingsLeft = 0.5f * (settingsLayout->width - settingsWidth);
   LayoutObject * settingsWindowLayout = settingsLayout->addChild(loSettingsWindow, settingsLeft, settingsTop, settingsWidth, settingsHeight);
@@ -323,14 +398,64 @@ void Layout::load(const char * name)
   const float settingsBackButtonTop = 0.5f * (settingsWindowLayout->height + settingsPanelLayout->top + settingsPanelLayout->height - settingsBackShevronSize);
   LayoutObject * settingsBackButtonLayout = settingsWindowLayout->addChild(loSettingsBackButton, settingsBackButtonLeft, settingsBackButtonTop, settingsBackButtonWidth, settingsBackShevronSize);
   settingsBackButtonLayout->addRow(0.0f, settingsBackShevronSize);
-  const float columnShift = settingsBackShevronStep - settingsBackShevronSize;
+  const float settingsBackButtonColumnShift = settingsBackShevronStep - settingsBackShevronSize;
 
   for (int i = 0; i < 3; i++)
-    settingsBackButtonLayout->addColumn(i ? columnShift : 0.0f, settingsBackShevronSize);
+    settingsBackButtonLayout->addColumn(i ? settingsBackButtonColumnShift : 0.0f, settingsBackShevronSize);
 
-  const float settingsBindingMsgLeft = 0.5f * (settingsLayout->width - settingsBindingMsgWidth);
-  const float settingsBindingMsgTop = 0.5f * (settingsLayout->height - settingsBindingMsgHeight);
-  settingsLayout->addChild(loBindingMessage, settingsBindingMsgLeft, settingsBindingMsgTop, settingsBindingMsgWidth, settingsBindingMsgHeight);
+// Leaderboard layout
+
+  const float leaderboardWidth = 
+    leaderboardPanelLeft + 
+    leaderboardPanelColPlaceWidth + 
+    leaderboardPanelColNameWidth + 
+    leaderboardPanelColLevelWidth + 
+    leaderboardPanelColScoreWidth + 
+    leaderboardPanelRightGap;
+
+  const int leadersMaxCount = InterfaceLogic::leaderboardLogic.leadersMaxCount;
+  const float leaderboardHeight =
+    leaderboardPanelTop +
+    leaderboardPanelHeaderTop +
+    leaderboardPanelHeaderHeight +
+    leadersMaxCount * leaderboardPanelRowHeight +
+    leaderboardPanelLastRowBottomGap +
+    leaderboardPanelBottomGap;
+
+  const float leaderboardLeft = 0.5f * (leaderboardLayout->width - leaderboardWidth);
+  LayoutObject * leaderboardWindowLayout = leaderboardLayout->addChild(loLeaderboardWindow, leaderboardLeft, leaderboardTop, leaderboardWidth, leaderboardHeight);
+  leaderboardWindowLayout->addChild(loLeaderboardTitle, leaderboardTitleLeft, leaderboardTitleTop, 0.0, leaderboardTitleHeight);
+  const float leaderboardTitleShadowLeft = leaderboardTitleLeft + leaderboardTitleShadowDX;
+  const float leaderboardTitleShadowTop = leaderboardTitleTop + leaderboardTitleShadowDY;
+  leaderboardWindowLayout->addChild(loLeaderboardTitleShadow, leaderboardTitleShadowLeft, leaderboardTitleShadowTop, 0.0, leaderboardTitleHeight);
+
+  const float leaderboardPanelWidth = leaderboardWidth - leaderboardPanelLeft - leaderboardPanelRightGap;
+  const float leaderboardPanelHeight = leaderboardHeight - leaderboardPanelTop - leaderboardPanelBottomGap;
+  LayoutObject * leaderboardPanelLayout = leaderboardWindowLayout->addChild(loLeaderboardPanel, leaderboardPanelLeft, leaderboardPanelTop, leaderboardPanelWidth, leaderboardPanelHeight);
+
+  leaderboardPanelLayout->addColumn(0.0f, leaderboardPanelColPlaceWidth);
+  leaderboardPanelLayout->addColumn(leaderboardPanelNameLeftIndent, leaderboardPanelColNameWidth - leaderboardPanelNameLeftIndent);
+  leaderboardPanelLayout->addColumn(0.0f, leaderboardPanelColLevelWidth);
+  const float leaderboardPanelColScoreWidth = leaderboardPanelLayout->width - 
+    leaderboardPanelColPlaceWidth - 
+    leaderboardPanelColNameWidth - 
+    leaderboardPanelColLevelWidth - 
+    leaderboardPanelScoreRightIndent;
+  leaderboardPanelLayout->addColumn(0.0f, leaderboardPanelColScoreWidth);
+  leaderboardPanelLayout->addRow(leaderboardPanelHeaderTop, leaderboardPanelHeaderHeight);
+
+  for (int i = 0; i < leadersMaxCount; i++)
+    leaderboardPanelLayout->addRow(0.0f, leaderboardPanelRowHeight);
+
+  const float leaderboardBackButtonWidth = leaderboardBackShevronSize + 2.0f * leaderboardBackShevronStep;
+  const float leaderboardBackButtonLeft = leaderboardWidth - leaderboardBackShevronRightGap - leaderboardBackButtonWidth;
+  const float leaderboardBackButtonTop = 0.5f * (leaderboardWindowLayout->height + leaderboardPanelLayout->top + leaderboardPanelLayout->height - leaderboardBackShevronSize);
+  LayoutObject * leaderboardBackButtonLayout = leaderboardWindowLayout->addChild(loLeaderboardBackButton, leaderboardBackButtonLeft, leaderboardBackButtonTop, leaderboardBackButtonWidth, leaderboardBackShevronSize);
+  leaderboardBackButtonLayout->addRow(0.0f, leaderboardBackShevronSize);
+  const float leaderboardBackButtonColumnShift = leaderboardBackShevronStep - leaderboardBackShevronSize;
+
+  for (int i = 0; i < 3; i++)
+    leaderboardBackButtonLayout->addColumn(i ? leaderboardBackButtonColumnShift : 0.0f, leaderboardBackShevronSize);
 }
 
 void Layout::loadValue(rapidjson::Value & source, const char * name, float * result)

@@ -69,6 +69,20 @@ glm::vec3 Palette::settingsBindingMsgBackground(0.1f, 0.2f, 0.3f);
 glm::vec3 Palette::settingsBindingMsgBorder(0.9f, 0.9f, 1.0f);
 glm::vec3 Palette::settingsBindingMsgText(0.9f, 0.9f, 1.0f);
 
+glm::vec3 Palette::leaderboardBackgroundTop(0.4f, 0.7f, 1.2f);
+glm::vec3 Palette::leaderboardBackgroundBottom(0.04f, 0.07f, 0.12f);
+glm::vec3 Palette::leaderboardGlow(0.4f, 0.7f, 1.2f);
+glm::vec3 Palette::leaderboardTitleText(1.0f, 0.9f, 0.4f);
+float Palette::leaderboardTitleShadowAlpha = 0.5f;
+glm::vec3 Palette::leaderboardPanelBackgroundTop(0.04f, 0.14f, 0.24f);
+glm::vec3 Palette::leaderboardPanelBackgroundBottom(0.01f, 0.035f, 0.0625f);
+glm::vec3 Palette::leaderboardPanelBorder(0.5f, 0.45f, 0.2f);
+glm::vec3 Palette::leaderboardPanelHeaderText(0.85f, 0.85f, 0.65f);
+glm::vec3 Palette::leaderboardRowText(0.9f, 0.9f, 1.0f);
+glm::vec3 Palette::leaderboardEditRowText(1.0f, 0.9f, 0.4f);
+glm::vec3 Palette::leaderboardBackButton(0.5f, 0.5f, 0.6f);
+glm::vec3 Palette::leaderboardBackButtonHighlighted(0.9f, 0.9f, 1.0f);
+
 float Palette::backgroundShadeAlpha = 0.75f;
 float Palette::figureGlowOuterBright = 0.01f;
 float Palette::figureGlowInnerBright = 0.25f;
@@ -151,6 +165,20 @@ void Palette::load(const char * name)
   loadValue(doc, "SettingsBindingMsgBorder", &settingsBindingMsgBorder);
   loadValue(doc, "SettingsBindingMsgText", &settingsBindingMsgText);
 
+  loadValue(doc, "LeaderboardBackgroundTop", &leaderboardBackgroundTop);
+  loadValue(doc, "LeaderboardBackgroundBottom", &leaderboardBackgroundBottom);
+  loadValue(doc, "LeaderboardGlow", &leaderboardGlow);
+  loadValue(doc, "LeaderboardTitleText", &leaderboardTitleText);
+  loadValue(doc, "LeaderboardTitleShadowAlpha", &leaderboardTitleShadowAlpha);
+  loadValue(doc, "LeaderboardPanelBackgroundTop", &leaderboardPanelBackgroundTop);
+  loadValue(doc, "LeaderboardPanelBackgroundBottom", &leaderboardPanelBackgroundBottom);
+  loadValue(doc, "LeaderboardPanelBorder", &leaderboardPanelBorder);
+  loadValue(doc, "LeaderboardPanelHeaderText", &leaderboardPanelHeaderText);
+  loadValue(doc, "LeaderboardRowText", &leaderboardRowText);
+  loadValue(doc, "LeaderboardEditRowText", &leaderboardEditRowText);
+  loadValue(doc, "LeaderboardBackButton", &leaderboardBackButton);
+  loadValue(doc, "LeaderboardBackButtonHighlighted", &leaderboardBackButtonHighlighted);
+
   loadValue(doc, "BackgroundShadeAlpha", &backgroundShadeAlpha);
   loadValue(doc, "FigureGlowOuterBright", &figureGlowOuterBright);
   loadValue(doc, "FigureGlowInnerBright", &figureGlowInnerBright);
@@ -158,7 +186,6 @@ void Palette::load(const char * name)
   loadValue(doc, "DeletedRowRaysBright", &deletedRowRaysBright);
   loadValue(doc, "DeletedRowShineBright", &deletedRowShineBright);
   loadValue(doc, "GlassBackgroundInnerBright", &glassBackgroundInnerBright);
-
 }
 
 void Palette::loadValue(rapidjson::Value & source, const char * name, float * result)

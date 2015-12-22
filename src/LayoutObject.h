@@ -102,4 +102,10 @@ enum LayoutObjectId
   loKeyBindingTitle,
   loKeyBindingGrid,
   loBindingMessage,
+  loLeaderboard,
+  loLeaderboardWindow,
+  loLeaderboardTitle,
+  loLeaderboardTitleShadow,
+  loLeaderboardPanel,
+  loLeaderboardBackButton,
 };

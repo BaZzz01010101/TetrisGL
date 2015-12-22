@@ -232,7 +232,7 @@ void Control::updateMenuControl(MenuLogic & menu, LayoutObjectId layoutObjectId)
     {
       if (leftButtonState.isPressed)
         menu.enter(row);
-      else
+      else if (mouseMoved)
         menu.select(row);
     }
   }
@@ -436,5 +436,39 @@ void Control::updateSettingsKeyBindControl()
 
 void Control::updateLeaderboardControl()
 {
+  LeaderboardLogic & leaderboardLogic = InterfaceLogic::leaderboardLogic;
 
+  if (LayoutObject * leaderboardLayout = Layout::screen.getChild(loLeaderboard))
+  {
+    KeyState mouseLButtonState = getKeyState(MOUSE_LEFT);
+    LayoutObject * mouseoverObject = leaderboardLayout->getObjectFromPoint(mouseX, mouseY);
+
+    leaderboardLogic.backButtonHighlighted = (mouseoverObject && mouseoverObject->id == loLeaderboardBackButton);
+
+    if (mouseLButtonState.isPressed && mouseLButtonState.wasChanged && mouseoverObject && mouseoverObject->id == loLeaderboardBackButton)
+      leaderboardLogic.escape();
+  }
+
+  for (Key key = KB_NONE; key < KEY_COUNT; key++)
+  {
+    KeyState keyState = getKeyState(key);
+
+    if (keyState.pressCount || keyState.repeatCount)
+    {
+      if (leaderboardLogic.editRow >= 0)
+      {
+      if (key == KB_BACKSPACE)
+        leaderboardLogic.deleteChar();
+      else if (key == KB_ENTER || key == KB_KP_ENTER)
+        leaderboardLogic.commit();
+      else if (key == KB_SPACE)
+        leaderboardLogic.addChar(' ');
+      else if (key >= KB_A && key <= KB_Z)
+        leaderboardLogic.addChar('A' + key - KB_A);
+      }
+      else if (key == KB_ESCAPE && leaderboardLogic.editRow < 0)
+        leaderboardLogic.escape();
+    }
+  }
 }
+

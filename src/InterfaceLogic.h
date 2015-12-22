@@ -1,6 +1,7 @@
 #pragma once
 #include "MenuLogic.h"
 #include "SettingsLogic.h"
+#include "LeaderboardLogic.h"
 
 class InterfaceLogic
 {
@@ -13,6 +14,7 @@ public:
   static MenuLogic restartConfirmationMenu;
   static MenuLogic exitToMainConfirmationMenu;
   static SettingsLogic settingsLogic;
+  static LeaderboardLogic leaderboardLogic;
   static State state;
   static float menuShadeProgress;
 
@@ -20,6 +22,7 @@ public:
   static Result update();
   static void showMainMenu();
   static void showInGameMenu();
+  static void showLeaderboard();
 
 private:
   InterfaceLogic();

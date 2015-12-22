@@ -88,8 +88,40 @@
 		"SettingsBindingMsgWidth" : 0.2,
 		"SettingsBindingMsgHeight" : 0.1,
 		"SettingsBindingMsgBorder" : 0.0025,
-		"SettingsBindingMsgTextHeight" : 0.05
+		"SettingsBindingMsgTextHeight" : 0.05,
 
+		"LeaderboardTop" : 0.25,
+		"LeaderboardGlowWidth" : 0.025,
+		"LeaderboardCornerSize" : 0.05,
+
+		"LeaderboardTitleLeft" : 0.0375,
+		"LeaderboardTitleTop" : 0.014,
+		"LeaderboardTitleHeight" : 0.055,
+		"LeaderboardTitleShadowDX" : 0.0035,
+		"LeaderboardTitleShadowDY" : 0.0035,
+		
+		"LeaderboardPanelLeft" : 0.025,
+		"LeaderboardPanelTop" : 0.075,
+		"LeaderboardPanelRightGap" : 0.025,
+		"LeaderboardPanelBottomGap" : 0.05,
+		"LeaderboardPanelBorderWidth" : 0.0025,
+
+		"LeaderboardPanelHeaderTop" : 0.01,
+		"LeaderboardPanelHeaderHeight" : 0.035,
+		"LeaderboardPanelHeaderTextHeight" : 0.025,
+		"LeaderboardPanelRowHeight" : 0.04,
+		"LeaderboardPanelRowTextHeight" : 0.03,
+		"LeaderboardPanelColPlaceWidth" : 0.05,
+		"LeaderboardPanelColNameWidth" : 0.25,
+		"LeaderboardPanelColLevelWidth" : 0.05,
+		"LeaderboardPanelColScoreWidth" : 0.25,
+		"LeaderboardPanelNameLeftIndent" : 0.01,
+		"LeaderboardPanelScoreRightIndent" : 0.01,
+		"LeaderboardPanelLastRowBottomGap" : 0.01,
+
+		"LeaderboardBackShevronSize" : 0.025,
+		"LeaderboardBackShevronStep" : 0.02,
+		"LeaderboardBackShevronRightGap" : 0.035
 	}
 
 }

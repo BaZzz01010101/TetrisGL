@@ -257,6 +257,7 @@ void OpenGLRender::rebuildMesh()
 
   buildMenu();
   buildSettings();
+  buildLeaderboard();
 
   sendToDevice();
 }
@@ -2158,7 +2159,8 @@ void OpenGLRender::loadGlyph(char ch, int size)
   assert(!checkGlErrors());
 }
 
-void OpenGLRender::buildTextMesh(float left, float top, float width, float height, const char * str, int fontSize, float scale, const glm::vec3 & color, float alpha, HorzAllign horzAllign, VertAllign vertAllign)
+// returns text width
+float OpenGLRender::buildTextMesh(float left, float top, float width, float height, const char * str, int fontSize, float scale, const glm::vec3 & color, float alpha, HorzAllign horzAllign, VertAllign vertAllign)
 {
   float penX = 0;
   char leftChar = 0;
@@ -2217,9 +2219,11 @@ void OpenGLRender::buildTextMesh(float left, float top, float width, float heigh
     penX += scale * glyph.metrics.horiAdvance / 64 / fontSize;
   }
 
+  float meshWidth = 0.0f;
+
   if (!verts.empty())
   {
-    float meshWidth = verts.back().x - verts.front().x;
+    meshWidth = penX - verts.front().x;
     glm::vec2 origin(left, top + scale * ftFace->ascender / ftFace->height);
 
     if (horzAllign == haRight)
@@ -2242,6 +2246,8 @@ void OpenGLRender::buildTextMesh(float left, float top, float width, float heigh
       addVertex(origin + verts[i * 4 + 3], uv[i * 4 + 3], glyphTexIndex[i], color, alpha);
     }
   }
+
+  return meshWidth;
 }
 
 void OpenGLRender::buildSettings()
@@ -2260,7 +2266,6 @@ void OpenGLRender::buildSettings()
       {
         const float opProgress = 1.0f - InterfaceLogic::settingsLogic.transitionProgress;
         const float sqOpProgress = opProgress * opProgress;
-        const float fullSettingsWidth = settingsWindowLayout->width + 2.0f * Layout::settingsGlowWidth;
         const float fullSettingsHeight = settingsWindowLayout->height + 2.0f * Layout::settingsGlowWidth;
         const float shift = -sqOpProgress * (fullSettingsHeight + settingsWindowLayout->getGlobalTop());
 
@@ -2475,6 +2480,122 @@ void OpenGLRender::buildSettings()
         const float bkHeight = menuLayout->height;
         buildRect(bkLeft, bkTop, bkWidth, bkHeight, glm::vec3(0.0f), Palette::backgroundShadeAlpha * InterfaceLogic::settingsLogic.saveConfirmationMenu.transitionProgress);
         buildMenu(&InterfaceLogic::settingsLogic.saveConfirmationMenu, menuLayout);
+      }
+    }
+  }
+}
+
+void OpenGLRender::buildLeaderboard()
+{
+  if (InterfaceLogic::state == InterfaceLogic::stLeaderboard)
+  {
+    if (LayoutObject * leaderboardLayout = Layout::screen.getChild(loLeaderboard))
+    {
+      const float backgroundLeft = leaderboardLayout->getGlobalLeft();
+      const float backgroundTop = leaderboardLayout->getGlobalTop();
+      const float backgroundWidth = leaderboardLayout->width;
+      const float backgroundHeight = leaderboardLayout->height;
+      buildRect(backgroundLeft, backgroundTop, backgroundWidth, backgroundHeight, glm::vec3(0.0f), Palette::backgroundShadeAlpha);
+
+      if (LayoutObject * leaderboardWindowLayout = leaderboardLayout->getChild(loLeaderboardWindow))
+      {
+        const float opProgress = 1.0f - InterfaceLogic::leaderboardLogic.transitionProgress;
+        const float sqOpProgress = opProgress * opProgress;
+        const float fullLeaderboardHeight = leaderboardWindowLayout->height + 2.0f * Layout::leaderboardGlowWidth;
+        const float shift = -sqOpProgress * (fullLeaderboardHeight + leaderboardWindowLayout->getGlobalTop());
+
+        const float left = leaderboardWindowLayout->getGlobalLeft();
+        const float top = leaderboardWindowLayout->getGlobalTop() + shift;
+        const float width = leaderboardWindowLayout->width;
+        const float height = leaderboardWindowLayout->height;
+        buildWindow(left, top, width, height, Layout::leaderboardCornerSize, Layout::leaderboardGlowWidth, Palette::leaderboardBackgroundTop, Palette::leaderboardBackgroundBottom, Palette::leaderboardGlow);
+
+        if (LayoutObject * settingTitleShadowLayout = leaderboardWindowLayout->getChild(loLeaderboardTitleShadow))
+        {
+          const float left = settingTitleShadowLayout->getGlobalLeft();
+          const float top = settingTitleShadowLayout->getGlobalTop() + shift;
+          const float width = settingTitleShadowLayout->width;
+          const float height = settingTitleShadowLayout->height;
+          buildTextMesh(left, top, width, height, "LEADERBOARD", Globals::midFontSize, Layout::leaderboardTitleHeight, glm::vec3(0.0f), Palette::leaderboardTitleShadowAlpha, haLeft, vaTop);
+        }
+
+        if (LayoutObject * settingTitleLayout = leaderboardWindowLayout->getChild(loLeaderboardTitle))
+        {
+          const float left = settingTitleLayout->getGlobalLeft();
+          const float top = settingTitleLayout->getGlobalTop() + shift;
+          const float width = settingTitleLayout->width;
+          const float height = settingTitleLayout->height;
+          buildTextMesh(left, top, width, height, "LEADERBOARD", Globals::midFontSize, Layout::leaderboardTitleHeight, Palette::leaderboardTitleText, 1.0f, haLeft, vaCenter);
+        }
+
+        if (LayoutObject * settingPanelLayout = leaderboardWindowLayout->getChild(loLeaderboardPanel))
+        {
+          const float left = settingPanelLayout->getGlobalLeft();
+          const float top = settingPanelLayout->getGlobalTop() + shift;
+          const float width = settingPanelLayout->width;
+          const float height = settingPanelLayout->height;
+          buildVertGradientRect(left, top, width, height, Palette::leaderboardPanelBackgroundTop, 1.0f, Palette::leaderboardPanelBackgroundBottom, 1.0f);
+          buildFrameRect(left, top, width, height, Layout::leaderboardPanelBorderWidth, Palette::leaderboardPanelBorder, 1.0f);
+
+          const float headerTop = settingPanelLayout->getRowGlobalTop(0) + shift;
+          const float headerHeight = settingPanelLayout->getRowHeight(0);
+
+          const float placeColLeft = settingPanelLayout->getColumnGlobalLeft(0);
+          const float placeColWidth = settingPanelLayout->getColumnWidth(0);
+          const float nameColLeft = settingPanelLayout->getColumnGlobalLeft(1);
+          const float nameColWidth = settingPanelLayout->getColumnWidth(1);
+          const float levelColLeft = settingPanelLayout->getColumnGlobalLeft(2);
+          const float levelColWidth = settingPanelLayout->getColumnWidth(2);
+          const float scoreColLeft = settingPanelLayout->getColumnGlobalLeft(3);
+          const float scoreColWidth = settingPanelLayout->getColumnWidth(3);
+
+          const glm::vec3 headerColor = Palette::leaderboardPanelHeaderText;
+
+          buildTextMesh(nameColLeft + Layout::leaderboardPanelNameLeftIndent, headerTop, nameColWidth, headerHeight, "NAME", Globals::midFontSize, Layout::leaderboardPanelHeaderTextHeight, headerColor, 1.0f, haLeft, vaCenter);
+          buildTextMesh(levelColLeft, headerTop, levelColWidth, headerHeight, "LEVEL", Globals::midFontSize, Layout::leaderboardPanelHeaderTextHeight, headerColor, 1.0f, haCenter, vaCenter);
+          buildTextMesh(scoreColLeft, headerTop, scoreColWidth - Layout::leaderboardPanelScoreRightIndent, headerHeight, "SCORE", Globals::midFontSize, Layout::leaderboardPanelHeaderTextHeight, headerColor, 1.0f, haRight, vaCenter);
+
+          const int leadersCount = InterfaceLogic::leaderboardLogic.getLeadersCount();
+
+          for (int i = 0; i < leadersCount; i++)
+          {
+            const LeaderboardLogic::LeaderData & leader = InterfaceLogic::leaderboardLogic.getLeaderData(i);
+            const int editRow = InterfaceLogic::leaderboardLogic.editRow;
+            const glm::vec3 textColor = (i == editRow) ? Palette::leaderboardEditRowText : Palette::leaderboardRowText;
+
+            const float rowTop = settingPanelLayout->getRowGlobalTop(i + 1) + shift;
+            const float rowHeight = settingPanelLayout->getRowHeight(i + 1);
+
+            buildTextMesh(placeColLeft, rowTop, placeColWidth, rowHeight, std::to_string(i + 1).c_str(), Globals::midFontSize, Layout::leaderboardPanelRowTextHeight, textColor, 1.0f, haCenter, vaCenter);
+            float nameWidth = buildTextMesh(nameColLeft + Layout::leaderboardPanelNameLeftIndent, rowTop, nameColWidth, rowHeight, leader.name, Globals::midFontSize, Layout::leaderboardPanelRowTextHeight, textColor, 1.0f, haLeft, vaCenter);
+
+            if (i == editRow && (Time::counter % Time::freq > Time::freq / 2))
+            {
+              const float cursorHeight = 0.9f * Layout::leaderboardPanelRowTextHeight;
+              const float cursorWidth = 0.5f * cursorHeight;
+              const float cursorLeft = nameColLeft + Layout::leaderboardPanelNameLeftIndent + nameWidth;
+              const float cursorTop = rowTop + 0.5f * (rowHeight - cursorHeight);
+              buildSmoothRect(cursorLeft, cursorTop, cursorWidth, cursorHeight, 0.1f * cursorWidth, textColor, 1.0f);
+            }
+
+            buildTextMesh(levelColLeft, rowTop, levelColWidth, rowHeight, std::to_string(leader.level).c_str(), Globals::midFontSize, Layout::leaderboardPanelRowTextHeight, textColor, 1.0f, haCenter, vaCenter);
+            buildTextMesh(scoreColLeft, rowTop, scoreColWidth - Layout::leaderboardPanelScoreRightIndent, rowHeight, std::to_string(leader.score).c_str(), Globals::midFontSize, Layout::leaderboardPanelRowTextHeight, textColor, 1.0f, haRight, vaCenter);
+          }
+        }
+
+        if (LayoutObject * backButtonLayout = leaderboardWindowLayout->getChild(loLeaderboardBackButton))
+        {
+          for (int column = 0, count = backButtonLayout->getColumnCount(); column < count; column++)
+          {
+            const float shevronLeft = backButtonLayout->getColumnGlobalLeft(column);
+            const float shevronTop = backButtonLayout->getGlobalTop() + shift;
+            const float shevronWidth = backButtonLayout->getColumnWidth(column);
+            const float shevronHeight = backButtonLayout->height;
+            const glm::vec3 & shevronColor = InterfaceLogic::leaderboardLogic.backButtonHighlighted ? Palette::leaderboardBackButtonHighlighted : Palette::leaderboardBackButton;
+
+            buildTexturedRect(shevronLeft, shevronTop, shevronWidth, shevronHeight, Globals::levelBackShevronTexIndex, shevronColor, 1.0f);
+          }
+        }
       }
     }
   }

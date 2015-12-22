@@ -3,12 +3,12 @@
 class Time
 {
 private:
-  static double freq;
 
   Time();
   ~Time();
 
 public:
+  static uint64_t freq;
   static uint64_t counter;
   static uint64_t counterDelta;
   static double timer;

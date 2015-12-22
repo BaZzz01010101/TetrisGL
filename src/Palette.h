@@ -70,6 +70,20 @@ public:
   static glm::vec3 settingsBindingMsgBorder;
   static glm::vec3 settingsBindingMsgText;
 
+  static glm::vec3 leaderboardBackgroundTop;
+  static glm::vec3 leaderboardBackgroundBottom;
+  static glm::vec3 leaderboardGlow;
+  static glm::vec3 leaderboardTitleText;
+  static float leaderboardTitleShadowAlpha;
+  static glm::vec3 leaderboardPanelBackgroundTop;
+  static glm::vec3 leaderboardPanelBackgroundBottom;
+  static glm::vec3 leaderboardPanelBorder;
+  static glm::vec3 leaderboardPanelHeaderText;
+  static glm::vec3 leaderboardRowText;
+  static glm::vec3 leaderboardEditRowText;
+  static glm::vec3 leaderboardBackButton;
+  static glm::vec3 leaderboardBackButtonHighlighted;
+    
   static float backgroundShadeAlpha;
   static float figureGlowOuterBright;
   static float figureGlowInnerBright;

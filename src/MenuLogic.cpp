@@ -125,8 +125,8 @@ void MenuLogic::enter(int row)
   assert(row >= 0);
   assert(row < (int)itemList.size());
 
-  result = itemList[row].result;
-  state = stHiding;
+  select(row);
+  enter();
 }
 
 void MenuLogic::escape()

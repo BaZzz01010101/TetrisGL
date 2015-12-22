@@ -62,6 +62,7 @@
     <ClCompile Include="..\..\src\Application.cpp" />
     <ClCompile Include="..\..\src\Binding.cpp" />
     <ClCompile Include="..\..\src\Cell.cpp" />
+    <ClCompile Include="..\..\src\LeaderboardLogic.cpp" />
     <ClCompile Include="..\..\src\Palette.cpp" />
     <ClCompile Include="..\..\src\Crosy.cpp" />
     <ClCompile Include="..\..\src\DropTrail.cpp" />
@@ -104,6 +105,7 @@
     <ClInclude Include="..\..\src\Application.h" />
     <ClInclude Include="..\..\src\Binding.h" />
     <ClInclude Include="..\..\src\Cell.h" />
+    <ClInclude Include="..\..\src\LeaderboardLogic.h" />
     <ClInclude Include="..\..\src\Palette.h" />
     <ClInclude Include="..\..\src\Crosy.h" />
     <ClInclude Include="..\..\src\DropTrail.h" />

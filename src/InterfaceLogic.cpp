@@ -12,6 +12,7 @@ MenuLogic InterfaceLogic::quitConfirmationMenu(MenuLogic::resBack);
 MenuLogic InterfaceLogic::restartConfirmationMenu(MenuLogic::resBack);
 MenuLogic InterfaceLogic::exitToMainConfirmationMenu(MenuLogic::resBack);
 SettingsLogic InterfaceLogic::settingsLogic;
+LeaderboardLogic InterfaceLogic::leaderboardLogic;
 float InterfaceLogic::menuShadeProgress = 1.0f;
 std::vector<InterfaceLogic::State> InterfaceLogic::statesStack;
 
@@ -71,6 +72,13 @@ void InterfaceLogic::showInGameMenu()
   state = stInGameMenu;
 }
 
+void InterfaceLogic::showLeaderboard()
+{
+  statesStack.clear();
+  prevState = state;
+  state = stLeaderboard;
+}
+
 void InterfaceLogic::mainMenuUpdate()
 {
   switch (mainMenu.update())
@@ -116,7 +124,13 @@ void InterfaceLogic::settingsUpdate()
 
 void InterfaceLogic::leaderboardUpdate()
 {
-  goPreviousState();
+  if (leaderboardLogic.update() == LeaderboardLogic::resClose)
+  {
+    if (!statesStack.empty())
+      goPreviousState();
+    else
+      showMainMenu();
+  }
 }
 
 void InterfaceLogic::quitConfirmationUpdate()

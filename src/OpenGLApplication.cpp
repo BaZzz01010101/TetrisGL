@@ -80,8 +80,13 @@ void OpenGLApplication::run()
     Time::update();
     control.update();
     
-    if(GameLogic::update() == GameLogic::resGameOver)
-      InterfaceLogic::showMainMenu();
+    if (GameLogic::update() == GameLogic::resGameOver)
+    {
+      if (InterfaceLogic::leaderboardLogic.addResult(GameLogic::curLevel, GameLogic::curScore))
+        InterfaceLogic::showLeaderboard();
+      else
+        InterfaceLogic::showMainMenu();
+    }
 
     switch (InterfaceLogic::update())
     {

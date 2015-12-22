@@ -105,6 +105,41 @@ public:
   static float settingsBindingMsgBorder;
   static float settingsBindingMsgTextHeight;
 
+  static float leaderboardTop;
+  static float leaderboardWidth;
+  static float leaderboardHeight;
+  static float leaderboardGlowWidth;
+  static float leaderboardCornerSize;
+
+  static float leaderboardTitleLeft;
+  static float leaderboardTitleTop;
+  static float leaderboardTitleHeight;
+  static float leaderboardTitleShadowDX;
+  static float leaderboardTitleShadowDY;
+
+  static float leaderboardPanelLeft;
+  static float leaderboardPanelTop;
+  static float leaderboardPanelRightGap;
+  static float leaderboardPanelBottomGap;
+  static float leaderboardPanelBorderWidth;
+
+  static float leaderboardPanelHeaderTop;
+  static float leaderboardPanelHeaderHeight;
+  static float leaderboardPanelHeaderTextHeight;
+  static float leaderboardPanelRowHeight;
+  static float leaderboardPanelRowTextHeight;
+  static float leaderboardPanelColPlaceWidth;
+  static float leaderboardPanelColNameWidth;
+  static float leaderboardPanelColLevelWidth;
+  static float leaderboardPanelColScoreWidth;
+  static float leaderboardPanelNameLeftIndent;
+  static float leaderboardPanelScoreRightIndent;
+  static float leaderboardPanelLastRowBottomGap;
+
+  static float leaderboardBackShevronSize;
+  static float leaderboardBackShevronStep;
+  static float leaderboardBackShevronRightGap;
+
   static LayoutObject screen;
 
   static void load(const char * name);
