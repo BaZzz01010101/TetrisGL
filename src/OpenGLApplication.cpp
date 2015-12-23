@@ -1,6 +1,7 @@
 #include "static_headers.h"
 
 #include "OpenGLApplication.h"
+#include "Logic.h"
 #include "Crosy.h"
 #include "Time.h"
 #include "Layout.h"
@@ -8,9 +9,7 @@
 
 #pragma warning(disable : 4100)
 
-OpenGLApplication::OpenGLApplication() :
-  render(),
-  control()
+OpenGLApplication::OpenGLApplication()
 {
   initGlfwKeyMap();
 }
@@ -79,35 +78,15 @@ void OpenGLApplication::run()
   {
     Time::update();
     control.update();
-    
-    if (GameLogic::update() == GameLogic::resGameOver)
-    {
-      if (InterfaceLogic::leaderboardLogic.addResult(GameLogic::curLevel, GameLogic::curScore))
-        InterfaceLogic::showLeaderboard();
-      else
-        InterfaceLogic::showMainMenu();
-    }
-
-    switch (InterfaceLogic::update())
-    {
-    case InterfaceLogic::resNewGame:      GameLogic::newGame();      break;
-    case InterfaceLogic::resContinueGame: GameLogic::continueGame(); break;
-    case InterfaceLogic::resStopGame:     GameLogic::stopGame();     break;
-    case InterfaceLogic::resCloseApp:     exitFlag = true;          break;
-    case InterfaceLogic::resNone: break;
-    default: assert(0);
-    }
-
+    Logic::update();
     render.update();
-    //Sleep(500);
 
     glfwSetWindowTitle(wnd, fps.count(0.5f));
     glfwSwapInterval((int)vSync);
     glfwSwapBuffers(wnd);
     glfwPollEvents();
-    //Crosy::sleep(5);
 
-    if (glfwWindowShouldClose(wnd))
+    if (glfwWindowShouldClose(wnd) || Logic::result == Logic::resExitApp)
       exitFlag = true;
   }
 }

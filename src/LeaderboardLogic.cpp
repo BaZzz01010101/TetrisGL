@@ -82,7 +82,6 @@ void LeaderboardLogic::load()
 {
   std::string fileName = Crosy::getExePath() + LeaderboardLogic::fileName;
   FILE * file = fopen(fileName.c_str(), "rb+");
-  assert(file);
 
   if (file)
   {

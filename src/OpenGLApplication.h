@@ -3,8 +3,6 @@
 #include "FpsCounter.h"
 #include "OpenGLRender.h"
 #include "Control.h"
-#include "GameLogic.h"
-#include "InterfaceLogic.h"
 
 class OpenGLApplication : public Application
 {
