@@ -82,4 +82,5 @@ private:
   float buildTextMesh(float left, float top, float width, float height, const char * str, int fontSize, float scale, const glm::vec3 & color, float alpha, HorzAllign horzAllign = haLeft, VertAllign vertAllign = vaTop);
   void buildSettings();
   void buildLeaderboard();
+  void buildCountdown();
 };

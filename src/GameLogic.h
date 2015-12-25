@@ -12,7 +12,7 @@
 class GameLogic
 {
 public:
-  enum State { stInit, stPlaying, stPaused, stGameOver, stStopped };
+  enum State { stInit, stCountdown, stPlaying, stPaused, stGameOver, stStopped };
   enum Result { resNone, resGameOver };
   static State state;
   static std::vector<Cell> glass;
@@ -31,6 +31,8 @@ public:
   static double rowsDeleteTimer;
   static bool menuButtonHighlighted;
   static unsigned int fastDownCounter;
+  static const int countdownTime = 3;
+  static float countdownTimeLeft;
 
   struct CellCoord
   {

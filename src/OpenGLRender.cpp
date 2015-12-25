@@ -243,6 +243,9 @@ void OpenGLRender::rebuildMesh()
 
   buildBackground();
 
+  if (GameLogic::state == GameLogic::stCountdown)
+    buildCountdown();
+
   if (GameLogic::state == GameLogic::stPlaying ||
     GameLogic::state == GameLogic::stPaused)
   {
@@ -2599,4 +2602,27 @@ void OpenGLRender::buildLeaderboard()
       }
     }
   }
+}
+
+void OpenGLRender::buildCountdown()
+{
+  LayoutObject * glassLayout = Layout::screen.getChildRecursive(loGlass);
+
+  if (!glassLayout)
+    return;
+
+  const float xpos = glassLayout->getGlobalLeft() + 0.5f * glassLayout->width;
+  const float ypos = glassLayout->getGlobalTop() + 0.5f * glassLayout->height;
+  const int num = (int)GameLogic::countdownTimeLeft;
+  const float numProgress = GameLogic::countdownTimeLeft - num;
+  std::string text = num ? std::to_string(num) : "GO";
+  const float animInTime = 0.25f;
+  const float animOutTime = 0.25f;
+  const float inScale = 1.0f - glm::clamp(1.0f - numProgress, 0.0f, animInTime) / animInTime;
+  const float outScale = 1.0f - (num ? glm::clamp(numProgress, 0.0f, animOutTime) / animOutTime : 1.0f);
+  const float scale = (1.0f - inScale * inScale) * (1.0f - outScale * outScale);
+  const float progressParam = 2.0f * (0.5f - numProgress);
+  const float dy = -0.2 + (num || numProgress > 0.5f ? 0.1f : 0.65f) * progressParam * progressParam * progressParam;
+
+  buildTextMesh(xpos, ypos + dy, 0.0f, 0.0f, text.c_str(), Globals::bigFontSize, scale * 0.1f, glm::vec3(1.0f), 0.0f, haCenter, vaCenter);
 }

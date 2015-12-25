@@ -17,6 +17,7 @@ bool GameLogic::haveFallingRows = false;
 double GameLogic::rowsDeleteTimer = -1.0;
 bool GameLogic::menuButtonHighlighted = false;
 unsigned int GameLogic::fastDownCounter = 0;
+float GameLogic::countdownTimeLeft = 0.0f;
 
 Figure GameLogic::holdFigure;
 Figure GameLogic::curFigure;
@@ -66,7 +67,14 @@ GameLogic::Result GameLogic::update()
   {
   case stInit:
     resetGame();
-    state = stPlaying;
+    state = stCountdown;
+    countdownTimeLeft = countdownTime + 0.99f;
+    break;
+
+  case stCountdown:
+    countdownTimeLeft -= Time::timerDelta;
+    if (countdownTimeLeft < 0.0f)
+      state = stPlaying;
     break;
 
   case stPlaying:
