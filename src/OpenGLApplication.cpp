@@ -6,6 +6,7 @@
 #include "Time.h"
 #include "Layout.h"
 #include "Palette.h"
+#include "Sound.h"
 
 #pragma warning(disable : 4100)
 
@@ -63,7 +64,7 @@ bool OpenGLApplication::init()
 
   Layout::load("default");
   Palette::load("default");
-
+  Sound::init();
   render.init(wndWidth, wndHeight);
   fps.init();
 
@@ -79,6 +80,7 @@ void OpenGLApplication::run()
     Time::update();
     control.update();
     Logic::update();
+    Sound::update();
     render.update();
 
     glfwSetWindowTitle(wnd, fps.count(0.5f));

@@ -9,9 +9,10 @@ Figure::Figure() :
   specificRotatedFlag(false),
   type(typeNone),
   dim(0),
+  angle(0),
+  id(0),
   color(Cell::Color::clNone)
 {
-  id = Figure::nextId++;
 }
 
 void Figure::buildRandomFigure()
@@ -23,6 +24,7 @@ void Figure::buildRandomFigure()
 void Figure::buildFigure(Type type)
 {
   char * cdata = NULL;
+  id = Figure::nextId++;
   color = Cell::Color::clNone;
   this->type = type;
 
@@ -79,9 +81,7 @@ void Figure::buildFigure(Type type)
   cells.clear();
 
   for (const char * ptr = cdata, *end = cdata + dim * dim; ptr < end; ptr++)
-    cells.push_back(*ptr == '1' ? Cell(nextId, color) : Cell(0, Cell::Color::clNone));
-
-  nextId++;
+    cells.push_back(*ptr == '1' ? Cell(id, color) : Cell(0, Cell::Color::clNone));
 }
 
 void Figure::internalRotateLeft()
@@ -110,11 +110,13 @@ void Figure::rotateLeft()
 {
   if (haveSpecificRotation && specificRotatedFlag)
   {
+    angle -= 270;
     internalRotateRight();
     specificRotatedFlag = false;
   }
   else
   {
+    angle -= 90;
     internalRotateLeft();
     specificRotatedFlag = true;
   }
@@ -124,11 +126,13 @@ void Figure::rotateRight()
 {
   if (haveSpecificRotation && !specificRotatedFlag)
   {
+    angle += 270;
     internalRotateLeft();
     specificRotatedFlag = true;
   }
   else
   {
+    angle += 90;
     internalRotateRight();
     specificRotatedFlag = false;
   }
@@ -138,8 +142,10 @@ Figure & Figure::operator = (const Figure & figure)
 {
   haveSpecificRotation = figure.haveSpecificRotation;
   specificRotatedFlag = figure.specificRotatedFlag;
+  id = figure.id;
   type = figure.type;
   dim = figure.dim;
+  angle = figure.angle;
   color = figure.color;
   cells = figure.cells;
   return *this;
@@ -157,6 +163,10 @@ void Figure::swap(Figure & figure1, Figure & figure2)
   figure1.specificRotatedFlag = figure2.specificRotatedFlag;
   figure2.specificRotatedFlag = tmp_specificRotatedFlag;
 
+  int tmp_id = figure1.id;
+  figure1.id = figure2.id;
+  figure2.id = tmp_id;
+
   Type tmp_type = figure1.type;
   figure1.type = figure2.type;
   figure2.type = tmp_type;
@@ -164,6 +174,10 @@ void Figure::swap(Figure & figure1, Figure & figure2)
   int tmp_dim = figure1.dim;
   figure1.dim = figure2.dim;
   figure2.dim = tmp_dim;
+
+  int tmp_angle = figure1.angle;
+  figure1.angle = figure2.angle;
+  figure2.angle = tmp_angle;
 
   Cell::Color tmp_color = figure1.color;
   figure1.color = figure2.color;
@@ -174,8 +188,10 @@ void Figure::clear()
 {
   haveSpecificRotation = false;
   specificRotatedFlag = false;
+  id = 0;
   type = typeNone;
   dim = 0;
   color = Cell::Color::clNone;
+  angle = 0;
   cells.clear();
 }

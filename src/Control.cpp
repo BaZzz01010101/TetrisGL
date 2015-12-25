@@ -347,10 +347,8 @@ void Control::updateSettingsControl()
       }
     }
 
-    if (rowDoubleclicked)
-    {
+    if (rowDoubleclicked && mouseoverObject->id == loKeyBindingGrid)
       settingsLogic.state = SettingsLogic::stKeyWaiting;
-    }
 
     if (draggedProgressBarId != loNone)
     {

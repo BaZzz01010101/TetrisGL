@@ -16,6 +16,7 @@ bool GameLogic::haveHold = false;
 bool GameLogic::haveFallingRows = false;
 double GameLogic::rowsDeleteTimer = -1.0;
 bool GameLogic::menuButtonHighlighted = false;
+unsigned int GameLogic::fastDownCounter = 0;
 
 Figure GameLogic::holdFigure;
 Figure GameLogic::curFigure;
@@ -210,20 +211,18 @@ void GameLogic::holdCurrentFigure()
 
     if (haveHold)
     {
-      Figure::Type type = curFigure.type;
-      curFigure = holdFigure;
+      Figure::swap(holdFigure, curFigure);
       curFigureX = (glassWidth - curFigure.dim) / 2;
       curFigureY = 0;
 
       if (tryToPlaceCurrentFigure())
       {
-        holdFigure.buildFigure(type);
         lastStepTimer = Time::timer;
         justHolded = true;
       }
       else
       {
-        curFigure = savedCurFigure;
+        Figure::swap(holdFigure, curFigure);
         curFigureX = saveCurFigureX;
         curFigureY = saveCurFigureY;
       }
@@ -264,6 +263,7 @@ void GameLogic::fastDownCurrentFigure()
   }
 
   lastStepTimer = Time::timer;
+  fastDownCounter++;
 }
 
 void GameLogic::dropCurrentFigure()

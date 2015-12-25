@@ -15,6 +15,7 @@ public:
   int id;
   Type type;
   int dim;
+  int angle;
   Cell::Color color;
   std::vector<Cell> cells;
 

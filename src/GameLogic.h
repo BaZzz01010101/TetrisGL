@@ -30,6 +30,7 @@ public:
   static bool haveFallingRows;
   static double rowsDeleteTimer;
   static bool menuButtonHighlighted;
+  static unsigned int fastDownCounter;
 
   struct CellCoord
   {
@@ -59,8 +60,10 @@ public:
 
   static DropTrailsIterator getDropTrailsBegin() { return dropTrails.begin(); }
   static DropTrailsIterator getDropTrailsEnd() { return dropTrails.end(); }
+  static int getDropTrailsCount() { return (int)dropTrails.size(); }
   static DeletedRowsIterator getDeletedRowsBegin() { return deletedRows.begin(); }
   static DeletedRowsIterator getDeletedRowsEnd() { return deletedRows.end(); }
+  static int getDeletedRowsCount() { return (int)deletedRows.size(); }
   static DeletedRowGapsIterator getDeletedRowGapsBegin() { return deletedRowGaps.begin(); }
   static DeletedRowGapsIterator getDeletedRowGapsEnd() { return deletedRowGaps.end(); }
 

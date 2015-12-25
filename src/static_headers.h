@@ -14,6 +14,7 @@
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <dirent.h>
 #include <GL/glew.h>
 #include <GL/glfw3.h>
 #include <GLM/glm.hpp>
@@ -24,6 +25,7 @@
 #include "rapidjson/filereadstream.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
+#include "FMOD/fmod.hpp"
 #include FT_FREETYPE_H
 
 #pragma warning(pop)
