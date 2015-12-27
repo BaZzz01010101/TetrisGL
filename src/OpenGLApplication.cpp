@@ -88,6 +88,12 @@ void OpenGLApplication::run()
     glfwSwapBuffers(wnd);
     glfwPollEvents();
 
+    if (!glfwGetWindowAttrib(wnd, GLFW_FOCUSED) && GameLogic::state == GameLogic::stPlaying)
+    {
+      GameLogic::pauseGame();
+      InterfaceLogic::showInGameMenu();
+    }
+
     if (glfwWindowShouldClose(wnd) || Logic::result == Logic::resExitApp)
       exitFlag = true;
   }

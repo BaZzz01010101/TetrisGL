@@ -83,4 +83,5 @@ private:
   void buildSettings();
   void buildLeaderboard();
   void buildCountdown();
+  void buildLevelUp();
 };

@@ -235,10 +235,6 @@ void OpenGLRender::update()
 
 void OpenGLRender::rebuildMesh()
 {
-  //TODO remove this realtime loading
-  Layout::load("default");
-  Palette::load("default");
-
   clearVertices();
 
   buildBackground();
@@ -256,6 +252,7 @@ void OpenGLRender::rebuildMesh()
     buildFigureGlow();
     buildDropTrails();
     buildRowFlashes();
+    buildLevelUp();
   }
 
   buildMenu();
@@ -2622,7 +2619,52 @@ void OpenGLRender::buildCountdown()
   const float outScale = 1.0f - (num ? glm::clamp(numProgress, 0.0f, animOutTime) / animOutTime : 1.0f);
   const float scale = (1.0f - inScale * inScale) * (1.0f - outScale * outScale);
   const float progressParam = 2.0f * (0.5f - numProgress);
-  const float dy = -0.2 + (num || numProgress > 0.5f ? 0.1f : 0.65f) * progressParam * progressParam * progressParam;
+  const float dy = -0.2f + (num || numProgress > 0.5f ? 0.1f : 0.65f) * progressParam * progressParam * progressParam;
+  const float textHeight = 0.1f;
 
-  buildTextMesh(xpos, ypos + dy, 0.0f, 0.0f, text.c_str(), Globals::bigFontSize, scale * 0.1f, glm::vec3(1.0f), 0.0f, haCenter, vaCenter);
+  if (ypos + dy + 0.5f * textHeight < glassLayout->getGlobalTop() + glassLayout->height)
+  {
+    buildTextMesh(xpos + 0.005f, ypos + dy + 0.005f, 0.0f, 0.0f, text.c_str(), Globals::bigFontSize, textHeight * scale, glm::vec3(0.0f), 0.75f, haCenter, vaCenter);
+    buildTextMesh(xpos, ypos + dy, 0.0f, 0.0f, text.c_str(), Globals::bigFontSize, textHeight * scale, glm::vec3(1.0f), 0.0f, haCenter, vaCenter);
+  }
+}
+
+void OpenGLRender::buildLevelUp()
+{
+  if (LayoutObject * glassLayout = Layout::screen.getChildRecursive(loGlass))
+  {
+    const float levelUpTime = 1.5f;
+    const float levelUpInTime = 0.25f;
+    const float levelUpOutTime = 0.25f;
+    static float levelUpTimeLeft = 0.0f;
+    static int curLevel = GameLogic::curLevel;
+
+    if (GameLogic::curLevel != 1 && GameLogic::curLevel != curLevel)
+      levelUpTimeLeft = levelUpTime;
+
+    if (levelUpTimeLeft > 0.0f)
+    {
+      const float xpos = glassLayout->getGlobalLeft() + 0.5f * glassLayout->width;
+      const float ypos = glassLayout->getGlobalTop() + 0.5f * glassLayout->height;
+
+      float textHeight = 0.055f;
+      float scale = glm::clamp((levelUpTime - levelUpTimeLeft) / levelUpInTime, 0.0f, 1.0f);
+      float progress = (levelUpTime - levelUpTimeLeft) / levelUpTime;
+      const float yOffs = 0.2f;
+      float dy = -yOffs + yOffs * (2.0f * progress * progress - 4.0f * pow(progress, 5.0f));
+
+      if (ypos + dy > glassLayout->getGlobalTop())
+      {
+        const float shadowOffset = 0.005f;
+        const char * levelUpText = "LEVEL UP";
+        buildTextMesh(xpos + shadowOffset, ypos + dy + shadowOffset, 0.0f, 0.0f, levelUpText, Globals::bigFontSize, textHeight * scale, glm::vec3(0.0f), 0.75f, haCenter, vaTop);
+        buildTextMesh(xpos, ypos + dy, 0.0f, 0.0f, levelUpText, Globals::bigFontSize, textHeight * scale, glm::vec3(1.0f), 0.0f, haCenter, vaTop);
+      }
+      else
+        levelUpTimeLeft = -1.0f;
+    }
+
+    levelUpTimeLeft -= Time::timerDelta;
+    curLevel = GameLogic::curLevel;
+  }
 }
