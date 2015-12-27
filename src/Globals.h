@@ -39,6 +39,8 @@ public:
   static float settingsHidingTime;
   static float leaderboardShowingTime;
   static float leaderboardHidingTime;
+  static const int beginMs = 51;
+  static const int endMs = 112992;
   static int smallFontSize;
   static int midFontSize;
   static int bigFontSize;

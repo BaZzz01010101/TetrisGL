@@ -14,7 +14,6 @@
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <dirent.h>
 #include <GL/glew.h>
 #include <GL/glfw3.h>
 #include <GLM/glm.hpp>

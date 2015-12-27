@@ -4,18 +4,15 @@
 #include "InterfaceLogic.h"
 #include "Sound.h"
 #include "Crosy.h"
+#include "Globals.h"
 #include "Time.h"
 
 FMOD::System * Sound::system = NULL;
 FMOD::Sound * Sound::samples[SAMPLE_COUNT];
-FMOD::Channel * Sound::channel = NULL;
-FMOD::Sound * Sound::musicSound = NULL;
 FMOD::Channel * Sound::musicChannel = NULL;
 unsigned int Sound::version = 0;
 void * Sound::extradriverdata = NULL;
-DIR * Sound::musicDir = NULL;
 bool Sound::initialized = false;
-std::string Sound::musicPath = Crosy::getExePath() + "Music/";
 std::string Sound::soundPath = Crosy::getExePath() + "Sounds/";
 
 void Sound::init()
@@ -61,6 +58,8 @@ void Sound::init()
             assert(result == FMOD_OK);
             result = system->createSound((soundPath + "levelup.wav").c_str(), FMOD_DEFAULT, 0, samples + smpLevelUp);
             assert(result == FMOD_OK);
+            result = system->createSound((soundPath + "countdown.wav").c_str(), FMOD_DEFAULT, 0, samples + smpCountdown);
+            assert(result == FMOD_OK);
             result = system->createSound((soundPath + "ui_move.wav").c_str(), FMOD_DEFAULT, 0, samples + smpUiClick);
             assert(result == FMOD_OK);
             result = system->createSound((soundPath + "ui_enter.wav").c_str(), FMOD_DEFAULT, 0, samples + smpUiAnimIn);
@@ -68,11 +67,20 @@ void Sound::init()
             result = system->createSound((soundPath + "ui_move.wav").c_str(), FMOD_DEFAULT, 0, samples + smpUiAnimOut);
             assert(result == FMOD_OK);
 
-            musicDir = opendir(musicPath.c_str());
-            assert(musicDir);
+            result = system->createSound((soundPath + "music.mp3").c_str(), FMOD_DEFAULT | FMOD_CREATESTREAM | FMOD_LOOP_NORMAL, NULL, samples + smpMusic);
+            assert(result == FMOD_OK);
 
-            if (musicDir)
-              initialized = true;
+            if (result == FMOD_OK)
+            {
+              result = samples[smpMusic]->setLoopPoints(Globals::beginMs, FMOD_TIMEUNIT_MS, Globals::endMs, FMOD_TIMEUNIT_MS);
+              assert(result == FMOD_OK);
+              result = system->playSound(samples[smpMusic], NULL, false, &musicChannel);
+              assert(result == FMOD_OK);
+              result = musicChannel->setVolume(InterfaceLogic::settingsLogic.getMusicVolume());
+              assert(result == FMOD_OK);
+            }
+
+            initialized = true;
           }
         }
       }
@@ -85,50 +93,6 @@ void Sound::update()
   if (!initialized)
     return;
 
-  updateSfx();
-  updateMusic();
-
-  FMOD_RESULT result = system->update();
-  assert(result == FMOD_OK);
-}
-
-void Sound::quit()
-{
-  initialized = false;
-  FMOD_RESULT result;
-
-  closedir(musicDir);
-
-  for (int i = 0; i < SAMPLE_COUNT; i++)
-  {
-    result = samples[i]->release();
-    assert(result == FMOD_OK);
-  }
-
-  if (musicSound)
-  {
-    result = musicSound->release();
-    assert(result == FMOD_OK);
-  }
-
-  result = system->release();       
-  assert(result == FMOD_OK);
-}
-
-void Sound::play(Sample sample)
-{
-  FMOD_RESULT result = system->playSound(samples[sample], 0, false, &channel);
-  assert(result == FMOD_OK);
-
-  if (result == FMOD_OK)
-  {
-    result = channel->setVolume(InterfaceLogic::settingsLogic.getSoundVolume());
-    assert(result == FMOD_OK);
-  }
-}
-
-void Sound::updateSfx()
-{
   static int curFigureId = GameLogic::curFigure.id;
   static int curFigureX = GameLogic::curFigureX;
   static int curFigureAngle = GameLogic::curFigure.angle;
@@ -196,6 +160,14 @@ void Sound::updateSfx()
 
   deletedRowsCount = GameLogic::getDeletedRowsCount();
   curLevel = GameLogic::curLevel;
+
+  static int countdownTimeLeft = (int)GameLogic::countdownTimeLeft;
+
+  if (countdownTimeLeft != (int)GameLogic::countdownTimeLeft)
+  {
+    play(smpCountdown);
+    countdownTimeLeft = (int)GameLogic::countdownTimeLeft;
+  }
 
   static MenuLogic::State mainMenuState = InterfaceLogic::mainMenu.state;
 
@@ -311,72 +283,35 @@ void Sound::updateSfx()
 
     musicVolume = InterfaceLogic::settingsLogic.getMusicVolume();
   }
+
+  FMOD_RESULT result = system->update();
+  assert(result == FMOD_OK);
 }
 
-void Sound::updateMusic()
+void Sound::quit()
 {
+  initialized = false;
   FMOD_RESULT result;
 
-  if (musicChannel)
+  for (int i = 0; i < SAMPLE_COUNT; i++)
   {
-    bool isPlaying = false;
-    result = musicChannel->isPlaying(&isPlaying);
+    result = samples[i]->release();
     assert(result == FMOD_OK);
-
-    if (!isPlaying)
-    {
-      result = musicSound->release();
-      assert(result == FMOD_OK);
-      musicSound = NULL;
-      musicChannel = NULL;
-    }
   }
 
-  if (!musicSound)
+  result = system->release();       
+  assert(result == FMOD_OK);
+}
+
+void Sound::play(Sample sample)
+{
+  FMOD::Channel * channel = NULL;
+  FMOD_RESULT result = system->playSound(samples[sample], 0, false, &channel);
+  assert(result == FMOD_OK);
+
+  if (result == FMOD_OK)
   {
-    static double lastTryTimer = 0.0;
-    const double retryTimer = 1.0;
-
-    if (Time::timer - lastTryTimer > retryTimer)
-    {
-      lastTryTimer = Time::timer;
-      int dirPassCnt = 2;
-
-      while (dirPassCnt)
-      {
-        if (dirent * entry = readdir(musicDir))
-        {
-          const char * fileName = entry->d_name;
-
-          if (!strcmp(fileName, ".") || !strcmp(fileName, ".."))
-            continue;
-
-          int nameLen = entry->d_namlen;
-          result = system->createSound((musicPath + fileName).c_str(), FMOD_DEFAULT | FMOD_CREATESTREAM, NULL, &musicSound);
-          //assert(result == FMOD_OK);
-
-          if (result == FMOD_OK)
-          {
-            result = system->playSound(musicSound, NULL, false, &musicChannel);
-            assert(result == FMOD_OK);
-            result = musicChannel->setVolume(InterfaceLogic::settingsLogic.getMusicVolume());
-            assert(result == FMOD_OK);
-
-            if (result == FMOD_OK)
-              break;
-            else
-            {
-              result = musicSound->release();
-              assert(result == FMOD_OK);
-            }
-          }
-        }
-        else
-        {
-          rewinddir(musicDir);
-          dirPassCnt--;
-        }
-      }
-    }
+    result = channel->setVolume(InterfaceLogic::settingsLogic.getSoundVolume());
+    assert(result == FMOD_OK);
   }
 }
