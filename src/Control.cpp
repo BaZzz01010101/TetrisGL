@@ -467,6 +467,8 @@ void Control::updateLeaderboardControl()
         leaderboardLogic.addChar(' ');
       else if (key >= KB_A && key <= KB_Z)
         leaderboardLogic.addChar('A' + key - KB_A);
+      else if (key >= KB_0 && key <= KB_9)
+        leaderboardLogic.addChar('0' + key - KB_0);
       }
       else if (key == KB_ESCAPE && leaderboardLogic.editRow < 0)
         leaderboardLogic.escape();
