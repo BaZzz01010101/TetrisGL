@@ -7,29 +7,7 @@ private:
   ~Globals();
 
 public:
-//  enum Color { clNone = -1, clRed, clOrange, clYellow, clGreen, clCyan, clBlue, clPurple };
-//  static glm::vec3 Globals::ColorValues[7];
   static std::string glErrorMessage;
-  static GLuint mainArrayTextureId;
-  static int mainArrayTextureSize;
-  static float mainArrayTexturePixelSize;
-  static int emptyTexIndex;
-  static int backgroundTexIndex;
-  static int blockTemplateTexIndex;
-  static int boldBlockTemplateTexIndex;
-  static int shadowTexIndex;
-  static int holdFigureBkTexIndex;
-  static int nextFigureBkTexIndex;
-  static int dropTrailTexIndex;
-  static int dropSparkleTexIndex;
-  static int rowFlashTexIndex;
-  static int rowShineRayTexIndex;
-  static int rowShineLightTexIndex;
-  static int sidePanelGlowTexIndex;
-  static int lineTexIndex;
-  static int levelGoalBkTexIndex;
-  static int levelBackShevronTexIndex;
-  static int fontFirstTexIndex;
 
   static int nextFiguresCount;
   static float rowsDeletionEffectTime;

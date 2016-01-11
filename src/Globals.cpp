@@ -5,26 +5,6 @@
 #include "Crosy.h"
 
 std::string Globals::glErrorMessage;
-GLuint Globals::mainArrayTextureId = 0;
-int Globals::mainArrayTextureSize = 64;
-float Globals::mainArrayTexturePixelSize = 1.0f / Globals::mainArrayTextureSize;
-int Globals::emptyTexIndex = 0;
-int Globals::backgroundTexIndex = 1;
-int Globals::blockTemplateTexIndex = 2;
-int Globals::boldBlockTemplateTexIndex = 3;
-int Globals::shadowTexIndex = 4;
-int Globals::holdFigureBkTexIndex = 5;
-int Globals::nextFigureBkTexIndex = 6;
-int Globals::dropTrailTexIndex = 7;
-int Globals::dropSparkleTexIndex = 8;
-int Globals::rowFlashTexIndex = 9;
-int Globals::rowShineRayTexIndex = 10;
-int Globals::rowShineLightTexIndex = 11;
-int Globals::sidePanelGlowTexIndex = 12;
-int Globals::lineTexIndex = 13;
-int Globals::levelGoalBkTexIndex = 14;
-int Globals::levelBackShevronTexIndex = 15;
-int Globals::fontFirstTexIndex = 16;
 
 int Globals::nextFiguresCount = 3;
 float Globals::rowsDeletionEffectTime = 0.8f;

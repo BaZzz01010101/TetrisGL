@@ -140,8 +140,9 @@ void Layout::load(const char * name)
   std::string fileName = Crosy::getExePath() + "/layouts/" + name + ".json";
   FILE * file = fopen(fileName.c_str(), "rb");
   assert(file);
-  char buf[65536];
-  rapidjson::FileReadStream frstream(file, buf, 65536);
+  const int bufSize = 16384;
+  char buf[bufSize];
+  rapidjson::FileReadStream frstream(file, buf, bufSize);
   doc.ParseStream<rapidjson::FileReadStream>(frstream);
   fclose(file);
 

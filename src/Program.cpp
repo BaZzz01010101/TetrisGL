@@ -14,11 +14,16 @@ Program::~Program()
   if (id)
   {
     glDeleteProgram(id);
+    assert(!checkGlErrors());
     GLint curId = 0;
     glGetIntegerv(GL_CURRENT_PROGRAM, &curId);
+    assert(!checkGlErrors());
 
     if (curId && curId == id)
+    {
       glUseProgram(0);
+      assert(!checkGlErrors());
+    }
   }
 }
 
@@ -104,5 +109,11 @@ void Program::setUniform(const char * name, const glm::mat3 & value)
   GLuint uid = glGetUniformLocation(id, name);
   assert(!checkGlErrors());
   glUniformMatrix3fv(uid, 1, false, &value[0][0]);
+  assert(!checkGlErrors());
+}
+
+void Program::bindAttribLocation(GLuint pos, const char * name)
+{
+  glBindAttribLocation(id, pos, name);
   assert(!checkGlErrors());
 }

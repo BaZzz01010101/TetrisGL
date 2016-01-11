@@ -19,6 +19,11 @@ OpenGLApplication::~OpenGLApplication()
 {
 }
 
+void error_callback(int error, const char* description)
+{
+  std::cout << description << "\n";
+}
+
 bool OpenGLApplication::init()
 {
   if (createCounter > 1)
@@ -26,22 +31,30 @@ bool OpenGLApplication::init()
 
   vSync = true;
 
+  glfwSetErrorCallback(error_callback);
+
   if (!glfwInit())
+  {
+    std::cout << "GLFW init error\n";
     return false;
+  }
 
   //glfwWindowHint(GLFW_DOUBLEBUFFER, GL_FALSE);
   glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
   //glfwWindowHint(GLFW_SAMPLES, 16);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 1);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+  //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
   wndWidth = 640;
   wndHeight = 480;
   wnd = glfwCreateWindow(wndWidth, wndHeight, "glTetris", NULL, NULL);
 
   if (!wnd)
+  {
+    std::cout << "Create window error\n";
     return false;
+  }
 
   glfwSetWindowUserPointer(wnd, this);
   glfwMakeContextCurrent(wnd);
@@ -51,17 +64,19 @@ bool OpenGLApplication::init()
   glfwSetCursorPosCallback(wnd, OnMouseMove);
   glfwSetScrollCallback(wnd, OnMouseScroll);
 
-  glewExperimental = GL_TRUE;
-
+  glewExperimental = GL_FALSE;
   GLenum glewInitResult = glewInit();
   assert(glewInitResult == GLEW_OK);
+  glGetError(); // workaround GLEW issue with GL_INVALID_ENUM rising just after glewInit
 
-  // workaround GLEW issue with GL_INVALID_ENUM rising just after glewInit
-  glGetError();
+  if (!GLEW_VERSION_1_1)
+  {
+    std::cout << "Required OpenGL 1.1 or later\nTry to update your video driver\n";
+    return false;
+  }
 
   glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
   assert(!checkGlErrors());
-
   Layout::load("default");
   Palette::load("default");
   Sound::init();

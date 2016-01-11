@@ -88,7 +88,93 @@
     <ClCompile Include="..\..\src\Time.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\3rdParty\dirent.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\config\ftconfig.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\config\ftheader.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\config\ftmodule.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\config\ftoption.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\config\ftstdlib.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\freetype.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftadvanc.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftautoh.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftbbox.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftbdf.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftbitmap.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftbzip2.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftcache.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftcffdrv.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftchapters.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftcid.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\fterrdef.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\fterrors.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftfntfmt.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftgasp.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftglyph.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftgxval.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftgzip.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftimage.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftincrem.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftlcdfil.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftlist.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftlzw.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftmac.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftmm.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftmodapi.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftmoderr.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftotval.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftoutln.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftpfr.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftrender.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftsizes.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftsnames.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftstroke.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftsynth.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftsystem.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\fttrigon.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftttdrv.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\fttypes.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ftwinfnt.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\autohint.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\ftcalc.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\ftdebug.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\ftdriver.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\ftgloadr.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\ftmemory.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\ftobjs.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\ftpic.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\ftrfork.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\ftserv.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\ftstream.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\fttrace.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\ftvalid.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\internal.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\psaux.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\pshints.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\services\svbdf.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\services\svcid.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\services\svfntfmt.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\services\svgldict.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\services\svgxval.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\services\svkern.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\services\svmm.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\services\svotval.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\services\svpfr.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\services\svpostnm.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\services\svprop.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\services\svpscmap.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\services\svpsinfo.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\services\svsfnt.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\services\svttcmap.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\services\svtteng.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\services\svttglyf.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\services\svwinfnt.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\sfnt.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\t1types.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\internal\tttypes.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\t1tables.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ttnameid.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\tttables.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\tttags.h" />
+    <ClInclude Include="..\..\src\3rdParty\freetype\ttunpat.h" />
     <ClInclude Include="..\..\src\3rdParty\SOIL2\etc1_utils.h" />
     <ClInclude Include="..\..\src\3rdParty\SOIL2\image_DXT.h" />
     <ClInclude Include="..\..\src\3rdParty\SOIL2\image_helper.h" />
@@ -129,11 +215,9 @@
     <ClInclude Include="..\..\src\SettingsLogic.h" />
     <ClInclude Include="..\..\src\Shader.h" />
     <ClInclude Include="..\..\src\DropSparkle.h" />
-    <ClInclude Include="..\..\src\singleton.h" />
     <ClInclude Include="..\..\src\Sound.h" />
     <ClInclude Include="..\..\src\static_headers.h" />
     <ClInclude Include="..\..\src\Time.h" />
-    <ClInclude Include="Header.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E5402C0C-49F6-4C62-A7C3-F65F43545D64}</ProjectGuid>
@@ -143,7 +227,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v120_xp</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

@@ -35,31 +35,34 @@ void OpenGLRender::init(int width, int height)
   vertexBuffer.reserve(4096);
 
   figureVert.compileFromString(
-    "#version 330 core\n"
-    "layout(location = 0) in vec2 vertexPos;"
-    "layout(location = 1) in vec3 vertexUVW;"
-    "layout(location = 2) in vec4 vertexRGBA;"
+    "#version 120\n"
+    "attribute vec2 vertexPos;"
+    "attribute vec3 vertexUVW;"
+    "attribute vec4 vertexRGBA;"
     "uniform float scale;"
     "uniform vec2 pos;"
-    "out vec3 uvw;"
-    "out vec4 color;"
-    "out vec2 pixPos;"
+    "varying vec2 texPos;"
+    "varying vec2 uv;"
+    "varying vec4 color;"
+    "varying vec2 pixPos;"
 
     "void main()"
     "{"
     "  gl_Position = vec4(vertexPos.x * 2.0 - 1.0, 1.0 - vertexPos.y * 2.0, 0, 1);"
-    "  uvw = vertexUVW;"
+    "  texPos.x = 0.0625 + 0.25 * mod(vertexUVW.z, 4.0);"
+    "  texPos.y = 0.0625 + 0.25 * floor(vertexUVW.z / 4.0);"
+    "  uv = vertexUVW.xy;"
     "  color = vertexRGBA;"
     "  pixPos = vertexPos;"
     "}");
 
   figureFrag.compileFromString(
-    "#version 330 core\n"
-    "uniform sampler2DArray tex;"
-    "in vec3 uvw;"
-    "in vec4 color;"
-    "in vec2 pixPos;"
-    "out vec4 out_color;"
+    "#version 120\n"
+    "uniform sampler2D tex;"
+    "varying vec2 texPos;"
+    "varying vec2 uv;"
+    "varying vec4 color;"
+    "varying vec2 pixPos;"
 
     "float rand(vec2 co){"
     "  return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);"
@@ -67,33 +70,31 @@ void OpenGLRender::init(int width, int height)
 
     "void main()"
     "{"
-    "  vec3 texcol = texture(tex, uvw).rgb;"
-    "  float alpha = (1.0f - texcol.b) * color.a;"
+    "  vec3 texcol = texture2D(tex, texPos + 0.125 * fract(uv)).rgb;"
+    "  float alpha = (1.0 - texcol.b) * color.a;"
     "  vec3 rgb = mix(texcol.r * color.rgb, texcol.rrr, texcol.g);"
-    "  out_color = vec4(rgb * (1.0f + (rand(pixPos) - 0.5f) / 30.0f * alpha), alpha);"
+    "  gl_FragColor = vec4(rgb * (1.0 + (rand(pixPos) - 0.5) / 30.0 * alpha), alpha);"
     "}");
 
   figureProg.attachShader(figureVert);
   figureProg.attachShader(figureFrag);
+  figureProg.bindAttribLocation(0, "vertexPos");
+  figureProg.bindAttribLocation(1, "vertexUVW");
+  figureProg.bindAttribLocation(2, "vertexRGBA");
   figureProg.link();
   figureProg.use();
   figureProg.setUniform("tex", 0);
 
-  std::string backPath = Crosy::getExePath() + "\\textures\\blocks.png";
+  std::string backPath = Crosy::getExePath() + "\\textures\\blocks_atlas.png";
   int imageWidth, imageHeight, channels;
   unsigned char * img = SOIL_load_image(backPath.c_str(), &imageWidth, &imageHeight, &channels, SOIL_LOAD_RGBA);
-  assert(imageWidth == Globals::mainArrayTextureSize);
-  assert(!(imageHeight % Globals::mainArrayTextureSize));
+  assert(img);
 
-  glGenTextures(1, &Globals::mainArrayTextureId);
+  glGenTextures(1, &mainTextureId);
   assert(!checkGlErrors());
-  glBindTexture(GL_TEXTURE_2D_ARRAY, Globals::mainArrayTextureId);
+  glBindTexture(GL_TEXTURE_2D, mainTextureId);
   assert(!checkGlErrors());
-  const int glyphsQty = (('9' - '0' + 1) + ('Z' - 'A' + 1) + ('z' - 'a' + 1) + 2) * 3;
-  const int textureQty = imageHeight / Globals::mainArrayTextureSize;
-  glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, Globals::mainArrayTextureSize, Globals::mainArrayTextureSize, textureQty + glyphsQty, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-  assert(!checkGlErrors());
-  glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, Globals::mainArrayTextureSize, Globals::mainArrayTextureSize, textureQty, GL_RGBA, GL_UNSIGNED_BYTE, img);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, img);
   assert(!checkGlErrors());
   SOIL_free_image_data(img);
 
@@ -147,16 +148,16 @@ void OpenGLRender::init(int width, int height)
   loadGlyph(' ', Globals::bigFontSize);
   loadGlyph('\'', Globals::bigFontSize);
 
-  glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
+  glGenerateMipmap(GL_TEXTURE_2D);
   assert(!checkGlErrors());
 
-  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   assert(!checkGlErrors());
 
-  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR); //GL_LINEAR_MIPMAP_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); //GL_LINEAR_MIPMAP_LINEAR);
   assert(!checkGlErrors());
 
-  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_LOD_BIAS, -1);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -1);
   assert(!checkGlErrors());
 
   glDisable(GL_CULL_FACE);
@@ -326,12 +327,12 @@ void OpenGLRender::buildRect(float left, float top, float width, float height, c
   const glm::vec2 verts3(left + width, top + height);
   const glm::vec2 uv(0.5f);
 
-  addVertex(verts0, uv, Globals::emptyTexIndex, color, alpha);
-  addVertex(verts1, uv, Globals::emptyTexIndex, color, alpha);
-  addVertex(verts2, uv, Globals::emptyTexIndex, color, alpha);
-  addVertex(verts1, uv, Globals::emptyTexIndex, color, alpha);
-  addVertex(verts2, uv, Globals::emptyTexIndex, color, alpha);
-  addVertex(verts3, uv, Globals::emptyTexIndex, color, alpha);
+  addVertex(verts0, uv, tiEmpty, color, alpha);
+  addVertex(verts1, uv, tiEmpty, color, alpha);
+  addVertex(verts2, uv, tiEmpty, color, alpha);
+  addVertex(verts1, uv, tiEmpty, color, alpha);
+  addVertex(verts2, uv, tiEmpty, color, alpha);
+  addVertex(verts3, uv, tiEmpty, color, alpha);
 }
 
 void OpenGLRender::buildSmoothRect(float left, float top, float width, float height, float blur, const glm::vec3 & color, float alpha)
@@ -344,15 +345,14 @@ void OpenGLRender::buildSmoothRect(float left, float top, float width, float hei
 
 void OpenGLRender::buildTexturedRect(float left, float top, float width, float height, int texIndex, const glm::vec3 & color, float alpha)
 {
-  const float pixSize = Globals::mainArrayTexturePixelSize;
   const glm::vec2 verts0(left, top);
   const glm::vec2 verts1(left + width, top);
   const glm::vec2 verts2(left, top + height);
   const glm::vec2 verts3(left + width, top + height);
-  const glm::vec2 uv0(pixSize, pixSize);
-  const glm::vec2 uv1(1.0f - pixSize, pixSize);
-  const glm::vec2 uv2(pixSize, 1.0f - pixSize);
-  const glm::vec2 uv3(1.0f - pixSize, 1.0f - pixSize);
+  const glm::vec2 uv0(0.0f, 0.0f);
+  const glm::vec2 uv1(1.0f, 0.0f);
+  const glm::vec2 uv2(0.0f, 1.0f);
+  const glm::vec2 uv3(1.0f, 1.0f);
 
   addVertex(verts0, uv0, texIndex, color, alpha);
   addVertex(verts1, uv1, texIndex, color, alpha);
@@ -370,17 +370,16 @@ void OpenGLRender::buildVertGradientRect(float left, float top, float width, flo
   glm::vec2 verts3(left + width, top + height);
   const glm::vec2 uv(0.5f);
 
-  addVertex(verts0, uv, Globals::emptyTexIndex, topColor, topAlpha);
-  addVertex(verts1, uv, Globals::emptyTexIndex, topColor, topAlpha);
-  addVertex(verts2, uv, Globals::emptyTexIndex, bottomColor, bottomAlpha);
-  addVertex(verts1, uv, Globals::emptyTexIndex, topColor, topAlpha);
-  addVertex(verts2, uv, Globals::emptyTexIndex, bottomColor, bottomAlpha);
-  addVertex(verts3, uv, Globals::emptyTexIndex, bottomColor, bottomAlpha);
+  addVertex(verts0, uv, tiEmpty, topColor, topAlpha);
+  addVertex(verts1, uv, tiEmpty, topColor, topAlpha);
+  addVertex(verts2, uv, tiEmpty, bottomColor, bottomAlpha);
+  addVertex(verts1, uv, tiEmpty, topColor, topAlpha);
+  addVertex(verts2, uv, tiEmpty, bottomColor, bottomAlpha);
+  addVertex(verts3, uv, tiEmpty, bottomColor, bottomAlpha);
 }
 
 void OpenGLRender::buildLine(float x0, float y0, float x1, float y1, float width, const glm::vec3 & color, float alpha)
 {
-  const float pixSize = Globals::mainArrayTexturePixelSize;
   const float W_2 = 0.5f * width;
   glm::vec2 v0(x0, y0);
   glm::vec2 v1(x1, y1);
@@ -403,32 +402,30 @@ void OpenGLRender::buildLine(float x0, float y0, float x1, float y1, float width
 
   glm::vec2 uv[8] =
   {
-    { pixSize, pixSize },
-    { pixSize, 1.0f - pixSize },
-    { 0.5f, pixSize },
-    { 0.5f, 1.0f - pixSize },
-    { 0.5f, pixSize },
-    { 0.5f, 1.0f - pixSize },
-    { pixSize, pixSize },
-    { pixSize, 1.0f - pixSize },
+    { 0.0f, 0.0f },
+    { 0.0f, 1.0f },
+    { 0.5f, 0.0f },
+    { 0.5f, 1.0f },
+    { 0.5f, 0.0f },
+    { 0.5f, 1.0f },
+    { 0.0f, 0.0f },
+    { 0.0f, 1.0f },
   };
 
   for (int i = 0; i < 6; i += 2)
   {
-    addVertex(verts[i + 0], uv[i + 0], Globals::lineTexIndex, color, alpha);
-    addVertex(verts[i + 1], uv[i + 1], Globals::lineTexIndex, color, alpha);
-    addVertex(verts[i + 2], uv[i + 2], Globals::lineTexIndex, color, alpha);
+    addVertex(verts[i + 0], uv[i + 0], tiLine, color, alpha);
+    addVertex(verts[i + 1], uv[i + 1], tiLine, color, alpha);
+    addVertex(verts[i + 2], uv[i + 2], tiLine, color, alpha);
 
-    addVertex(verts[i + 1], uv[i + 1], Globals::lineTexIndex, color, alpha);
-    addVertex(verts[i + 2], uv[i + 2], Globals::lineTexIndex, color, alpha);
-    addVertex(verts[i + 3], uv[i + 3], Globals::lineTexIndex, color, alpha);
+    addVertex(verts[i + 1], uv[i + 1], tiLine, color, alpha);
+    addVertex(verts[i + 2], uv[i + 2], tiLine, color, alpha);
+    addVertex(verts[i + 3], uv[i + 3], tiLine, color, alpha);
   }
 }
 
 void OpenGLRender::buildFrameRect(float left, float top, float width, float height, float borderWidth, const glm::vec3 & borderColor, float borderAlpha)
 {
-  const float pixSize = Globals::mainArrayTexturePixelSize;
-
   glm::vec2 verts[8] =
   {
     { left, top },
@@ -444,25 +441,25 @@ void OpenGLRender::buildFrameRect(float left, float top, float width, float heig
 
   glm::vec2 uv[8] =
   {
-    { 0.5f, pixSize },
-    { 0.5f, 1.0f - pixSize },
-    { 0.5f, pixSize },
-    { 0.5f, 1.0f - pixSize },
-    { 0.5f, pixSize },
-    { 0.5f, 1.0f - pixSize },
-    { 0.5f, pixSize },
-    { 0.5f, 1.0f - pixSize },
+    { 0.5f, 0.0f },
+    { 0.5f, 1.0f },
+    { 0.5f, 0.0f },
+    { 0.5f, 1.0f },
+    { 0.5f, 0.0f },
+    { 0.5f, 1.0f },
+    { 0.5f, 0.0f },
+    { 0.5f, 1.0f },
   };
 
   for (int i = 0; i < 8; i += 2)
   {
-    addVertex(verts[i + 0], uv[i + 0], Globals::lineTexIndex, borderColor, borderAlpha);
-    addVertex(verts[i + 1], uv[i + 1], Globals::lineTexIndex, borderColor, borderAlpha);
-    addVertex(verts[(i + 2) & 7], uv[(i + 2) & 7], Globals::lineTexIndex, borderColor, borderAlpha);
+    addVertex(verts[i + 0], uv[i + 0], tiLine, borderColor, borderAlpha);
+    addVertex(verts[i + 1], uv[i + 1], tiLine, borderColor, borderAlpha);
+    addVertex(verts[(i + 2) & 7], uv[(i + 2) & 7], tiLine, borderColor, borderAlpha);
 
-    addVertex(verts[i + 1], uv[i + 1], Globals::lineTexIndex, borderColor, borderAlpha);
-    addVertex(verts[(i + 2) & 7], uv[(i + 2) & 7], Globals::lineTexIndex, borderColor, borderAlpha);
-    addVertex(verts[(i + 3) & 7], uv[(i + 3) & 7], Globals::lineTexIndex, borderColor, borderAlpha);
+    addVertex(verts[i + 1], uv[i + 1], tiLine, borderColor, borderAlpha);
+    addVertex(verts[(i + 2) & 7], uv[(i + 2) & 7], tiLine, borderColor, borderAlpha);
+    addVertex(verts[(i + 3) & 7], uv[(i + 3) & 7], tiLine, borderColor, borderAlpha);
   }
 }
 
@@ -534,12 +531,12 @@ void OpenGLRender::buildBackground()
       outerColor + (innerColor - outerColor) * bright[3],
     };
 
-    addVertex(origin + verts[0], uv[0], Globals::backgroundTexIndex, col[0], 1.0f);
-    addVertex(origin + verts[1], uv[1], Globals::backgroundTexIndex, col[1], 1.0f);
-    addVertex(origin + verts[2], uv[2], Globals::backgroundTexIndex, col[2], 1.0f);
-    addVertex(origin + verts[1], uv[1], Globals::backgroundTexIndex, col[1], 1.0f);
-    addVertex(origin + verts[2], uv[2], Globals::backgroundTexIndex, col[2], 1.0f);
-    addVertex(origin + verts[3], uv[3], Globals::backgroundTexIndex, col[3], 1.0f);
+    addVertex(origin + verts[0], uv[0], tiBackground, col[0], 1.0f);
+    addVertex(origin + verts[1], uv[1], tiBackground, col[1], 1.0f);
+    addVertex(origin + verts[2], uv[2], tiBackground, col[2], 1.0f);
+    addVertex(origin + verts[1], uv[1], tiBackground, col[1], 1.0f);
+    addVertex(origin + verts[2], uv[2], tiBackground, col[2], 1.0f);
+    addVertex(origin + verts[3], uv[3], tiBackground, col[3], 1.0f);
   }
   // add glass background to the mesh
 
@@ -610,12 +607,12 @@ void OpenGLRender::buildBackground()
 
       glm::vec2 uv(0.5f, 0.5f);
 
-      addVertex(origin + verts[0], uv, Globals::emptyTexIndex, col[0], 1.0f);
-      addVertex(origin + verts[1], uv, Globals::emptyTexIndex, col[1], 1.0f);
-      addVertex(origin + verts[2], uv, Globals::emptyTexIndex, col[2], 1.0f);
-      addVertex(origin + verts[1], uv, Globals::emptyTexIndex, col[1], 1.0f);
-      addVertex(origin + verts[2], uv, Globals::emptyTexIndex, col[2], 1.0f);
-      addVertex(origin + verts[3], uv, Globals::emptyTexIndex, col[3], 1.0f);
+      addVertex(origin + verts[0], uv, tiEmpty, col[0], 1.0f);
+      addVertex(origin + verts[1], uv, tiEmpty, col[1], 1.0f);
+      addVertex(origin + verts[2], uv, tiEmpty, col[2], 1.0f);
+      addVertex(origin + verts[1], uv, tiEmpty, col[1], 1.0f);
+      addVertex(origin + verts[2], uv, tiEmpty, col[2], 1.0f);
+      addVertex(origin + verts[3], uv, tiEmpty, col[3], 1.0f);
     }
   }
 
@@ -679,7 +676,7 @@ void OpenGLRender::buildBackground()
     const float height = holdPanelLayout->height;
     const glm::vec3 & color = (GameLogic::state != GameLogic::stStopped && GameLogic::holdFigure.color != Cell::Color::clNone) ?
       Palette::cellColorArray[GameLogic::holdFigure.color] : Palette::holdEmptyPanel;
-    buildTexturedRect(left, top, width, height, Globals::holdFigureBkTexIndex, color, 1.0f);
+    buildTexturedRect(left, top, width, height, tiHoldBackground, color, 1.0f);
   }
 
   // add next figure panel to mesh
@@ -701,7 +698,7 @@ void OpenGLRender::buildBackground()
     const float height = nextPanelLayout->height;
     const glm::vec3 & color = (GameLogic::state != GameLogic::stStopped && GameLogic::nextFigures[0].color != Cell::Color::clNone) ?
       Palette::cellColorArray[GameLogic::nextFigures[0].color] : Palette::nextEmptyPanel;
-    buildTexturedRect(left, top, width, height, Globals::nextFigureBkTexIndex, color, 1.0f);
+    buildTexturedRect(left, top, width, height, tiNextBackground, color, 1.0f);
   }
 
   // add level panel to mesh
@@ -721,7 +718,7 @@ void OpenGLRender::buildBackground()
     const float top = levelPanelLayout->getGlobalTop();
     const float width = levelPanelLayout->width;
     const float height = levelPanelLayout->height;
-    buildTexturedRect(left, top, width, height, Globals::levelGoalBkTexIndex, Palette::levelPanelBackground, 1.0f);
+    buildTexturedRect(left, top, width, height, tiLevelGoalBackground, Palette::levelPanelBackground, 1.0f);
     buildTextMesh(left, top, width, height, std::to_string(GameLogic::curLevel).c_str(), Globals::bigFontSize, Layout::levelGoalTextHeight, Palette::levelPanelText, 1.0f, haCenter, vaCenter);
   }
 
@@ -742,7 +739,7 @@ void OpenGLRender::buildBackground()
     const float top = goalPanelLayout->getGlobalTop();
     const float width = goalPanelLayout->width;
     const float height = goalPanelLayout->height;
-    buildTexturedRect(left, top, width, height, Globals::levelGoalBkTexIndex, Palette::goalPanelBackground, 1.0f);
+    buildTexturedRect(left, top, width, height, tiLevelGoalBackground, Palette::goalPanelBackground, 1.0f);
     buildTextMesh(left, top, width, height, std::to_string(GameLogic::curGoal).c_str(), Globals::bigFontSize, Layout::levelGoalTextHeight, Palette::goalPanelText, 1.0f, haCenter, vaCenter);
   }
 }
@@ -754,11 +751,11 @@ void OpenGLRender::buidGlassShadow()
   if (!glassLayout)
     return;
 
-  const float pixSize = Globals::mainArrayTexturePixelSize;
   const float scale = glassLayout->width / GameLogic::glassWidth;
   const glm::vec2 glassPos(glassLayout->getGlobalLeft(), glassLayout->getGlobalTop());
   const float shadowWidth = 0.15f;
-  
+  const float innerOffset = 2.0f / 64.0f;
+
   for (int y = 0; y < GameLogic::glassHeight; y++)
   for (int x = 0; x < GameLogic::glassWidth; x++)
   {
@@ -782,18 +779,18 @@ void OpenGLRender::buidGlassShadow()
 
         glm::vec2 verts[4] =
         {
-          { x,        y + 1.0f - pixSize },
+          { x,        y + 1.0f - innerOffset },
           { x,        y + 1.0f + shadowWidth },
-          { x + 1.0f, y + 1.0f - pixSize },
+          { x + 1.0f, y + 1.0f - innerOffset },
           { x + 1.0f, y + 1.0f + shadowWidth }
         };
 
         glm::vec2 uv[4] =
         {
-          { softLeft ? 1.0f - pixSize: 0.5f, 0.5f },
-          { 1.0f - pixSize,                  1.0f - pixSize },
-          { 0.5f,                            0.5f },
-          { 1.0f - pixSize,                  1.0f - pixSize }
+          { softLeft ? 1.0f: 0.5f, 0.5f },
+          { 1.0f,                  1.0f },
+          { 0.5f,                  0.5f },
+          { 1.0f,                  1.0f }
         };
 
         if (softLeft)
@@ -801,22 +798,22 @@ void OpenGLRender::buidGlassShadow()
 
         if (bottomLeftCell && bottomLeftCell->figureId == cell->figureId)
         {
-          verts[0].x -= pixSize;
+          verts[0].x -= innerOffset;
           verts[1].x += shadowWidth;
         }
 
         if (rightBottomCell && rightBottomCell->figureId != cell->figureId && rightCell && rightCell->figureId != cell->figureId)
         {
-          verts[2].x -= pixSize;
+          verts[2].x -= innerOffset;
           verts[3].x += shadowWidth;
         }
 
-        addVertex(origin + scale * verts[0], uv[0], Globals::shadowTexIndex, Palette::figureShadow, 1.0f);
-        addVertex(origin + scale * verts[1], uv[1], Globals::shadowTexIndex, Palette::figureShadow, 1.0f);
-        addVertex(origin + scale * verts[2], uv[2], Globals::shadowTexIndex, Palette::figureShadow, 1.0f);
-        addVertex(origin + scale * verts[1], uv[1], Globals::shadowTexIndex, Palette::figureShadow, 1.0f);
-        addVertex(origin + scale * verts[2], uv[2], Globals::shadowTexIndex, Palette::figureShadow, 1.0f);
-        addVertex(origin + scale * verts[3], uv[3], Globals::shadowTexIndex, Palette::figureShadow, 1.0f);
+        addVertex(origin + scale * verts[0], uv[0], tiFigureShadow, Palette::figureShadow, 1.0f);
+        addVertex(origin + scale * verts[1], uv[1], tiFigureShadow, Palette::figureShadow, 1.0f);
+        addVertex(origin + scale * verts[2], uv[2], tiFigureShadow, Palette::figureShadow, 1.0f);
+        addVertex(origin + scale * verts[1], uv[1], tiFigureShadow, Palette::figureShadow, 1.0f);
+        addVertex(origin + scale * verts[2], uv[2], tiFigureShadow, Palette::figureShadow, 1.0f);
+        addVertex(origin + scale * verts[3], uv[3], tiFigureShadow, Palette::figureShadow, 1.0f);
       }
 
       if (rightCell && rightCell->figureId != cell->figureId)
@@ -827,18 +824,18 @@ void OpenGLRender::buidGlassShadow()
 
         glm::vec2 verts[4] =
         {
-          { x + 1.0f - pixSize,     y },
+          { x + 1.0f - innerOffset, y },
           { x + 1.0f + shadowWidth, y },
-          { x + 1.0f - pixSize,     y + 1.0f },
+          { x + 1.0f - innerOffset, y + 1.0f },
           { x + 1.0f + shadowWidth, y + 1.0f }
         };
 
         glm::vec2 uv[4] =
         {
-          { softTop ? 1.0f - pixSize: 0.5f, 0.5f },
-          { 1.0f - pixSize,                 1.0f - pixSize },
-          { 0.5f,                           0.5f },
-          { 1.0f - pixSize,                 1.0f - pixSize }
+          { softTop ? 1.0f: 0.5f, 0.5f },
+          { 1.0f,                 1.0f },
+          { 0.5f,                 0.5f },
+          { 1.0f,                 1.0f }
         };
 
         if (softTop)
@@ -846,22 +843,22 @@ void OpenGLRender::buidGlassShadow()
 
         if (topRightCell && topRightCell->figureId == cell->figureId)
         {
-          verts[0].y -= pixSize;
+          verts[0].y -= innerOffset;
           verts[1].y += shadowWidth;
         }
 
         if (rightBottomCell && rightBottomCell->figureId != cell->figureId && bottomCell && bottomCell->figureId != cell->figureId)
         {
-          verts[2].y -= pixSize;
+          verts[2].y -= innerOffset;
           verts[3].y += shadowWidth;
         }
 
-        addVertex(origin + scale * verts[0], uv[0], Globals::shadowTexIndex, Palette::figureShadow, 1.0f);
-        addVertex(origin + scale * verts[1], uv[1], Globals::shadowTexIndex, Palette::figureShadow, 1.0f);
-        addVertex(origin + scale * verts[2], uv[2], Globals::shadowTexIndex, Palette::figureShadow, 1.0f);
-        addVertex(origin + scale * verts[1], uv[1], Globals::shadowTexIndex, Palette::figureShadow, 1.0f);
-        addVertex(origin + scale * verts[2], uv[2], Globals::shadowTexIndex, Palette::figureShadow, 1.0f);
-        addVertex(origin + scale * verts[3], uv[3], Globals::shadowTexIndex, Palette::figureShadow, 1.0f);
+        addVertex(origin + scale * verts[0], uv[0], tiFigureShadow, Palette::figureShadow, 1.0f);
+        addVertex(origin + scale * verts[1], uv[1], tiFigureShadow, Palette::figureShadow, 1.0f);
+        addVertex(origin + scale * verts[2], uv[2], tiFigureShadow, Palette::figureShadow, 1.0f);
+        addVertex(origin + scale * verts[1], uv[1], tiFigureShadow, Palette::figureShadow, 1.0f);
+        addVertex(origin + scale * verts[2], uv[2], tiFigureShadow, Palette::figureShadow, 1.0f);
+        addVertex(origin + scale * verts[3], uv[3], tiFigureShadow, Palette::figureShadow, 1.0f);
       }
     }
   }
@@ -874,7 +871,6 @@ void OpenGLRender::buidGlassBlocks()
   if (!glassLayout)
     return;
 
-  const float pixSize = Globals::mainArrayTexturePixelSize;
   const float scale = glassLayout->width / GameLogic::glassWidth;
   const glm::vec2 glassPos(glassLayout->getGlobalLeft(), glassLayout->getGlobalTop());
 
@@ -906,9 +902,9 @@ void OpenGLRender::buidGlassBlocks()
 
         const glm::vec2 segmentUvArray[3][3] =
         {
-          { { 0.5f, 0.5f }, { 0.5f, 1.0f - pixSize }, { 0.0f + pixSize, 1.0f - pixSize }, }, // openSegment
-          { { 0.5f, 0.5f }, { 0.0f + pixSize, 0.5f }, { 0.0f + pixSize, 0.0f + pixSize }, }, // partialSegment
-          { { 0.5f, 0.5f }, { 0.5f, 0.0f + pixSize }, { 0.0f + pixSize, 0.0f + pixSize }, }, // borderedSegment
+          { { 0.5f, 0.5f }, { 0.5f, 1.0f }, { 0.0f, 1.0f }, }, // openSegment
+          { { 0.5f, 0.5f }, { 0.0f, 0.5f }, { 0.0f, 0.0f }, }, // partialSegment
+          { { 0.5f, 0.5f }, { 0.5f, 0.0f }, { 0.0f, 0.0f }, }, // borderedSegment
         };
 
         enum SegmentTypes { openSegment, partialSegment, borderedSegment };
@@ -946,12 +942,12 @@ void OpenGLRender::buidGlassBlocks()
 
         const glm::vec3 & color = Palette::cellColorArray[cell->color];
 
-        addVertex(origin + scale * verts[0], segmentUvArray[vertSegmentType][0], Globals::blockTemplateTexIndex, color, 1.0f);
-        addVertex(origin + scale * verts[1], segmentUvArray[vertSegmentType][1], Globals::blockTemplateTexIndex, color, 1.0f);
-        addVertex(origin + scale * verts[2], segmentUvArray[vertSegmentType][2], Globals::blockTemplateTexIndex, color, 1.0f);
-        addVertex(origin + scale * verts[0], segmentUvArray[horzSegmentType][0], Globals::blockTemplateTexIndex, color, 1.0f);
-        addVertex(origin + scale * verts[3], segmentUvArray[horzSegmentType][1], Globals::blockTemplateTexIndex, color, 1.0f);
-        addVertex(origin + scale * verts[2], segmentUvArray[horzSegmentType][2], Globals::blockTemplateTexIndex, color, 1.0f);
+        addVertex(origin + scale * verts[0], segmentUvArray[vertSegmentType][0], tiFigureCellNormal, color, 1.0f);
+        addVertex(origin + scale * verts[1], segmentUvArray[vertSegmentType][1], tiFigureCellNormal, color, 1.0f);
+        addVertex(origin + scale * verts[2], segmentUvArray[vertSegmentType][2], tiFigureCellNormal, color, 1.0f);
+        addVertex(origin + scale * verts[0], segmentUvArray[horzSegmentType][0], tiFigureCellNormal, color, 1.0f);
+        addVertex(origin + scale * verts[3], segmentUvArray[horzSegmentType][1], tiFigureCellNormal, color, 1.0f);
+        addVertex(origin + scale * verts[2], segmentUvArray[horzSegmentType][2], tiFigureCellNormal, color, 1.0f);
       }
     }
   }
@@ -964,12 +960,10 @@ void OpenGLRender::biuldGlassGlow()
   if (!glassLayout)
     return;
 
-  const float pixSize = Globals::mainArrayTexturePixelSize;
   const float scale = glassLayout->width / GameLogic::glassWidth;
   const glm::vec2 glassPos(glassLayout->getGlobalLeft(), glassLayout->getGlobalTop());
+  const float innerOffset = 2.0f / 64.0f;
   const float glowWidth = 0.5f;
-  const float glowMinAlpha = 0.01f;
-  const float glowMaxAlpha = 0.25f;
 
   for (int y = 0; y < GameLogic::glassHeight; y++)
   for (int x = 0; x < GameLogic::glassWidth; x++)
@@ -1008,160 +1002,160 @@ void OpenGLRender::biuldGlassGlow()
       {
         glm::vec2 verts[4] =
         {
-          { x + pixSize,   y },
+          { x + innerOffset,   y },
           { x - glowWidth, y },
-          { x + pixSize,   y + 1.0f },
+          { x + innerOffset,   y + 1.0f },
           { x - glowWidth, y + 1.0f }
         };
 
         if (haveLeftTopCell)
         {
-          verts[0].y -= pixSize;
+          verts[0].y -= innerOffset;
           verts[1].y += glowWidth;
         }
         else if (topCell && !haveTopCell)
         {
-          verts[0].y += pixSize;
+          verts[0].y += innerOffset;
           verts[1].y -= glowWidth;
         }
 
         if (haveBottomLeftCell)
         {
-          verts[2].y += pixSize;
+          verts[2].y += innerOffset;
           verts[3].y -= glowWidth;
         }
         else if (bottomCell && !haveBottomCell)
         {
-          verts[2].y -= pixSize;
+          verts[2].y -= innerOffset;
           verts[3].y += glowWidth;
         }
 
-        addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
-        addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
+        addVertex(origin + scale * verts[0], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+        addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+        addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+        addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+        addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+        addVertex(origin + scale * verts[3], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
       }
 
       if (rightCell && rightCell->figureId != cell->figureId)
       {
         glm::vec2 verts[4] =
         {
-          { x + 1.0f - pixSize,   y },
+          { x + 1.0f - innerOffset,   y },
           { x + 1.0f + glowWidth, y },
-          { x + 1.0f - pixSize,   y + 1.0f },
+          { x + 1.0f - innerOffset,   y + 1.0f },
           { x + 1.0f + glowWidth, y + 1.0f }
         };
 
         if (haveTopRightCell)
         {
-          verts[0].y -= pixSize;
+          verts[0].y -= innerOffset;
           verts[1].y += glowWidth;
         }
         else if (topCell && !haveTopCell)
         {
-          verts[0].y += pixSize;
+          verts[0].y += innerOffset;
           verts[1].y -= glowWidth;
         }
 
         if (haveRightBottomCell)
         {
-          verts[2].y += pixSize;
+          verts[2].y += innerOffset;
           verts[3].y -= glowWidth;
         }
         else if (bottomCell && !haveBottomCell)
         {
-          verts[2].y -= pixSize;
+          verts[2].y -= innerOffset;
           verts[3].y += glowWidth;
         }
 
-        addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
-        addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
+        addVertex(origin + scale * verts[0], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+        addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+        addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+        addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+        addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+        addVertex(origin + scale * verts[3], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
       }
 
       if (topCell && topCell->figureId != cell->figureId)
       {
         glm::vec2 verts[4] =
         {
-          { x,        y + pixSize },
+          { x,        y + innerOffset },
           { x,        y - glowWidth },
-          { x + 1.0f, y + pixSize },
+          { x + 1.0f, y + innerOffset },
           { x + 1.0f, y - glowWidth }
         };
 
         if (haveLeftTopCell)
         {
-          verts[0].x -= pixSize;
+          verts[0].x -= innerOffset;
           verts[1].x += glowWidth;
         }
         else if (leftCell && !haveLeftCell)
         {
-          verts[0].x += pixSize;
+          verts[0].x += innerOffset;
           verts[1].x -= glowWidth;
         }
 
         if (haveTopRightCell)
         {
-          verts[2].x += pixSize;
+          verts[2].x += innerOffset;
           verts[3].x -= glowWidth;
         }
         else if (rightCell && !haveRightCell)
         {
-          verts[2].x -= pixSize;
+          verts[2].x -= innerOffset;
           verts[3].x += glowWidth;
         }
 
-        addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
-        addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
+        addVertex(origin + scale * verts[0], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+        addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+        addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+        addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+        addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+        addVertex(origin + scale * verts[3], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
       }
 
       if (bottomCell && bottomCell->figureId != cell->figureId)
       {
         glm::vec2 verts[4] =
         {
-          { x,        y + 1.0f - pixSize },
+          { x,        y + 1.0f - innerOffset },
           { x,        y + 1.0f + glowWidth },
-          { x + 1.0f, y + 1.0f - pixSize },
+          { x + 1.0f, y + 1.0f - innerOffset },
           { x + 1.0f, y + 1.0f + glowWidth }
         };
 
         if (haveBottomLeftCell)
         {
-          verts[0].x -= pixSize;
+          verts[0].x -= innerOffset;
           verts[1].x += glowWidth;
         }
         else if (leftCell && !haveLeftCell)
         {
-          verts[0].x += pixSize;
+          verts[0].x += innerOffset;
           verts[1].x -= glowWidth;
         }
 
         if (haveRightBottomCell)
         {
-          verts[2].x += pixSize;
+          verts[2].x += innerOffset;
           verts[3].x -= glowWidth;
         }
         else if (rightCell && !haveRightCell)
         {
-          verts[2].x -= pixSize;
+          verts[2].x -= innerOffset;
           verts[3].x += glowWidth;
         }
 
-        addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
-        addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
+        addVertex(origin + scale * verts[0], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+        addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+        addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+        addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+        addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+        addVertex(origin + scale * verts[3], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
       }
     }
   }
@@ -1175,7 +1169,6 @@ void OpenGLRender::buildFigureBlocks()
   if (!holdPanelLayout || !nextPanelLayout)
     return;
 
-  const float pixSize = Globals::mainArrayTexturePixelSize;
   const float scale = Layout::holdNextFigureScale;
   const float holdPanelLeft = holdPanelLayout->getGlobalLeft();
   const float holdPanelTop = holdPanelLayout->getGlobalTop();
@@ -1276,9 +1269,9 @@ void OpenGLRender::buildFigureBlocks()
 
             const glm::vec2 segmentUvArray[3][3] =
             {
-              { { 0.5f, 0.5f }, { 0.5f, 1.0f - pixSize }, { 0.0f + pixSize, 1.0f - pixSize }, }, // openSegment
-              { { 0.5f, 0.5f }, { 0.0f + pixSize, 0.5f }, { 0.0f + pixSize, 0.0f + pixSize }, }, // partialSegment
-              { { 0.5f, 0.5f }, { 0.5f, 0.0f + pixSize }, { 0.0f + pixSize, 0.0f + pixSize }, }, // borderedSegment
+              { { 0.5f, 0.5f }, { 0.5f, 1.0f }, { 0.0f, 1.0f }, }, // openSegment
+              { { 0.5f, 0.5f }, { 0.0f, 0.5f }, { 0.0f, 0.0f }, }, // partialSegment
+              { { 0.5f, 0.5f }, { 0.5f, 0.0f }, { 0.0f, 0.0f }, }, // borderedSegment
             };
 
             enum SegmentTypes { openSegment, partialSegment, borderedSegment };
@@ -1316,12 +1309,12 @@ void OpenGLRender::buildFigureBlocks()
 
             const glm::vec3 & color = Palette::cellColorArray[cell->color];
 
-            addVertex(origin + scale * verts[0], segmentUvArray[vertSegmentType][0], Globals::boldBlockTemplateTexIndex, color, 1.0f);
-            addVertex(origin + scale * verts[1], segmentUvArray[vertSegmentType][1], Globals::boldBlockTemplateTexIndex, color, 1.0f);
-            addVertex(origin + scale * verts[2], segmentUvArray[vertSegmentType][2], Globals::boldBlockTemplateTexIndex, color, 1.0f);
-            addVertex(origin + scale * verts[0], segmentUvArray[horzSegmentType][0], Globals::boldBlockTemplateTexIndex, color, 1.0f);
-            addVertex(origin + scale * verts[3], segmentUvArray[horzSegmentType][1], Globals::boldBlockTemplateTexIndex, color, 1.0f);
-            addVertex(origin + scale * verts[2], segmentUvArray[horzSegmentType][2], Globals::boldBlockTemplateTexIndex, color, 1.0f);
+            addVertex(origin + scale * verts[0], segmentUvArray[vertSegmentType][0], tiFigureCellBold, color, 1.0f);
+            addVertex(origin + scale * verts[1], segmentUvArray[vertSegmentType][1], tiFigureCellBold, color, 1.0f);
+            addVertex(origin + scale * verts[2], segmentUvArray[vertSegmentType][2], tiFigureCellBold, color, 1.0f);
+            addVertex(origin + scale * verts[0], segmentUvArray[horzSegmentType][0], tiFigureCellBold, color, 1.0f);
+            addVertex(origin + scale * verts[3], segmentUvArray[horzSegmentType][1], tiFigureCellBold, color, 1.0f);
+            addVertex(origin + scale * verts[2], segmentUvArray[horzSegmentType][2], tiFigureCellBold, color, 1.0f);
           }
         }
       }
@@ -1337,7 +1330,6 @@ void OpenGLRender::buildFigureGlow()
   if (!holdPanelLayout || !nextPanelLayout)
     return;
 
-  const float pixSize = Globals::mainArrayTexturePixelSize;
   const float scale = Layout::holdNextFigureScale;
   const float holdPanelLeft = holdPanelLayout->getGlobalLeft();
   const float holdPanelTop = holdPanelLayout->getGlobalTop();
@@ -1347,8 +1339,8 @@ void OpenGLRender::buildFigureGlow()
   const float nextPanelTop = nextPanelLayout->getGlobalTop();
   const float nextPanelWidth = nextPanelLayout->width;
   const float nextPanelHeight = nextPanelLayout->height;
-
   const float glowWidth = 0.3f;
+  const float innerOffset = 2.0f / 64.0f;
 
   for (int i = -1; i < Globals::nextFiguresCount; i++)
   {
@@ -1450,160 +1442,160 @@ void OpenGLRender::buildFigureGlow()
           {
             glm::vec2 verts[4] =
             {
-              { x + pixSize,   y },
+              { x + innerOffset,   y },
               { x - glowWidth, y },
-              { x + pixSize,   y + 1.0f },
+              { x + innerOffset,   y + 1.0f },
               { x - glowWidth, y + 1.0f }
             };
 
             if (haveLeftTopCell)
             {
-              verts[0].y -= pixSize;
+              verts[0].y -= innerOffset;
               verts[1].y += glowWidth;
             }
             else if (!haveTopCell)
             {
-              verts[0].y += pixSize;
+              verts[0].y += innerOffset;
               verts[1].y -= glowWidth;
             }
 
             if (haveBottomLeftCell)
             {
-              verts[2].y += pixSize;
+              verts[2].y += innerOffset;
               verts[3].y -= glowWidth;
             }
             else if (!haveBottomCell)
             {
-              verts[2].y -= pixSize;
+              verts[2].y -= innerOffset;
               verts[3].y += glowWidth;
             }
 
-            addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
-            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
-            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
-            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
-            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
-            addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
+            addVertex(origin + scale * verts[0], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+            addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+            addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+            addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+            addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+            addVertex(origin + scale * verts[3], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
           }
 
           if (!haveRightCell)
           {
             glm::vec2 verts[4] =
             {
-              { x + 1.0f - pixSize,   y },
+              { x + 1.0f - innerOffset,   y },
               { x + 1.0f + glowWidth, y },
-              { x + 1.0f - pixSize,   y + 1.0f },
+              { x + 1.0f - innerOffset,   y + 1.0f },
               { x + 1.0f + glowWidth, y + 1.0f }
             };
 
             if (haveTopRightCell)
             {
-              verts[0].y -= pixSize;
+              verts[0].y -= innerOffset;
               verts[1].y += glowWidth;
             }
             else if (!haveTopCell)
             {
-              verts[0].y += pixSize;
+              verts[0].y += innerOffset;
               verts[1].y -= glowWidth;
             }
 
             if (haveRightBottomCell)
             {
-              verts[2].y += pixSize;
+              verts[2].y += innerOffset;
               verts[3].y -= glowWidth;
             }
             else if (!haveBottomCell)
             {
-              verts[2].y -= pixSize;
+              verts[2].y -= innerOffset;
               verts[3].y += glowWidth;
             }
 
-            addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
-            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
-            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
-            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
-            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
-            addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
+            addVertex(origin + scale * verts[0], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+            addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+            addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+            addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+            addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+            addVertex(origin + scale * verts[3], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
           }
 
           if (!haveTopCell)
           {
             glm::vec2 verts[4] =
             {
-              { x,        y + pixSize },
+              { x,        y + innerOffset },
               { x,        y - glowWidth },
-              { x + 1.0f, y + pixSize },
+              { x + 1.0f, y + innerOffset },
               { x + 1.0f, y - glowWidth }
             };
 
             if (haveLeftTopCell)
             {
-              verts[0].x -= pixSize;
+              verts[0].x -= innerOffset;
               verts[1].x += glowWidth;
             }
             else if (!haveLeftCell)
             {
-              verts[0].x += pixSize;
+              verts[0].x += innerOffset;
               verts[1].x -= glowWidth;
             }
 
             if (haveTopRightCell)
             {
-              verts[2].x += pixSize;
+              verts[2].x += innerOffset;
               verts[3].x -= glowWidth;
             }
             else if (!haveRightCell)
             {
-              verts[2].x -= pixSize;
+              verts[2].x -= innerOffset;
               verts[3].x += glowWidth;
             }
 
-            addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
-            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
-            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
-            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
-            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
-            addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
+            addVertex(origin + scale * verts[0], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+            addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+            addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+            addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+            addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+            addVertex(origin + scale * verts[3], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
           }
 
           if (!haveBottomCell)
           {
             glm::vec2 verts[4] =
             {
-              { x,        y + 1.0f - pixSize },
+              { x,        y + 1.0f - innerOffset },
               { x,        y + 1.0f + glowWidth },
-              { x + 1.0f, y + 1.0f - pixSize },
+              { x + 1.0f, y + 1.0f - innerOffset },
               { x + 1.0f, y + 1.0f + glowWidth }
             };
 
             if (haveBottomLeftCell)
             {
-              verts[0].x -= pixSize;
+              verts[0].x -= innerOffset;
               verts[1].x += glowWidth;
             }
             else if (!haveLeftCell)
             {
-              verts[0].x += pixSize;
+              verts[0].x += innerOffset;
               verts[1].x -= glowWidth;
             }
 
             if (haveRightBottomCell)
             {
-              verts[2].x += pixSize;
+              verts[2].x += innerOffset;
               verts[3].x -= glowWidth;
             }
             else if (!haveRightCell)
             {
-              verts[2].x -= pixSize;
+              verts[2].x -= innerOffset;
               verts[3].x += glowWidth;
             }
 
-            addVertex(origin + scale * verts[0], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
-            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
-            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
-            addVertex(origin + scale * verts[1], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
-            addVertex(origin + scale * verts[2], glm::vec2(0.5f), Globals::emptyTexIndex, glowInnerColor, 0.0f);
-            addVertex(origin + scale * verts[3], glm::vec2(0.5f), Globals::emptyTexIndex, glowOuterColor, 0.0f);
+            addVertex(origin + scale * verts[0], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+            addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+            addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+            addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+            addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+            addVertex(origin + scale * verts[3], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
           }
         }
       }
@@ -1633,7 +1625,7 @@ void OpenGLRender::buildDropTrails()
     glm::vec3 trailColor = Palette::cellColorArray[dropTrailIt->color] * trailOpSqProgress;
     glm::vec3 sparkleColor = (0.5f + Palette::cellColorArray[dropTrailIt->color]) * trailOpSqProgress;
 
-    buildTexturedRect(trailLeft, trailTop, trailWidth, trailHeight, Globals::dropTrailTexIndex, trailColor, 0.0f);
+    buildTexturedRect(trailLeft, trailTop, trailWidth, trailHeight, tiDropTrail, trailColor, 0.0f);
 
     for (int spInd = 0; spInd < DropTrail::sparkleQty; spInd++)
     {
@@ -1644,7 +1636,7 @@ void OpenGLRender::buildDropTrails()
       float sparkleAlpha = sparkle.alpha;
 
       if (sparkleX < GameLogic::glassWidth - sparkleSize && sparkleY > 0.0f)
-        buildTexturedRect(left + sparkleX, top + sparkleY, sparkleSize, sparkleSize, Globals::dropSparkleTexIndex, sparkleColor * sparkleAlpha, 0.0f);
+        buildTexturedRect(left + sparkleX, top + sparkleY, sparkleSize, sparkleSize, tiDropSparkle, sparkleColor * sparkleAlpha, 0.0f);
     }
   }
 }
@@ -1659,7 +1651,6 @@ void OpenGLRender::buildRowFlashes()
   const float glassLeft = glassLayout->getGlobalLeft();
   const float glassTop = glassLayout->getGlobalTop();
   const float scale = glassLayout->width / GameLogic::glassWidth;
-  const float pixSize = Globals::mainArrayTexturePixelSize;
 
   float overallProgress = glm::clamp(float(Time::timer - GameLogic::rowsDeleteTimer) / Globals::rowsDeletionEffectTime, 0.0f, 1.0f);
   float mul = 1.0f - cos((overallProgress - 0.5f) * (overallProgress < 0.5f ? 0.5f : 2.0f) * (float)M_PI_2);
@@ -1675,7 +1666,7 @@ void OpenGLRender::buildRowFlashes()
     float flashTop = glassTop + scale * (row - dy);
     float flashWidth = scale * (GameLogic::glassWidth + 2.0f * dx);
     float flashHeight = scale * (1.0f + 2.0f * dy);
-    buildTexturedRect(flashLeft, flashTop, flashWidth, flashHeight, Globals::rowFlashTexIndex, flashColor, 0.0f);
+    buildTexturedRect(flashLeft, flashTop, flashWidth, flashHeight, tiRowFlash, flashColor, 0.0f);
   }
 
   if (GameLogic::getDeletedRowsBegin() != GameLogic::getDeletedRowsEnd())
@@ -1704,9 +1695,9 @@ void OpenGLRender::buildRowFlashes()
 
       glm::vec2 uv[4] =
       {
-        { 0.5f, pixSize },
-        { pixSize, 1.0f - pixSize },
-        { 1.0f - pixSize, 1.0f - pixSize },
+        { 0.5f, 0.0f },
+        { 0.0f, 1.0f },
+        { 1.0f, 1.0f },
       };
 
       float alphaMul = 1.0f - 2.0f * fabs(0.5f - glm::clamp(shineProgress * shineProgress, 0.1f, 1.0f));
@@ -1721,9 +1712,9 @@ void OpenGLRender::buildRowFlashes()
         { glassLeft + scale * (gapX + rayEndDX), glassTop + scale * (gapY2 + rayEndDY2) },
       };
 
-      addVertex(verts[0], uv[0], Globals::rowShineRayTexIndex, rayBeginColor, 0.0f);
-      addVertex(verts[1], uv[1], Globals::rowShineRayTexIndex, rayEndColor, 0.0f);
-      addVertex(verts[2], uv[2], Globals::rowShineRayTexIndex, rayEndColor, 0.0f);
+      addVertex(verts[0], uv[0], tiRowShineRay, rayBeginColor, 0.0f);
+      addVertex(verts[1], uv[1], tiRowShineRay, rayEndColor, 0.0f);
+      addVertex(verts[2], uv[2], tiRowShineRay, rayEndColor, 0.0f);
     }
 
     float shineSize = 3.5f;
@@ -1731,14 +1722,13 @@ void OpenGLRender::buildRowFlashes()
     float shineTop = glassTop + scale * lightSourceY - 0.5f * shineSize;
     const glm::vec3 shineColor(0.1f * sin(shineProgress * (float)M_PI) * Palette::deletedRowShineBright);
 
-    buildTexturedRect(shineLeft, shineTop, shineSize, shineSize, Globals::rowShineLightTexIndex, shineColor, 0.0f);
+    buildTexturedRect(shineLeft, shineTop, shineSize, shineSize, tiRowShineLight, shineColor, 0.0f);
   }
 }
 
 void OpenGLRender::buildSideBar(float left, float top, float width, float height, float cornerSize, float glowWidth, const glm::vec3 & topColor, const glm::vec3 & bottomColor, const glm::vec3 & glowColor)
 {
   glm::vec2 origin = glm::vec2(left, top);
-  const float pixSize = Globals::mainArrayTexturePixelSize;
   const float tessSize = cornerSize;
   int xTess = int(width / tessSize);
   int yTess = int(height / tessSize);
@@ -1786,14 +1776,14 @@ void OpenGLRender::buildSideBar(float left, float top, float width, float height
 
     if (x || y)
     {
-      addVertex(origin + verts[0], uv[0], Globals::backgroundTexIndex, col0, 1.0f);
-      addVertex(origin + verts[1], uv[1], Globals::backgroundTexIndex, col0, 1.0f);
-      addVertex(origin + verts[2], uv[2], Globals::backgroundTexIndex, col1, 1.0f);
+      addVertex(origin + verts[0], uv[0], tiBackground, col0, 1.0f);
+      addVertex(origin + verts[1], uv[1], tiBackground, col0, 1.0f);
+      addVertex(origin + verts[2], uv[2], tiBackground, col1, 1.0f);
     }
 
-    addVertex(origin + verts[1], uv[1], Globals::backgroundTexIndex, col0, 1.0f);
-    addVertex(origin + verts[2], uv[2], Globals::backgroundTexIndex, col1, 1.0f);
-    addVertex(origin + verts[3], uv[3], Globals::backgroundTexIndex, col1, 1.0f);
+    addVertex(origin + verts[1], uv[1], tiBackground, col0, 1.0f);
+    addVertex(origin + verts[2], uv[2], tiBackground, col1, 1.0f);
+    addVertex(origin + verts[3], uv[3], tiBackground, col1, 1.0f);
   }
 
   const float sin_22_5 = 0.414213562373f;
@@ -1832,58 +1822,57 @@ void OpenGLRender::buildSideBar(float left, float top, float width, float height
 
   glm::vec2 borderUV[6] =
   {
-    { pixSize, 0.5f },
+    { 0.0f, 0.5f },
     { 0.5f, 0.5f },
     { 0.75f, 0.5f },
     { 0.75f, 0.5f },
-    { 1.0f - pixSize, 0.5f },
-    { 1.0f - pixSize, 0.5f },
+    { 1.0f, 0.5f },
+    { 1.0f, 0.5f },
   };
 
   glm::vec2 outerGlowUV[6] =
   {
-    { pixSize, pixSize },
-    { 0.5f, pixSize },
-    { 0.75f, pixSize },
-    { 0.75f, pixSize },
-    { 1.0f - pixSize, pixSize },
-    { 1.0f - pixSize, pixSize },
+    { 0.0f, 0.0f },
+    { 0.5f, 0.0f },
+    { 0.75f, 0.0f },
+    { 0.75f, 0.0f },
+    { 1.0f, 0.0f },
+    { 1.0f, 0.0f },
   };
 
   glm::vec2 innerGlowUV[6] =
   {
-    { pixSize, 1.0f - pixSize },
-    { 0.5f, 1.0f - pixSize },
-    { 0.75f, 1.0f - pixSize },
-    { 0.75f, 1.0f - pixSize },
-    { 1.0f - pixSize, 1.0f - pixSize },
-    { 1.0f - pixSize, 1.0f - pixSize },
+    { 0.0f, 1.0f },
+    { 0.5f, 1.0f },
+    { 0.75f, 1.0f },
+    { 0.75f, 1.0f },
+    { 1.0f, 1.0f },
+    { 1.0f, 1.0f },
   };
 
   for (int i = 0; i < 5; i++)
   {
-    addVertex(origin + borderVerts[i], borderUV[i], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
-    addVertex(origin + outerGlowVerts[i], outerGlowUV[i], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
-    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
+    addVertex(origin + borderVerts[i], borderUV[i], tiGuiPanelGlow, glowColor, 0.0f);
+    addVertex(origin + outerGlowVerts[i], outerGlowUV[i], tiGuiPanelGlow, glowColor, 0.0f);
+    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
 
-    addVertex(origin + outerGlowVerts[i], outerGlowUV[i], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
-    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
-    addVertex(origin + outerGlowVerts[i + 1], outerGlowUV[i + 1], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
+    addVertex(origin + outerGlowVerts[i], outerGlowUV[i], tiGuiPanelGlow, glowColor, 0.0f);
+    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
+    addVertex(origin + outerGlowVerts[i + 1], outerGlowUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
 
-    addVertex(origin + borderVerts[i], borderUV[i], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
-    addVertex(origin + innerGlowVerts[i], innerGlowUV[i], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
-    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
+    addVertex(origin + borderVerts[i], borderUV[i], tiGuiPanelGlow, glowColor, 0.0f);
+    addVertex(origin + innerGlowVerts[i], innerGlowUV[i], tiGuiPanelGlow, glowColor, 0.0f);
+    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
 
-    addVertex(origin + innerGlowVerts[i], innerGlowUV[i], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
-    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
-    addVertex(origin + innerGlowVerts[i + 1], innerGlowUV[i + 1], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
+    addVertex(origin + innerGlowVerts[i], innerGlowUV[i], tiGuiPanelGlow, glowColor, 0.0f);
+    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
+    addVertex(origin + innerGlowVerts[i + 1], innerGlowUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
   }
 }
 
 void OpenGLRender::buildWindow(float left, float top, float width, float height, float cornerSize, float glowWidth, const glm::vec3 & topColor, const glm::vec3 & bottomColor, const glm::vec3 & glowColor)
 {
   glm::vec2 origin = glm::vec2(left, top);
-  const float pixSize = Globals::mainArrayTexturePixelSize;
   const float tessSize = cornerSize;
   int xTess = int(width / tessSize);
   int yTess = int(height / tessSize);
@@ -1931,14 +1920,14 @@ void OpenGLRender::buildWindow(float left, float top, float width, float height,
 
     if (x || y)
     {
-      addVertex(origin + verts[0], uv[0], Globals::backgroundTexIndex, col0, 1.0f);
-      addVertex(origin + verts[1], uv[1], Globals::backgroundTexIndex, col0, 1.0f);
-      addVertex(origin + verts[2], uv[2], Globals::backgroundTexIndex, col1, 1.0f);
+      addVertex(origin + verts[0], uv[0], tiBackground, col0, 1.0f);
+      addVertex(origin + verts[1], uv[1], tiBackground, col0, 1.0f);
+      addVertex(origin + verts[2], uv[2], tiBackground, col1, 1.0f);
     }
 
-    addVertex(origin + verts[1], uv[1], Globals::backgroundTexIndex, col0, 1.0f);
-    addVertex(origin + verts[2], uv[2], Globals::backgroundTexIndex, col1, 1.0f);
-    addVertex(origin + verts[3], uv[3], Globals::backgroundTexIndex, col1, 1.0f);
+    addVertex(origin + verts[1], uv[1], tiBackground, col0, 1.0f);
+    addVertex(origin + verts[2], uv[2], tiBackground, col1, 1.0f);
+    addVertex(origin + verts[3], uv[3], tiBackground, col1, 1.0f);
   }
 
   const float sin_22_5 = 0.414213562373f;
@@ -1980,54 +1969,54 @@ void OpenGLRender::buildWindow(float left, float top, float width, float height,
 
   glm::vec2 borderUV[7] =
   {
-    { pixSize, 0.5f },
+    { 0.0f, 0.5f },
     { 0.5f, 0.5f },
     { 0.75f, 0.5f },
     { 0.75f, 0.5f },
-    { 1.0f - pixSize, 0.5f },
-    { 1.0f - pixSize, 0.5f },
-    { pixSize, 0.5f },
+    { 1.0f, 0.5f },
+    { 1.0f, 0.5f },
+    { 0.0f, 0.5f },
   };
 
   glm::vec2 outerGlowUV[7] =
   {
-    { pixSize, pixSize },
-    { 0.5f, pixSize },
-    { 0.75f, pixSize },
-    { 0.75f, pixSize },
-    { 1.0f - pixSize, pixSize },
-    { 1.0f - pixSize, pixSize },
-    { pixSize, pixSize },
+    { 0.0f, 0.0f },
+    { 0.5f, 0.0f },
+    { 0.75f, 0.0f },
+    { 0.75f, 0.0f },
+    { 1.0f, 0.0f },
+    { 1.0f, 0.0f },
+    { 0.0f, 0.0f },
   };
 
   glm::vec2 innerGlowUV[7] =
   {
-    { pixSize, 1.0f - pixSize },
-    { 0.5f, 1.0f - pixSize },
-    { 0.75f, 1.0f - pixSize },
-    { 0.75f, 1.0f - pixSize },
-    { 1.0f - pixSize, 1.0f - pixSize },
-    { 1.0f - pixSize, 1.0f - pixSize },
-    { pixSize, 1.0f - pixSize },
+    { 0.0f, 1.0f },
+    { 0.5f, 1.0f },
+    { 0.75f, 1.0f },
+    { 0.75f, 1.0f },
+    { 1.0f, 1.0f },
+    { 1.0f, 1.0f },
+    { 0.0f, 1.0f },
   };
 
   for (int i = 0; i < 6; i++)
   {
-    addVertex(origin + borderVerts[i], borderUV[i], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
-    addVertex(origin + outerGlowVerts[i], outerGlowUV[i], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
-    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
+    addVertex(origin + borderVerts[i], borderUV[i], tiGuiPanelGlow, glowColor, 0.0f);
+    addVertex(origin + outerGlowVerts[i], outerGlowUV[i], tiGuiPanelGlow, glowColor, 0.0f);
+    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
 
-    addVertex(origin + outerGlowVerts[i], outerGlowUV[i], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
-    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
-    addVertex(origin + outerGlowVerts[i + 1], outerGlowUV[i + 1], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
+    addVertex(origin + outerGlowVerts[i], outerGlowUV[i], tiGuiPanelGlow, glowColor, 0.0f);
+    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
+    addVertex(origin + outerGlowVerts[i + 1], outerGlowUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
 
-    addVertex(origin + borderVerts[i], borderUV[i], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
-    addVertex(origin + innerGlowVerts[i], innerGlowUV[i], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
-    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
+    addVertex(origin + borderVerts[i], borderUV[i], tiGuiPanelGlow, glowColor, 0.0f);
+    addVertex(origin + innerGlowVerts[i], innerGlowUV[i], tiGuiPanelGlow, glowColor, 0.0f);
+    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
 
-    addVertex(origin + innerGlowVerts[i], innerGlowUV[i], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
-    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
-    addVertex(origin + innerGlowVerts[i + 1], innerGlowUV[i + 1], Globals::sidePanelGlowTexIndex, glowColor, 0.0f);
+    addVertex(origin + innerGlowVerts[i], innerGlowUV[i], tiGuiPanelGlow, glowColor, 0.0f);
+    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
+    addVertex(origin + innerGlowVerts[i + 1], innerGlowUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
   }
 }
 
@@ -2111,141 +2100,141 @@ void OpenGLRender::buildMenu(MenuLogic * menuLogic, LayoutObject * menuLayout)
 
 void OpenGLRender::loadGlyph(char ch, int size)
 {
-  const int texSize = Globals::mainArrayTextureSize;
-  static int fontNextTexIndex = Globals::fontFirstTexIndex;
-  static std::vector<uint32_t> destBuf(texSize * texSize);
+  //const int texSize = Globals::mainArrayTextureSize;
+  //static int fontNextTexIndex = Globals::fontFirstTexIndex;
+  //static std::vector<uint32_t> destBuf(texSize * texSize);
 
-  FT_Error err = FT_Load_Char(ftFace, (const FT_UInt)ch, FT_LOAD_DEFAULT | FT_LOAD_IGNORE_TRANSFORM | FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT);
-  assert(!err);
-  assert(ftFace->glyph->bitmap.pixel_mode == FT_PIXEL_MODE_GRAY);
-  Glyph & glyph = glyphs[ch][size];
-  glyph.glyphIndex = FT_Get_Char_Index(ftFace, FT_ULong(ch));
-  glyph.texIndex = fontNextTexIndex++;
-  ftFace->glyph->bitmap_left;
-  ftFace->glyph->bitmap_top;
-  glyph.metrics = ftFace->glyph->metrics;
-  uint8_t * srcBuff = ftFace->glyph->bitmap.buffer;
-  const int srcWidth = ftFace->glyph->bitmap.width;
-  const int srcHeight = ftFace->glyph->bitmap.rows;
-  const int srcWidthMinusOne = srcWidth - 1;
-  const int srcHeightMinusOne = srcHeight - 1;
-  const int srcPitch = ftFace->glyph->bitmap.pitch;
+  //FT_Error err = FT_Load_Char(ftFace, (const FT_UInt)ch, FT_LOAD_DEFAULT | FT_LOAD_IGNORE_TRANSFORM | FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT);
+  //assert(!err);
+  //assert(ftFace->glyph->bitmap.pixel_mode == FT_PIXEL_MODE_GRAY);
+  //Glyph & glyph = glyphs[ch][size];
+  //glyph.glyphIndex = FT_Get_Char_Index(ftFace, FT_ULong(ch));
+  //glyph.texIndex = fontNextTexIndex++;
+  //ftFace->glyph->bitmap_left;
+  //ftFace->glyph->bitmap_top;
+  //glyph.metrics = ftFace->glyph->metrics;
+  //unsigned char * srcBuff = ftFace->glyph->bitmap.buffer;
+  //const int srcWidth = ftFace->glyph->bitmap.width;
+  //const int srcHeight = ftFace->glyph->bitmap.rows;
+  //const int srcWidthMinusOne = srcWidth - 1;
+  //const int srcHeightMinusOne = srcHeight - 1;
+  //const int srcPitch = ftFace->glyph->bitmap.pitch;
 
-  for (int y = 0; y < texSize; y++)
-  for (int x = 0; x < texSize; x++)
-  {
-    const int brd = 2;
-    if (x < brd || y < brd || x >= texSize - brd || y >= texSize - brd)
-      destBuf[x + y * texSize] = 0xFFFF0000;
-    else
-    {
-      float srcXf = float(x - brd) / (texSize - brd * 2) * (srcWidth + 1) - 1;
-      float srcYf = float(y - brd) / (texSize - brd * 2) * (srcHeight + 1) - 1;
-      int srcXi = int(glm::floor(srcXf));
-      int srcYi = int(glm::floor(srcYf));
-      float uRatio = srcXf - srcXi;
-      float vRatio = srcYf - srcYi;
-      uint8_t * srcPix = srcBuff + srcXi + srcYi * srcPitch;
-      float p00 = srcXi >= 0 && srcYi >= 0 ? float(*srcPix) : 0.0f;
-      float p10 = srcYi >= 0 && srcXi < srcWidthMinusOne ? float(*(srcPix + 1)) : 0.0f;
-      float p01 = srcXi >= 0 && srcYi < srcHeightMinusOne ? float(*(srcPix + srcPitch)) : 0.0f;
-      float p11 = srcXi < srcWidthMinusOne && srcYi < srcHeightMinusOne ? float(*(srcPix + 1 + srcPitch)) : 0.0f;
-      uint8_t result = uint8_t(glm::mix(glm::mix(p00, p10, uRatio), glm::mix(p01, p11, uRatio), vRatio));
-      destBuf[x + y * texSize] = result | ((0xFF - result) << 16) | 0xFF << 24;
-    }
-  }
+  //for (int y = 0; y < texSize; y++)
+  //for (int x = 0; x < texSize; x++)
+  //{
+  //  const int brd = 2;
+  //  if (x < brd || y < brd || x >= texSize - brd || y >= texSize - brd)
+  //    destBuf[x + y * texSize] = 0xFFFF0000;
+  //  else
+  //  {
+  //    float srcXf = float(x - brd) / (texSize - brd * 2) * (srcWidth + 1) - 1;
+  //    float srcYf = float(y - brd) / (texSize - brd * 2) * (srcHeight + 1) - 1;
+  //    int srcXi = int(glm::floor(srcXf));
+  //    int srcYi = int(glm::floor(srcYf));
+  //    float uRatio = srcXf - srcXi;
+  //    float vRatio = srcYf - srcYi;
+  //    unsigned char * srcPix = srcBuff + srcXi + srcYi * srcPitch;
+  //    float p00 = srcXi >= 0 && srcYi >= 0 ? float(*srcPix) : 0.0f;
+  //    float p10 = srcYi >= 0 && srcXi < srcWidthMinusOne ? float(*(srcPix + 1)) : 0.0f;
+  //    float p01 = srcXi >= 0 && srcYi < srcHeightMinusOne ? float(*(srcPix + srcPitch)) : 0.0f;
+  //    float p11 = srcXi < srcWidthMinusOne && srcYi < srcHeightMinusOne ? float(*(srcPix + 1 + srcPitch)) : 0.0f;
+  //    uint8_t result = uint8_t(glm::mix(glm::mix(p00, p10, uRatio), glm::mix(p01, p11, uRatio), vRatio));
+  //    destBuf[x + y * texSize] = result | ((0xFF - result) << 16) | 0xFF << 24;
+  //  }
+  //}
 
-  glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, glyph.texIndex, texSize, texSize, 1, GL_RGBA, GL_UNSIGNED_BYTE, destBuf.data());
-  assert(!checkGlErrors());
+  //glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, glyph.texIndex, texSize, texSize, 1, GL_RGBA, GL_UNSIGNED_BYTE, destBuf.data());
+  //assert(!checkGlErrors());
 }
 
 // returns text width
 float OpenGLRender::buildTextMesh(float left, float top, float width, float height, const char * str, int fontSize, float scale, const glm::vec3 & color, float alpha, HorzAllign horzAllign, VertAllign vertAllign)
 {
-  float penX = 0;
-  char leftChar = 0;
-  static std::vector<glm::vec2> verts(1024);
-  static std::vector<glm::vec2> uv(1024);
-  static std::vector<int> glyphTexIndex(1024);
-  verts.clear();
-  uv.clear();
-  glyphTexIndex.clear();
+  //float penX = 0;
+  //char leftChar = 0;
+  //static std::vector<glm::vec2> verts(1024);
+  //static std::vector<glm::vec2> uv(1024);
+  //static std::vector<int> glyphTexIndex(1024);
+  //verts.clear();
+  //uv.clear();
+  //glyphTexIndex.clear();
 
-  for (const char * pch = str, *eof = pch + strlen(str); pch < eof; pch++)
-  {
-    GlyphCharMap::iterator charIt = glyphs.find(*pch);
-    assert(charIt != glyphs.end());
+  //for (const char * pch = str, *eof = pch + strlen(str); pch < eof; pch++)
+  //{
+  //  GlyphCharMap::iterator charIt = glyphs.find(*pch);
+  //  assert(charIt != glyphs.end());
 
-    if (charIt == glyphs.end())
-      continue;
+  //  if (charIt == glyphs.end())
+  //    continue;
 
-    GlyphSizeMap::iterator sizeIt = charIt->second.find(fontSize);
-    assert(sizeIt != charIt->second.end());
+  //  GlyphSizeMap::iterator sizeIt = charIt->second.find(fontSize);
+  //  assert(sizeIt != charIt->second.end());
 
-    if (sizeIt == charIt->second.end())
-      continue;
+  //  if (sizeIt == charIt->second.end())
+  //    continue;
 
-    Glyph & glyph = sizeIt->second;
-    FT_Vector kern = { 0, 0 };
+  //  Glyph & glyph = sizeIt->second;
+  //  FT_Vector kern = { 0, 0 };
 
-    if (leftChar)
-    {
-      FT_UInt leftGlyphIndex = FT_Get_Char_Index(ftFace, FT_ULong(leftChar));
-      FT_UInt rightGlyphIndex = FT_Get_Char_Index(ftFace, FT_ULong(*pch));
-      FT_Error err = FT_Get_Kerning(ftFace, leftGlyphIndex, rightGlyphIndex, FT_KERNING_UNFITTED, &kern);
-      assert(!err);
-    }
-    
-    leftChar = *pch;
-    float leftTopX = penX + scale * (kern.x + glyph.metrics.horiBearingX) / 64 / fontSize;
-    float leftTopY = -scale * glyph.metrics.horiBearingY / 64 / fontSize;
-    float rightBottomX = leftTopX + scale * glyph.metrics.width / 64 / fontSize;
-    float rightBottomY = leftTopY + scale * glyph.metrics.height / 64 / fontSize;
+  //  if (leftChar)
+  //  {
+  //    FT_UInt leftGlyphIndex = FT_Get_Char_Index(ftFace, FT_ULong(leftChar));
+  //    FT_UInt rightGlyphIndex = FT_Get_Char_Index(ftFace, FT_ULong(*pch));
+  //    FT_Error err = FT_Get_Kerning(ftFace, leftGlyphIndex, rightGlyphIndex, FT_KERNING_UNFITTED, &kern);
+  //    assert(!err);
+  //  }
+  //  
+  //  leftChar = *pch;
+  //  float leftTopX = penX + scale * (kern.x + glyph.metrics.horiBearingX) / 64 / fontSize;
+  //  float leftTopY = -scale * glyph.metrics.horiBearingY / 64 / fontSize;
+  //  float rightBottomX = leftTopX + scale * glyph.metrics.width / 64 / fontSize;
+  //  float rightBottomY = leftTopY + scale * glyph.metrics.height / 64 / fontSize;
 
-    const float pixSize = 0.5f * Globals::mainArrayTexturePixelSize;
+  //  const float pixSize = 0.5f * Globals::mainArrayTexturePixelSize;
 
-    verts.push_back({ leftTopX,     leftTopY });
-    verts.push_back({ leftTopX,     rightBottomY });
-    verts.push_back({ rightBottomX, leftTopY });
-    verts.push_back({ rightBottomX, rightBottomY });
+  //  verts.push_back({ leftTopX,     leftTopY });
+  //  verts.push_back({ leftTopX,     rightBottomY });
+  //  verts.push_back({ rightBottomX, leftTopY });
+  //  verts.push_back({ rightBottomX, rightBottomY });
 
-    uv.push_back({ pixSize, pixSize });
-    uv.push_back({ pixSize, 1.0f - pixSize });
-    uv.push_back({ 1.0f - pixSize, pixSize });
-    uv.push_back({ 1.0f - pixSize, 1.0f - pixSize });
+  //  uv.push_back({ pixSize, pixSize });
+  //  uv.push_back({ pixSize, 1.0f - pixSize });
+  //  uv.push_back({ 1.0f - pixSize, pixSize });
+  //  uv.push_back({ 1.0f - pixSize, 1.0f - pixSize });
 
-    glyphTexIndex.push_back(glyph.texIndex);
+  //  glyphTexIndex.push_back(glyph.texIndex);
 
-    penX += scale * glyph.metrics.horiAdvance / 64 / fontSize;
-  }
+  //  penX += scale * glyph.metrics.horiAdvance / 64 / fontSize;
+  //}
 
   float meshWidth = 0.0f;
 
-  if (!verts.empty())
-  {
-    meshWidth = penX - verts.front().x;
-    glm::vec2 origin(left, top + scale * ftFace->ascender / ftFace->height);
+  //if (!verts.empty())
+  //{
+  //  meshWidth = penX - verts.front().x;
+  //  glm::vec2 origin(left, top + scale * ftFace->ascender / ftFace->height);
 
-    if (horzAllign == haRight)
-      origin.x += width - meshWidth;
-    else if (horzAllign == haCenter)
-      origin.x += 0.5f * (width - meshWidth);
+  //  if (horzAllign == haRight)
+  //    origin.x += width - meshWidth;
+  //  else if (horzAllign == haCenter)
+  //    origin.x += 0.5f * (width - meshWidth);
 
-    if (vertAllign == vaBottom)
-      origin.y += height - scale;
-    else if (vertAllign == vaCenter)
-      origin.y += 0.5f * (height - scale);
+  //  if (vertAllign == vaBottom)
+  //    origin.y += height - scale;
+  //  else if (vertAllign == vaCenter)
+  //    origin.y += 0.5f * (height - scale);
 
-    for (int i = 0, cnt = (int)strlen(str); i < cnt; i++)
-    {
-      addVertex(origin + verts[i * 4 + 0], uv[i * 4 + 0], glyphTexIndex[i], color, alpha);
-      addVertex(origin + verts[i * 4 + 1], uv[i * 4 + 1], glyphTexIndex[i], color, alpha);
-      addVertex(origin + verts[i * 4 + 2], uv[i * 4 + 2], glyphTexIndex[i], color, alpha);
-      addVertex(origin + verts[i * 4 + 1], uv[i * 4 + 1], glyphTexIndex[i], color, alpha);
-      addVertex(origin + verts[i * 4 + 2], uv[i * 4 + 2], glyphTexIndex[i], color, alpha);
-      addVertex(origin + verts[i * 4 + 3], uv[i * 4 + 3], glyphTexIndex[i], color, alpha);
-    }
-  }
+  //  for (int i = 0, cnt = (int)strlen(str); i < cnt; i++)
+  //  {
+  //    addVertex(origin + verts[i * 4 + 0], uv[i * 4 + 0], glyphTexIndex[i], color, alpha);
+  //    addVertex(origin + verts[i * 4 + 1], uv[i * 4 + 1], glyphTexIndex[i], color, alpha);
+  //    addVertex(origin + verts[i * 4 + 2], uv[i * 4 + 2], glyphTexIndex[i], color, alpha);
+  //    addVertex(origin + verts[i * 4 + 1], uv[i * 4 + 1], glyphTexIndex[i], color, alpha);
+  //    addVertex(origin + verts[i * 4 + 2], uv[i * 4 + 2], glyphTexIndex[i], color, alpha);
+  //    addVertex(origin + verts[i * 4 + 3], uv[i * 4 + 3], glyphTexIndex[i], color, alpha);
+  //  }
+  //}
 
   return meshWidth;
 }
@@ -2434,7 +2423,7 @@ void OpenGLRender::buildSettings()
             const float shevronHeight = backButtonLayout->height;
             const glm::vec3 & shevronColor = InterfaceLogic::settingsLogic.backButtonHighlighted ? Palette::settingsBackButtonHighlighted : Palette::settingsBackButton;
 
-            buildTexturedRect(shevronLeft, shevronTop, shevronWidth, shevronHeight, Globals::levelBackShevronTexIndex, shevronColor, 1.0f);
+            buildTexturedRect(shevronLeft, shevronTop, shevronWidth, shevronHeight, tiBackShevron, shevronColor, 1.0f);
           }
         }
       }
@@ -2593,7 +2582,7 @@ void OpenGLRender::buildLeaderboard()
             const float shevronHeight = backButtonLayout->height;
             const glm::vec3 & shevronColor = InterfaceLogic::leaderboardLogic.backButtonHighlighted ? Palette::leaderboardBackButtonHighlighted : Palette::leaderboardBackButton;
 
-            buildTexturedRect(shevronLeft, shevronTop, shevronWidth, shevronHeight, Globals::levelBackShevronTexIndex, shevronColor, 1.0f);
+            buildTexturedRect(shevronLeft, shevronTop, shevronWidth, shevronHeight, tiBackShevron, shevronColor, 1.0f);
           }
         }
       }

@@ -19,4 +19,5 @@ public:
   void setUniform(const char * name, GLfloat value1, GLfloat value2);
   void setUniform(const char * name, const glm::vec2 & value);
   void setUniform(const char * name, const glm::mat3 & value);
+  void bindAttribLocation(GLuint pos, const char * name);
 };

@@ -20,6 +20,12 @@ public:
   void update();
 
 private:
+  GLuint mainTextureId = 0;
+  
+  enum TextureIndex { tiEmpty = 0, tiBackground, tiFigureCellNormal, tiFigureCellBold, tiFigureShadow, 
+    tiHoldBackground, tiNextBackground, tiDropTrail, tiDropSparkle, tiRowFlash, tiRowShineRay, 
+    tiRowShineLight, tiGuiPanelGlow, tiLine, tiLevelGoalBackground, tiBackShevron, TEX_INDEX_COUNT };
+
   enum HorzAllign { haLeft, haRight, haCenter };
   enum VertAllign { vaTop, vaBottom, vaCenter };
   const float edgeBlurWidth;
