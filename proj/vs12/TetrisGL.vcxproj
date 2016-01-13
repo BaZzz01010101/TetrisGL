@@ -19,46 +19,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\3rdParty\SOIL2\etc1_utils.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
-      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Level3</WarningLevel>
-      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Level3</WarningLevel>
-      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level3</WarningLevel>
-      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level3</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\..\src\3rdParty\SOIL2\image_DXT.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
-      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Level3</WarningLevel>
-      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Level3</WarningLevel>
-      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level3</WarningLevel>
-      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level3</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\..\src\3rdParty\SOIL2\image_helper.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
-      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Level3</WarningLevel>
-      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Level3</WarningLevel>
-      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level3</WarningLevel>
-      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level3</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\..\src\3rdParty\SOIL2\SOIL2.c">
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
-      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Level3</WarningLevel>
-      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Level3</WarningLevel>
-      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level3</WarningLevel>
-      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level3</WarningLevel>
-    </ClCompile>
     <ClCompile Include="..\..\src\Application.cpp" />
     <ClCompile Include="..\..\src\Binding.cpp" />
     <ClCompile Include="..\..\src\Cell.cpp" />
@@ -81,6 +41,7 @@
     <ClCompile Include="..\..\src\GameLogic.cpp" />
     <ClCompile Include="..\..\src\OpenGLApplication.cpp" />
     <ClCompile Include="..\..\src\Program.cpp" />
+    <ClCompile Include="..\..\src\SDFF.cpp" />
     <ClCompile Include="..\..\src\SettingsLogic.cpp" />
     <ClCompile Include="..\..\src\Shader.cpp" />
     <ClCompile Include="..\..\src\DropSparkle.cpp" />
@@ -175,22 +136,6 @@
     <ClInclude Include="..\..\src\3rdParty\freetype\tttables.h" />
     <ClInclude Include="..\..\src\3rdParty\freetype\tttags.h" />
     <ClInclude Include="..\..\src\3rdParty\freetype\ttunpat.h" />
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\etc1_utils.h" />
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\image_DXT.h" />
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\image_helper.h" />
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\pkm_helper.h" />
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\pvr_helper.h" />
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\SOIL2.h" />
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\stbi_DDS.h" />
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\stbi_DDS_c.h" />
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\stbi_ext.h" />
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\stbi_ext_c.h" />
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\stbi_pkm.h" />
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\stbi_pkm_c.h" />
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\stbi_pvr.h" />
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\stbi_pvr_c.h" />
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\stb_image.h" />
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\stb_image_write.h" />
     <ClInclude Include="..\..\src\Application.h" />
     <ClInclude Include="..\..\src\Binding.h" />
     <ClInclude Include="..\..\src\Cell.h" />
@@ -212,6 +157,7 @@
     <ClInclude Include="..\..\src\GameLogic.h" />
     <ClInclude Include="..\..\src\OpenGLApplication.h" />
     <ClInclude Include="..\..\src\Program.h" />
+    <ClInclude Include="..\..\src\SDFF.h" />
     <ClInclude Include="..\..\src\SettingsLogic.h" />
     <ClInclude Include="..\..\src\Shader.h" />
     <ClInclude Include="..\..\src\DropSparkle.h" />

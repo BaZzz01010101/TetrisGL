@@ -16,14 +16,8 @@
     <Filter Include="Header Files\3rd party">
       <UniqueIdentifier>{903d0acb-c359-4d65-8473-74f74458135a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\3rd party\SOIL2">
-      <UniqueIdentifier>{9e406680-5882-40d2-8cb0-61ca4f615c6c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\3rd party">
       <UniqueIdentifier>{aa50d576-857d-4efc-bf01-925fd2729633}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\3rd party\SOIL2">
-      <UniqueIdentifier>{05e4e2c1-9777-40cc-b825-6476b3c7ccb6}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\3rd party\freetype">
       <UniqueIdentifier>{b896a628-180d-4f1a-8101-4061e41788fb}</UniqueIdentifier>
@@ -53,18 +47,6 @@
     </ClCompile>
     <ClCompile Include="..\..\src\FpsCounter.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\3rdParty\SOIL2\image_DXT.c">
-      <Filter>Source Files\3rd party\SOIL2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\3rdParty\SOIL2\image_helper.c">
-      <Filter>Source Files\3rd party\SOIL2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\3rdParty\SOIL2\SOIL2.c">
-      <Filter>Source Files\3rd party\SOIL2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\3rdParty\SOIL2\etc1_utils.c">
-      <Filter>Source Files\3rd party\SOIL2</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Figure.cpp">
       <Filter>Source Files</Filter>
@@ -132,6 +114,9 @@
     <ClCompile Include="..\..\src\Sound.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\SDFF.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\Crosy.h">
@@ -145,54 +130,6 @@
     </ClInclude>
     <ClInclude Include="..\..\src\FpsCounter.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\image_DXT.h">
-      <Filter>Header Files\3rd party\SOIL2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\image_helper.h">
-      <Filter>Header Files\3rd party\SOIL2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\pkm_helper.h">
-      <Filter>Header Files\3rd party\SOIL2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\pvr_helper.h">
-      <Filter>Header Files\3rd party\SOIL2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\SOIL2.h">
-      <Filter>Header Files\3rd party\SOIL2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\stb_image.h">
-      <Filter>Header Files\3rd party\SOIL2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\stb_image_write.h">
-      <Filter>Header Files\3rd party\SOIL2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\stbi_DDS.h">
-      <Filter>Header Files\3rd party\SOIL2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\stbi_DDS_c.h">
-      <Filter>Header Files\3rd party\SOIL2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\stbi_ext.h">
-      <Filter>Header Files\3rd party\SOIL2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\stbi_ext_c.h">
-      <Filter>Header Files\3rd party\SOIL2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\stbi_pkm.h">
-      <Filter>Header Files\3rd party\SOIL2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\stbi_pkm_c.h">
-      <Filter>Header Files\3rd party\SOIL2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\stbi_pvr.h">
-      <Filter>Header Files\3rd party\SOIL2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\stbi_pvr_c.h">
-      <Filter>Header Files\3rd party\SOIL2</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\3rdParty\SOIL2\etc1_utils.h">
-      <Filter>Header Files\3rd party\SOIL2</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\Figure.h">
       <Filter>Header Files</Filter>
@@ -523,6 +460,9 @@
     </ClInclude>
     <ClInclude Include="..\..\src\3rdParty\freetype\internal\services\svwinfnt.h">
       <Filter>Header Files\3rd party\freetype\internal\services</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\SDFF.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

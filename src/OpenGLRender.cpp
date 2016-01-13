@@ -1,3 +1,5 @@
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "static_headers.h"
 
 #include "OpenGLRender.h"
@@ -12,6 +14,8 @@
 OpenGLRender::OpenGLRender() :
   figureVert(GL_VERTEX_SHADER),
   figureFrag(GL_FRAGMENT_SHADER),
+  fontVert(GL_VERTEX_SHADER),
+  fontFrag(GL_FRAGMENT_SHADER),
   edgeBlurWidth(0.005f),
   showWireframe(false)
 {
@@ -32,7 +36,11 @@ void OpenGLRender::init(int width, int height)
   glGenBuffers(1, &vertexBufferId);
   assert(!checkGlErrors());
 
+  glGenBuffers(1, &textVertexBufferId);
+  assert(!checkGlErrors());
+
   vertexBuffer.reserve(4096);
+  textVertexBuffer.reserve(4096);
 
   figureVert.compileFromString(
     "#version 120\n"
@@ -85,80 +93,90 @@ void OpenGLRender::init(int width, int height)
   figureProg.use();
   figureProg.setUniform("tex", 0);
 
-  std::string backPath = Crosy::getExePath() + "\\textures\\blocks_atlas.png";
+  fontVert.compileFromString(
+    "#version 120\n"
+    "attribute vec2 vertexPos;"
+    "attribute vec2 vertexUV;"
+    "attribute vec4 vertexRGBA;"
+    "varying vec2 uv;"
+    "varying vec4 color;"
+
+    "void main()"
+    "{"
+    "  gl_Position = vec4(vertexPos.x * 2.0 - 1.0, 1.0 - vertexPos.y * 2.0, 0, 1);"
+    "  uv = vertexUV;"
+    "  color = vertexRGBA;"
+    "}");
+
+  fontFrag.compileFromString(
+    "#version 120\n"
+    "uniform sampler2D tex;"
+    "varying vec2 uv;"
+    "varying vec4 color;"
+
+    "void main()"
+    "{"
+    "  const float threshold = 0.1;"
+    "  float alpha = smoothstep(0.5 - threshold, 0.5 + threshold, texture2D(tex, uv).a);"
+    "  gl_FragColor = color * alpha;"
+    "}");
+
+  fontProg.attachShader(fontVert);
+  fontProg.attachShader(fontFrag);
+  fontProg.bindAttribLocation(0, "vertexPos");
+  fontProg.bindAttribLocation(1, "vertexUV");
+  fontProg.bindAttribLocation(2, "vertexRGBA");
+  fontProg.link();
+  fontProg.use();
+  fontProg.setUniform("tex", 0);
+
+  std::string mainAtlasFileName = Crosy::getExePath() + "\\textures\\MainAtlas.png";
   int imageWidth, imageHeight, channels;
-  unsigned char * img = SOIL_load_image(backPath.c_str(), &imageWidth, &imageHeight, &channels, SOIL_LOAD_RGBA);
-  assert(img);
 
-  glGenTextures(1, &mainTextureId);
-  assert(!checkGlErrors());
-  glBindTexture(GL_TEXTURE_2D, mainTextureId);
-  assert(!checkGlErrors());
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, img);
-  assert(!checkGlErrors());
-  SOIL_free_image_data(img);
+  if (unsigned char * mainAtlasImage = stbi_load(mainAtlasFileName.c_str(), &imageWidth, &imageHeight, &channels, 4))
+  {
+    glGenTextures(1, &mainTextureId);
+    assert(!checkGlErrors());
+    glBindTexture(GL_TEXTURE_2D, mainTextureId);
+    assert(!checkGlErrors());
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, mainAtlasImage);
+    assert(!checkGlErrors());
+    free(mainAtlasImage);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    assert(!checkGlErrors());
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    assert(!checkGlErrors());
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); //GL_LINEAR_MIPMAP_LINEAR);
+    assert(!checkGlErrors());
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -1);
+    assert(!checkGlErrors());
+  }
+  else assert(0);
 
-  FT_Error err;
-  err = FT_Init_FreeType(&ftLibrary);
-  assert(!err);
-  err = FT_New_Face(ftLibrary, (Crosy::getExePath() + "/fonts/Montserrat-Bold.otf").c_str(), 0, &ftFace);
-  assert(!err);
-  err = FT_Set_Char_Size(ftFace, Globals::smallFontSize * 64, Globals::smallFontSize * 64, 64, 64);
-  assert(!err);
 
-  for (char ch = '0'; ch <= '9'; ch++)
-    loadGlyph(ch, Globals::smallFontSize);
+  std::string fontTextureFileName = Crosy::getExePath() + "\\fonts\\MontserratTexture.png";
+  if (unsigned char * fontTextureImage = stbi_load(fontTextureFileName.c_str(), &imageWidth, &imageHeight, &channels, 1))
+  {
+    glGenTextures(1, &fontTextureId);
+    assert(!checkGlErrors());
+    glBindTexture(GL_TEXTURE_2D, fontTextureId);
+    assert(!checkGlErrors());
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, imageWidth, imageHeight, 0, GL_ALPHA, GL_UNSIGNED_BYTE, fontTextureImage);
+    assert(!checkGlErrors());
+    free(fontTextureImage);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    assert(!checkGlErrors());
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    assert(!checkGlErrors());
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); //GL_LINEAR_MIPMAP_LINEAR);
+    assert(!checkGlErrors());
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -1);
+    assert(!checkGlErrors());
+  }
+  else assert(0);
 
-  for (char ch = 'A'; ch <= 'Z'; ch++)
-    loadGlyph(ch, Globals::smallFontSize);
-
-  for (char ch = 'a'; ch <= 'z'; ch++)
-    loadGlyph(ch, Globals::smallFontSize);
-
-  loadGlyph(' ', Globals::smallFontSize);
-  loadGlyph('\'', Globals::smallFontSize);
-
-  err = FT_Set_Char_Size(ftFace, Globals::midFontSize * 64, Globals::midFontSize * 64, 64, 64);
-  assert(!err);
-
-  for (char ch = '0'; ch <= '9'; ch++)
-    loadGlyph(ch, Globals::midFontSize);
-
-  for (char ch = 'A'; ch <= 'Z'; ch++)
-    loadGlyph(ch, Globals::midFontSize);
-
-  for (char ch = 'a'; ch <= 'z'; ch++)
-    loadGlyph(ch, Globals::midFontSize);
-
-  loadGlyph(' ', Globals::midFontSize);
-  loadGlyph('\'', Globals::midFontSize);
-
-  err = FT_Set_Char_Size(ftFace, Globals::bigFontSize * 64, Globals::bigFontSize * 64, 64, 64);
-  assert(!err);
-
-  for (char ch = '0'; ch <= '9'; ch++)
-    loadGlyph(ch, Globals::bigFontSize);
-
-  for (char ch = 'A'; ch <= 'Z'; ch++)
-    loadGlyph(ch, Globals::bigFontSize);
-
-  for (char ch = 'a'; ch <= 'z'; ch++)
-    loadGlyph(ch, Globals::bigFontSize);
-
-  loadGlyph(' ', Globals::bigFontSize);
-  loadGlyph('\'', Globals::bigFontSize);
-
-  glGenerateMipmap(GL_TEXTURE_2D);
-  assert(!checkGlErrors());
-
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  assert(!checkGlErrors());
-
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); //GL_LINEAR_MIPMAP_LINEAR);
-  assert(!checkGlErrors());
-
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -1);
-  assert(!checkGlErrors());
+  std::string fontMetricsFileName = Crosy::getExePath() + "\\fonts\\MontserratMetrics.json";
+  font.load(fontMetricsFileName.c_str());
 
   glDisable(GL_CULL_FACE);
   assert(!checkGlErrors());
@@ -273,6 +291,8 @@ void OpenGLRender::drawMesh()
   glEnableVertexAttribArray(2);
   assert(!checkGlErrors());
 
+  glBindTexture(GL_TEXTURE_2D, mainTextureId);
+  assert(!checkGlErrors());
   glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId);
   assert(!checkGlErrors());
   glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, xy));
@@ -284,7 +304,23 @@ void OpenGLRender::drawMesh()
 
   glDrawArrays(GL_TRIANGLES, 0, (int)vertexBuffer.size());
   assert(!checkGlErrors());
-  
+
+  fontProg.use();
+
+  glBindTexture(GL_TEXTURE_2D, fontTextureId);
+  assert(!checkGlErrors());
+  glBindBuffer(GL_ARRAY_BUFFER, textVertexBufferId);
+  assert(!checkGlErrors());
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(TextVertex), (void*)offsetof(TextVertex, xy));
+  assert(!checkGlErrors());
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(TextVertex), (void*)offsetof(TextVertex, uv));
+  assert(!checkGlErrors());
+  glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(TextVertex), (void*)offsetof(TextVertex, rgba));
+  assert(!checkGlErrors());
+
+  glDrawArrays(GL_TRIANGLES, 0, (int)textVertexBuffer.size());
+  assert(!checkGlErrors());
+
   glDisableVertexAttribArray(0);
   assert(!checkGlErrors());
   glDisableVertexAttribArray(1);
@@ -302,9 +338,19 @@ void OpenGLRender::addVertex(const glm::vec2 & xy, const glm::vec2 & uv, int tex
   vertexBuffer.push_back(vertex);
 }
 
+void OpenGLRender::addTextVertex(const glm::vec2 & xy, const glm::vec2 & uv, const glm::vec3 & color, float alpha)
+{
+  TextVertex vertex;
+  vertex.xy = xy;
+  vertex.uv = uv;
+  vertex.rgba = glm::vec4(color, alpha);
+  textVertexBuffer.push_back(vertex);
+}
+
 void OpenGLRender::clearVertices()
 {
   vertexBuffer.clear();
+  textVertexBuffer.clear();
 }
 
 void OpenGLRender::sendToDevice()
@@ -313,8 +359,15 @@ void OpenGLRender::sendToDevice()
   {
     glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId);
     assert(!checkGlErrors());
-
     glBufferData(GL_ARRAY_BUFFER, vertexBuffer.size() * sizeof(Vertex), vertexBuffer.data(), GL_STATIC_DRAW);
+    assert(!checkGlErrors());
+  }
+
+  if (!textVertexBuffer.empty())
+  {
+    glBindBuffer(GL_ARRAY_BUFFER, textVertexBufferId);
+    assert(!checkGlErrors());
+    glBufferData(GL_ARRAY_BUFFER, textVertexBuffer.size() * sizeof(TextVertex), textVertexBuffer.data(), GL_STATIC_DRAW);
     assert(!checkGlErrors());
   }
 }
@@ -625,7 +678,7 @@ void OpenGLRender::buildBackground()
     const float width = scoreBarCaptionLayout->width;
     const float height = scoreBarCaptionLayout->height;
     buildRect(left, top, width, height, Palette::scoreBarBackground, Palette::scoreBarBackgroundAlpha);
-    buildTextMesh(left, top, width, height, "SCORE", Globals::midFontSize, height, Palette::scoreBarText, 1.0f, haCenter, vaCenter);
+    buildTextMesh(left, top, width, height, "SCORE", height, Palette::scoreBarText, 1.0f, haCenter, vaCenter);
   }
 
   // add score value to the mesh
@@ -637,7 +690,7 @@ void OpenGLRender::buildBackground()
     const float width = scoreBarValueLayout->width;
     const float height = scoreBarValueLayout->height;
     buildRect(left, top, width, height, glm::vec3(0.0f), 0.6f);
-    buildTextMesh(left, top, width, height, std::to_string(GameLogic::curScore).c_str(), Globals::bigFontSize, height, Palette::scoreBarText, 1.0f, haCenter, vaCenter);
+    buildTextMesh(left, top, width, height, std::to_string(GameLogic::curScore).c_str(), height, Palette::scoreBarText, 1.0f, haCenter, vaCenter);
   }
 
   // add MENU button to mesh
@@ -654,7 +707,7 @@ void OpenGLRender::buildBackground()
     const glm::vec3 fgColor = GameLogic::menuButtonHighlighted ? Palette::scoreBarMenuButtonHighlightedText : Palette::scoreBarMenuButtonText;
     buildRect(left + 0.5f * border, top + 0.5f * border, width - border, height - border, bkColor, 1.0f);
     buildFrameRect(left, top, width, height, border, fgColor, 1.0f);
-    buildTextMesh(left, top, width, height, "MENU", Globals::smallFontSize, textHeight, fgColor, 1.0f, haCenter, vaCenter);
+    buildTextMesh(left, top, width, height, "MENU", textHeight, fgColor, 1.0f, haCenter, vaCenter);
   }
 
   // add hold figure panel to mesh
@@ -665,7 +718,7 @@ void OpenGLRender::buildBackground()
     const float top = holdPanelCaptionLayout->getGlobalTop();
     const float width = holdPanelCaptionLayout->width;
     const float height = holdPanelCaptionLayout->height;
-    buildTextMesh(left, top, width, height, "HOLD", Globals::smallFontSize, height, Palette::holdCaptionText, 1.0f, haCenter, vaCenter);
+    buildTextMesh(left, top, width, height, "HOLD", height, Palette::holdCaptionText, 1.0f, haCenter, vaCenter);
   }
 
   if (LayoutObject * holdPanelLayout = Layout::screen.getChildRecursive(loHoldPanel))
@@ -687,7 +740,7 @@ void OpenGLRender::buildBackground()
     const float top = nextPanelCaptionLayout->getGlobalTop();
     const float width = nextPanelCaptionLayout->width;
     const float height = nextPanelCaptionLayout->height;
-    buildTextMesh(left, top, width, height, "NEXT   ", Globals::smallFontSize, height, Palette::nextCaptionText, 1.0f, haCenter, vaCenter);
+    buildTextMesh(left, top, width, height, "NEXT   ", height, Palette::nextCaptionText, 1.0f, haCenter, vaCenter);
   }
 
   if (LayoutObject * nextPanelLayout = Layout::screen.getChildRecursive(loNextPanel))
@@ -709,7 +762,7 @@ void OpenGLRender::buildBackground()
     const float top = levelPanelCaptionLayout->getGlobalTop();
     const float width = levelPanelCaptionLayout->width;
     const float height = levelPanelCaptionLayout->height;
-    buildTextMesh(left, top, width, height, "LEVEL", Globals::smallFontSize, height, Palette::levelCaptionText, 1.0f, haCenter, vaCenter);
+    buildTextMesh(left, top, width, height, "LEVEL", height, Palette::levelCaptionText, 1.0f, haCenter, vaCenter);
   }
 
   if (LayoutObject * levelPanelLayout = Layout::screen.getChildRecursive(loLevelPanel))
@@ -719,7 +772,7 @@ void OpenGLRender::buildBackground()
     const float width = levelPanelLayout->width;
     const float height = levelPanelLayout->height;
     buildTexturedRect(left, top, width, height, tiLevelGoalBackground, Palette::levelPanelBackground, 1.0f);
-    buildTextMesh(left, top, width, height, std::to_string(GameLogic::curLevel).c_str(), Globals::bigFontSize, Layout::levelGoalTextHeight, Palette::levelPanelText, 1.0f, haCenter, vaCenter);
+    buildTextMesh(left, top, width, height, std::to_string(GameLogic::curLevel).c_str(), Layout::levelGoalTextHeight, Palette::levelPanelText, 1.0f, haCenter, vaCenter);
   }
 
   // add goal panel to mesh
@@ -730,7 +783,7 @@ void OpenGLRender::buildBackground()
     const float top = goalPanelCaptionLayout->getGlobalTop();
     const float width = goalPanelCaptionLayout->width;
     const float height = goalPanelCaptionLayout->height;
-    buildTextMesh(left, top, width, height, "GOAL", Globals::smallFontSize, height, Palette::goalCaptionText, 1.0f, haCenter, vaCenter);
+    buildTextMesh(left, top, width, height, "GOAL", height, Palette::goalCaptionText, 1.0f, haCenter, vaCenter);
   }
 
   if (LayoutObject * goalPanelLayout = Layout::screen.getChildRecursive(loGoalPanel))
@@ -740,7 +793,7 @@ void OpenGLRender::buildBackground()
     const float width = goalPanelLayout->width;
     const float height = goalPanelLayout->height;
     buildTexturedRect(left, top, width, height, tiLevelGoalBackground, Palette::goalPanelBackground, 1.0f);
-    buildTextMesh(left, top, width, height, std::to_string(GameLogic::curGoal).c_str(), Globals::bigFontSize, Layout::levelGoalTextHeight, Palette::goalPanelText, 1.0f, haCenter, vaCenter);
+    buildTextMesh(left, top, width, height, std::to_string(GameLogic::curGoal).c_str(), Layout::levelGoalTextHeight, Palette::goalPanelText, 1.0f, haCenter, vaCenter);
   }
 }
 
@@ -2094,147 +2147,74 @@ void OpenGLRender::buildMenu(MenuLogic * menuLogic, LayoutObject * menuLayout)
     const float textHeight = 0.08f;
     const glm::vec3 & textColor = highlight ? Palette::menuSelectedRowText : Palette::menuNormalRowText;
     const char * text = menuLogic->getText(row);
-    buildTextMesh(menuRowRect.left, menuRowRect.top, menuRowRect.width, menuRowRect.height, text, Globals::midFontSize, Layout::menuFontHeight, textColor, 1.0f, haLeft, vaCenter);
+    buildTextMesh(menuRowRect.left, menuRowRect.top, menuRowRect.width, menuRowRect.height, text, Layout::menuFontHeight, textColor, 1.0f, haLeft, vaCenter);
   }
 }
 
-void OpenGLRender::loadGlyph(char ch, int size)
-{
-  //const int texSize = Globals::mainArrayTextureSize;
-  //static int fontNextTexIndex = Globals::fontFirstTexIndex;
-  //static std::vector<uint32_t> destBuf(texSize * texSize);
-
-  //FT_Error err = FT_Load_Char(ftFace, (const FT_UInt)ch, FT_LOAD_DEFAULT | FT_LOAD_IGNORE_TRANSFORM | FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT);
-  //assert(!err);
-  //assert(ftFace->glyph->bitmap.pixel_mode == FT_PIXEL_MODE_GRAY);
-  //Glyph & glyph = glyphs[ch][size];
-  //glyph.glyphIndex = FT_Get_Char_Index(ftFace, FT_ULong(ch));
-  //glyph.texIndex = fontNextTexIndex++;
-  //ftFace->glyph->bitmap_left;
-  //ftFace->glyph->bitmap_top;
-  //glyph.metrics = ftFace->glyph->metrics;
-  //unsigned char * srcBuff = ftFace->glyph->bitmap.buffer;
-  //const int srcWidth = ftFace->glyph->bitmap.width;
-  //const int srcHeight = ftFace->glyph->bitmap.rows;
-  //const int srcWidthMinusOne = srcWidth - 1;
-  //const int srcHeightMinusOne = srcHeight - 1;
-  //const int srcPitch = ftFace->glyph->bitmap.pitch;
-
-  //for (int y = 0; y < texSize; y++)
-  //for (int x = 0; x < texSize; x++)
-  //{
-  //  const int brd = 2;
-  //  if (x < brd || y < brd || x >= texSize - brd || y >= texSize - brd)
-  //    destBuf[x + y * texSize] = 0xFFFF0000;
-  //  else
-  //  {
-  //    float srcXf = float(x - brd) / (texSize - brd * 2) * (srcWidth + 1) - 1;
-  //    float srcYf = float(y - brd) / (texSize - brd * 2) * (srcHeight + 1) - 1;
-  //    int srcXi = int(glm::floor(srcXf));
-  //    int srcYi = int(glm::floor(srcYf));
-  //    float uRatio = srcXf - srcXi;
-  //    float vRatio = srcYf - srcYi;
-  //    unsigned char * srcPix = srcBuff + srcXi + srcYi * srcPitch;
-  //    float p00 = srcXi >= 0 && srcYi >= 0 ? float(*srcPix) : 0.0f;
-  //    float p10 = srcYi >= 0 && srcXi < srcWidthMinusOne ? float(*(srcPix + 1)) : 0.0f;
-  //    float p01 = srcXi >= 0 && srcYi < srcHeightMinusOne ? float(*(srcPix + srcPitch)) : 0.0f;
-  //    float p11 = srcXi < srcWidthMinusOne && srcYi < srcHeightMinusOne ? float(*(srcPix + 1 + srcPitch)) : 0.0f;
-  //    uint8_t result = uint8_t(glm::mix(glm::mix(p00, p10, uRatio), glm::mix(p01, p11, uRatio), vRatio));
-  //    destBuf[x + y * texSize] = result | ((0xFF - result) << 16) | 0xFF << 24;
-  //  }
-  //}
-
-  //glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, glyph.texIndex, texSize, texSize, 1, GL_RGBA, GL_UNSIGNED_BYTE, destBuf.data());
-  //assert(!checkGlErrors());
-}
-
 // returns text width
-float OpenGLRender::buildTextMesh(float left, float top, float width, float height, const char * str, int fontSize, float scale, const glm::vec3 & color, float alpha, HorzAllign horzAllign, VertAllign vertAllign)
+float OpenGLRender::buildTextMesh(float left, float top, float width, float height, const char * str, float size, const glm::vec3 & color, float alpha, HorzAllign horzAllign, VertAllign vertAllign)
 {
-  //float penX = 0;
-  //char leftChar = 0;
-  //static std::vector<glm::vec2> verts(1024);
-  //static std::vector<glm::vec2> uv(1024);
-  //static std::vector<int> glyphTexIndex(1024);
-  //verts.clear();
-  //uv.clear();
-  //glyphTexIndex.clear();
+  float penX = 0;
+  char leftChar = 0;
+  static std::vector<glm::vec2> verts(1024);
+  static std::vector<glm::vec2> uv(1024);
+  verts.clear();
+  uv.clear();
 
-  //for (const char * pch = str, *eof = pch + strlen(str); pch < eof; pch++)
-  //{
-  //  GlyphCharMap::iterator charIt = glyphs.find(*pch);
-  //  assert(charIt != glyphs.end());
+  for (const char * pch = str, *eof = pch + strlen(str); pch < eof; pch++)
+  {
+    if (const SDFF_Glyph * glyph = font.getGlyph(*pch))
+    {
+      float kern = leftChar ? font.getKerning(leftChar, *pch) : 0.0f;
+      leftChar = *pch;
+      float leftTopX = penX + size * (kern + glyph->bearingX - font.falloff);
+      float leftTopY = -size * (glyph->bearingY + font.falloff);
+      float rightBottomX = leftTopX + size * (glyph->width + 2.0f * font.falloff);
+      float rightBottomY = leftTopY + size * (glyph->height + 2.0f * font.falloff);
 
-  //  if (charIt == glyphs.end())
-  //    continue;
+      verts.push_back({ leftTopX,     leftTopY });
+      verts.push_back({ leftTopX,     rightBottomY });
+      verts.push_back({ rightBottomX, leftTopY });
+      verts.push_back({ rightBottomX, rightBottomY });
 
-  //  GlyphSizeMap::iterator sizeIt = charIt->second.find(fontSize);
-  //  assert(sizeIt != charIt->second.end());
+      uv.push_back({ glyph->left,  glyph->top });
+      uv.push_back({ glyph->left,  glyph->bottom });
+      uv.push_back({ glyph->right, glyph->top });
+      uv.push_back({ glyph->right, glyph->bottom });
 
-  //  if (sizeIt == charIt->second.end())
-  //    continue;
-
-  //  Glyph & glyph = sizeIt->second;
-  //  FT_Vector kern = { 0, 0 };
-
-  //  if (leftChar)
-  //  {
-  //    FT_UInt leftGlyphIndex = FT_Get_Char_Index(ftFace, FT_ULong(leftChar));
-  //    FT_UInt rightGlyphIndex = FT_Get_Char_Index(ftFace, FT_ULong(*pch));
-  //    FT_Error err = FT_Get_Kerning(ftFace, leftGlyphIndex, rightGlyphIndex, FT_KERNING_UNFITTED, &kern);
-  //    assert(!err);
-  //  }
-  //  
-  //  leftChar = *pch;
-  //  float leftTopX = penX + scale * (kern.x + glyph.metrics.horiBearingX) / 64 / fontSize;
-  //  float leftTopY = -scale * glyph.metrics.horiBearingY / 64 / fontSize;
-  //  float rightBottomX = leftTopX + scale * glyph.metrics.width / 64 / fontSize;
-  //  float rightBottomY = leftTopY + scale * glyph.metrics.height / 64 / fontSize;
-
-  //  const float pixSize = 0.5f * Globals::mainArrayTexturePixelSize;
-
-  //  verts.push_back({ leftTopX,     leftTopY });
-  //  verts.push_back({ leftTopX,     rightBottomY });
-  //  verts.push_back({ rightBottomX, leftTopY });
-  //  verts.push_back({ rightBottomX, rightBottomY });
-
-  //  uv.push_back({ pixSize, pixSize });
-  //  uv.push_back({ pixSize, 1.0f - pixSize });
-  //  uv.push_back({ 1.0f - pixSize, pixSize });
-  //  uv.push_back({ 1.0f - pixSize, 1.0f - pixSize });
-
-  //  glyphTexIndex.push_back(glyph.texIndex);
-
-  //  penX += scale * glyph.metrics.horiAdvance / 64 / fontSize;
-  //}
+      penX += size * glyph->advance;
+    }
+    else assert(0);
+  }
 
   float meshWidth = 0.0f;
 
-  //if (!verts.empty())
-  //{
-  //  meshWidth = penX - verts.front().x;
-  //  glm::vec2 origin(left, top + scale * ftFace->ascender / ftFace->height);
+  if (!verts.empty())
+  {
+    meshWidth = penX - verts.front().x;
+    const float vOffs = 0.2f;
+    glm::vec2 origin(left, top + size * font.maxBearingY);
 
-  //  if (horzAllign == haRight)
-  //    origin.x += width - meshWidth;
-  //  else if (horzAllign == haCenter)
-  //    origin.x += 0.5f * (width - meshWidth);
+    if (horzAllign == haRight)
+      origin.x += width - meshWidth;
+    else if (horzAllign == haCenter)
+      origin.x += 0.5f * (width - meshWidth);
 
-  //  if (vertAllign == vaBottom)
-  //    origin.y += height - scale;
-  //  else if (vertAllign == vaCenter)
-  //    origin.y += 0.5f * (height - scale);
+    if (vertAllign == vaBottom)
+      origin.y += height - size * font.maxBearingY;
+    else if (vertAllign == vaCenter)
+      origin.y += 0.5f * (height - size * font.maxBearingY);
 
-  //  for (int i = 0, cnt = (int)strlen(str); i < cnt; i++)
-  //  {
-  //    addVertex(origin + verts[i * 4 + 0], uv[i * 4 + 0], glyphTexIndex[i], color, alpha);
-  //    addVertex(origin + verts[i * 4 + 1], uv[i * 4 + 1], glyphTexIndex[i], color, alpha);
-  //    addVertex(origin + verts[i * 4 + 2], uv[i * 4 + 2], glyphTexIndex[i], color, alpha);
-  //    addVertex(origin + verts[i * 4 + 1], uv[i * 4 + 1], glyphTexIndex[i], color, alpha);
-  //    addVertex(origin + verts[i * 4 + 2], uv[i * 4 + 2], glyphTexIndex[i], color, alpha);
-  //    addVertex(origin + verts[i * 4 + 3], uv[i * 4 + 3], glyphTexIndex[i], color, alpha);
-  //  }
-  //}
+    for (int i = 0, cnt = (int)strlen(str); i < cnt; i++)
+    {
+      addTextVertex(origin + verts[i * 4 + 0], uv[i * 4 + 0], color, alpha);
+      addTextVertex(origin + verts[i * 4 + 1], uv[i * 4 + 1], color, alpha);
+      addTextVertex(origin + verts[i * 4 + 2], uv[i * 4 + 2], color, alpha);
+      addTextVertex(origin + verts[i * 4 + 1], uv[i * 4 + 1], color, alpha);
+      addTextVertex(origin + verts[i * 4 + 2], uv[i * 4 + 2], color, alpha);
+      addTextVertex(origin + verts[i * 4 + 3], uv[i * 4 + 3], color, alpha);
+    }
+  }
 
   return meshWidth;
 }
@@ -2270,7 +2250,7 @@ void OpenGLRender::buildSettings()
           const float top = settingTitleShadowLayout->getGlobalTop() + shift;
           const float width = settingTitleShadowLayout->width;
           const float height = settingTitleShadowLayout->height;
-          buildTextMesh(left, top, width, height, "SETTINGS", Globals::midFontSize, Layout::settingsTitleHeight, glm::vec3(0.0f), Palette::settingsTitleShadowAlpha, haLeft, vaTop);
+          buildTextMesh(left, top, width, height, "SETTINGS", Layout::settingsTitleHeight, glm::vec3(0.0f), Palette::settingsTitleShadowAlpha, haLeft, vaTop);
         }
 
         if (LayoutObject * settingTitleLayout = settingsWindowLayout->getChild(loSettingsTitle))
@@ -2279,7 +2259,7 @@ void OpenGLRender::buildSettings()
           const float top = settingTitleLayout->getGlobalTop() + shift;
           const float width = settingTitleLayout->width;
           const float height = settingTitleLayout->height;
-          buildTextMesh(left, top, width, height, "SETTINGS", Globals::midFontSize, Layout::settingsTitleHeight, Palette::settingsTitleText, 1.0f, haLeft, vaCenter);
+          buildTextMesh(left, top, width, height, "SETTINGS", Layout::settingsTitleHeight, Palette::settingsTitleText, 1.0f, haLeft, vaCenter);
         }
 
         if (LayoutObject * settingPanelLayout = settingsWindowLayout->getChild(loSettingsPanel))
@@ -2297,7 +2277,7 @@ void OpenGLRender::buildSettings()
             const float top = volumeTitleLayout->getGlobalTop() + shift;
             const float width = volumeTitleLayout->width;
             const float height = volumeTitleLayout->height;
-            buildTextMesh(left, top, width, height, "VOLUME", Globals::midFontSize, height, Palette::settingsPanelTitleText, 1.0f, haLeft, vaCenter);
+            buildTextMesh(left, top, width, height, "VOLUME", height, Palette::settingsPanelTitleText, 1.0f, haLeft, vaCenter);
           }
 
           if (LayoutObject * soundVolumeRowLayout = settingPanelLayout->getChild(loSoundVolume))
@@ -2315,7 +2295,7 @@ void OpenGLRender::buildSettings()
               InterfaceLogic::settingsLogic.highlightedControl == SettingsLogic::ctrlSoundVolume ? Palette::settingsMouseoverRowText :
               Palette::settingsInactiveRowText;
             buildSmoothRect(left, top, width, height, edgeBlurWidth, bkColor, 1.0);
-            buildTextMesh(left + Layout::settingsPanelRowCaptionIndent, top, width, height, "Sound", Globals::midFontSize, Layout::settingsPanelRowCaptionHeight, textColor, 1.0f, haLeft, vaCenter);
+            buildTextMesh(left + Layout::settingsPanelRowCaptionIndent, top, width, height, "Sound", Layout::settingsPanelRowCaptionHeight, textColor, 1.0f, haLeft, vaCenter);
 
             if (LayoutObject * progressBarLayout = soundVolumeRowLayout->getChild(loSoundProgressBar))
             {
@@ -2348,7 +2328,7 @@ void OpenGLRender::buildSettings()
               InterfaceLogic::settingsLogic.highlightedControl == SettingsLogic::ctrlMusicVolume ? Palette::settingsMouseoverRowText :
               Palette::settingsInactiveRowText;
             buildSmoothRect(left, top, width, height, edgeBlurWidth, bkColor, 1.0);
-            buildTextMesh(left + Layout::settingsPanelRowCaptionIndent, top, width, height, "Music", Globals::midFontSize, Layout::settingsPanelRowCaptionHeight, textColor, 1.0f, haLeft, vaCenter);
+            buildTextMesh(left + Layout::settingsPanelRowCaptionIndent, top, width, height, "Music", Layout::settingsPanelRowCaptionHeight, textColor, 1.0f, haLeft, vaCenter);
 
             if (LayoutObject * progressBarLayout = musicVolumeRowLayout->getChild(loMusicProgressBar))
             {
@@ -2372,7 +2352,7 @@ void OpenGLRender::buildSettings()
             const float top = keyBindingTitleLayout->getGlobalTop() + shift;
             const float width = keyBindingTitleLayout->width;
             const float height = keyBindingTitleLayout->height;
-            buildTextMesh(left, top, width, height, "KEY BINDING", Globals::midFontSize, height, Palette::settingsPanelTitleText, 1.0f, haLeft, vaCenter);
+            buildTextMesh(left, top, width, height, "KEY BINDING", height, Palette::settingsPanelTitleText, 1.0f, haLeft, vaCenter);
           }
 
           if (LayoutObject * keyBindingGridLayout = settingPanelLayout->getChild(loKeyBindingGrid))
@@ -2407,8 +2387,8 @@ void OpenGLRender::buildSettings()
               buildSmoothRect(left0, top, width0, height, edgeBlurWidth, bkColor, 1.0);
               buildSmoothRect(left1, top, width1, height, edgeBlurWidth, bkColor, 1.0);
               left0 += Layout::settingsPanelRowCaptionIndent;
-              buildTextMesh(left0, top, width0, height, actionName, Globals::midFontSize, Layout::settingsPanelRowCaptionHeight, fgColor, 1.0f, haLeft, vaCenter);
-              buildTextMesh(left1, top, width1, height, keyName, Globals::midFontSize, Layout::settingsPanelRowCaptionHeight, fgColor, 1.0f, haCenter, vaCenter);
+              buildTextMesh(left0, top, width0, height, actionName, Layout::settingsPanelRowCaptionHeight, fgColor, 1.0f, haLeft, vaCenter);
+              buildTextMesh(left1, top, width1, height, keyName, Layout::settingsPanelRowCaptionHeight, fgColor, 1.0f, haCenter, vaCenter);
             }
           }
         }
@@ -2452,7 +2432,7 @@ void OpenGLRender::buildSettings()
           const float height = bindingMsgLayout->height;
           buildRect(left, top, width, height, Palette::settingsBindingMsgBackground, 1.0f);
           buildFrameRect(left, top, width, height, Layout::settingsBindingMsgBorder, Palette::settingsBindingMsgBorder, 1.0f);
-          buildTextMesh(left, top, width, height, "PRESS KEY", Globals::midFontSize, Layout::settingsPanelRowCaptionHeight, Palette::settingsBindingMsgText, 1.0f, haCenter, vaCenter);
+          buildTextMesh(left, top, width, height, "PRESS KEY", Layout::settingsPanelRowCaptionHeight, Palette::settingsBindingMsgText, 1.0f, haCenter, vaCenter);
         }
       }
       else
@@ -2505,7 +2485,7 @@ void OpenGLRender::buildLeaderboard()
           const float top = settingTitleShadowLayout->getGlobalTop() + shift;
           const float width = settingTitleShadowLayout->width;
           const float height = settingTitleShadowLayout->height;
-          buildTextMesh(left, top, width, height, "LEADERBOARD", Globals::midFontSize, Layout::leaderboardTitleHeight, glm::vec3(0.0f), Palette::leaderboardTitleShadowAlpha, haLeft, vaTop);
+          buildTextMesh(left, top, width, height, "LEADERBOARD", Layout::leaderboardTitleHeight, glm::vec3(0.0f), Palette::leaderboardTitleShadowAlpha, haLeft, vaTop);
         }
 
         if (LayoutObject * settingTitleLayout = leaderboardWindowLayout->getChild(loLeaderboardTitle))
@@ -2514,7 +2494,7 @@ void OpenGLRender::buildLeaderboard()
           const float top = settingTitleLayout->getGlobalTop() + shift;
           const float width = settingTitleLayout->width;
           const float height = settingTitleLayout->height;
-          buildTextMesh(left, top, width, height, "LEADERBOARD", Globals::midFontSize, Layout::leaderboardTitleHeight, Palette::leaderboardTitleText, 1.0f, haLeft, vaCenter);
+          buildTextMesh(left, top, width, height, "LEADERBOARD", Layout::leaderboardTitleHeight, Palette::leaderboardTitleText, 1.0f, haLeft, vaCenter);
         }
 
         if (LayoutObject * settingPanelLayout = leaderboardWindowLayout->getChild(loLeaderboardPanel))
@@ -2540,9 +2520,9 @@ void OpenGLRender::buildLeaderboard()
 
           const glm::vec3 headerColor = Palette::leaderboardPanelHeaderText;
 
-          buildTextMesh(nameColLeft + Layout::leaderboardPanelNameLeftIndent, headerTop, nameColWidth, headerHeight, "NAME", Globals::midFontSize, Layout::leaderboardPanelHeaderTextHeight, headerColor, 1.0f, haLeft, vaCenter);
-          buildTextMesh(levelColLeft, headerTop, levelColWidth, headerHeight, "LEVEL", Globals::midFontSize, Layout::leaderboardPanelHeaderTextHeight, headerColor, 1.0f, haCenter, vaCenter);
-          buildTextMesh(scoreColLeft, headerTop, scoreColWidth - Layout::leaderboardPanelScoreRightIndent, headerHeight, "SCORE", Globals::midFontSize, Layout::leaderboardPanelHeaderTextHeight, headerColor, 1.0f, haRight, vaCenter);
+          buildTextMesh(nameColLeft + Layout::leaderboardPanelNameLeftIndent, headerTop, nameColWidth, headerHeight, "NAME", Layout::leaderboardPanelHeaderTextHeight, headerColor, 1.0f, haLeft, vaCenter);
+          buildTextMesh(levelColLeft, headerTop, levelColWidth, headerHeight, "LEVEL", Layout::leaderboardPanelHeaderTextHeight, headerColor, 1.0f, haCenter, vaCenter);
+          buildTextMesh(scoreColLeft, headerTop, scoreColWidth - Layout::leaderboardPanelScoreRightIndent, headerHeight, "SCORE", Layout::leaderboardPanelHeaderTextHeight, headerColor, 1.0f, haRight, vaCenter);
 
           const int leadersCount = InterfaceLogic::leaderboardLogic.getLeadersCount();
 
@@ -2555,8 +2535,8 @@ void OpenGLRender::buildLeaderboard()
             const float rowTop = settingPanelLayout->getRowGlobalTop(i + 1) + shift;
             const float rowHeight = settingPanelLayout->getRowHeight(i + 1);
 
-            buildTextMesh(placeColLeft, rowTop, placeColWidth, rowHeight, std::to_string(i + 1).c_str(), Globals::midFontSize, Layout::leaderboardPanelRowTextHeight, textColor, 1.0f, haCenter, vaCenter);
-            float nameWidth = buildTextMesh(nameColLeft + Layout::leaderboardPanelNameLeftIndent, rowTop, nameColWidth, rowHeight, leader.name, Globals::midFontSize, Layout::leaderboardPanelRowTextHeight, textColor, 1.0f, haLeft, vaCenter);
+            buildTextMesh(placeColLeft, rowTop, placeColWidth, rowHeight, std::to_string(i + 1).c_str(), Layout::leaderboardPanelRowTextHeight, textColor, 1.0f, haCenter, vaCenter);
+            float nameWidth = buildTextMesh(nameColLeft + Layout::leaderboardPanelNameLeftIndent, rowTop, nameColWidth, rowHeight, leader.name, Layout::leaderboardPanelRowTextHeight, textColor, 1.0f, haLeft, vaCenter);
 
             if (i == editRow && (Time::counter % Time::freq > Time::freq / 2))
             {
@@ -2567,8 +2547,8 @@ void OpenGLRender::buildLeaderboard()
               buildSmoothRect(cursorLeft, cursorTop, cursorWidth, cursorHeight, 0.1f * cursorWidth, textColor, 1.0f);
             }
 
-            buildTextMesh(levelColLeft, rowTop, levelColWidth, rowHeight, std::to_string(leader.level).c_str(), Globals::midFontSize, Layout::leaderboardPanelRowTextHeight, textColor, 1.0f, haCenter, vaCenter);
-            buildTextMesh(scoreColLeft, rowTop, scoreColWidth - Layout::leaderboardPanelScoreRightIndent, rowHeight, std::to_string(leader.score).c_str(), Globals::midFontSize, Layout::leaderboardPanelRowTextHeight, textColor, 1.0f, haRight, vaCenter);
+            buildTextMesh(levelColLeft, rowTop, levelColWidth, rowHeight, std::to_string(leader.level).c_str(), Layout::leaderboardPanelRowTextHeight, textColor, 1.0f, haCenter, vaCenter);
+            buildTextMesh(scoreColLeft, rowTop, scoreColWidth - Layout::leaderboardPanelScoreRightIndent, rowHeight, std::to_string(leader.score).c_str(), Layout::leaderboardPanelRowTextHeight, textColor, 1.0f, haRight, vaCenter);
           }
         }
 
@@ -2613,8 +2593,8 @@ void OpenGLRender::buildCountdown()
 
   if (ypos + dy + 0.5f * textHeight < glassLayout->getGlobalTop() + glassLayout->height)
   {
-    buildTextMesh(xpos + 0.005f, ypos + dy + 0.005f, 0.0f, 0.0f, text.c_str(), Globals::bigFontSize, textHeight * scale, glm::vec3(0.0f), 0.75f, haCenter, vaCenter);
-    buildTextMesh(xpos, ypos + dy, 0.0f, 0.0f, text.c_str(), Globals::bigFontSize, textHeight * scale, glm::vec3(1.0f), 0.0f, haCenter, vaCenter);
+    buildTextMesh(xpos + 0.005f, ypos + dy + 0.005f, 0.0f, 0.0f, text.c_str(), textHeight * scale, glm::vec3(0.0f), 0.75f, haCenter, vaCenter);
+    buildTextMesh(xpos, ypos + dy, 0.0f, 0.0f, text.c_str(), textHeight * scale, glm::vec3(1.0f), 0.0f, haCenter, vaCenter);
   }
 }
 
@@ -2646,8 +2626,8 @@ void OpenGLRender::buildLevelUp()
       {
         const float shadowOffset = 0.005f;
         const char * levelUpText = "LEVEL UP";
-        buildTextMesh(xpos + shadowOffset, ypos + dy + shadowOffset, 0.0f, 0.0f, levelUpText, Globals::bigFontSize, textHeight * scale, glm::vec3(0.0f), 0.75f, haCenter, vaTop);
-        buildTextMesh(xpos, ypos + dy, 0.0f, 0.0f, levelUpText, Globals::bigFontSize, textHeight * scale, glm::vec3(1.0f), 0.0f, haCenter, vaTop);
+        buildTextMesh(xpos + shadowOffset, ypos + dy + shadowOffset, 0.0f, 0.0f, levelUpText, textHeight * scale, glm::vec3(0.0f), 0.75f, haCenter, vaTop);
+        buildTextMesh(xpos, ypos + dy, 0.0f, 0.0f, levelUpText, textHeight * scale, glm::vec3(1.0f), 0.0f, haCenter, vaTop);
       }
       else
         levelUpTimeLeft = -1.0f;

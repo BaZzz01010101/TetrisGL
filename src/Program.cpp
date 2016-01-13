@@ -11,18 +11,19 @@ Program::Program() :
 
 Program::~Program()
 {
+  // TODO: add checking opengl errors
   if (id)
   {
     glDeleteProgram(id);
-    assert(!checkGlErrors());
+    //assert(!checkGlErrors());
     GLint curId = 0;
     glGetIntegerv(GL_CURRENT_PROGRAM, &curId);
-    assert(!checkGlErrors());
+    //assert(!checkGlErrors());
 
     if (curId && curId == id)
     {
       glUseProgram(0);
-      assert(!checkGlErrors());
+      //assert(!checkGlErrors());
     }
   }
 }

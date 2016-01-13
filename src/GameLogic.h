@@ -33,6 +33,7 @@ public:
   static unsigned int fastDownCounter;
   static const int countdownTime = 3;
   static float countdownTimeLeft;
+  static float gameOverTimeLeft;
 
   struct CellCoord
   {

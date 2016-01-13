@@ -6,6 +6,7 @@
 #include "GameLogic.h"
 #include "InterfaceLogic.h"
 #include "LayoutObject.h"
+#include "SDFF.h"
 
 class OpenGLRender
 {
@@ -21,7 +22,8 @@ public:
 
 private:
   GLuint mainTextureId = 0;
-  
+  GLuint fontTextureId = 0;
+
   enum TextureIndex { tiEmpty = 0, tiBackground, tiFigureCellNormal, tiFigureCellBold, tiFigureShadow, 
     tiHoldBackground, tiNextBackground, tiDropTrail, tiDropSparkle, tiRowFlash, tiRowShineRay, 
     tiRowShineLight, tiGuiPanelGlow, tiLine, tiLevelGoalBackground, tiBackShevron, TEX_INDEX_COUNT };
@@ -32,23 +34,17 @@ private:
   int width;
   int height;
 
-  struct Glyph
-  {
-    int texIndex;
-    FT_UInt glyphIndex;
-    FT_Glyph_Metrics metrics;
-  };
+  SDFF_Font font;
 
-  FT_Library ftLibrary;
-  FT_Face ftFace;
-  typedef std::map<int, Glyph> GlyphSizeMap;
-  typedef std::map<char, GlyphSizeMap> GlyphCharMap;
-  GlyphCharMap glyphs;
   GLuint vaoId;
   GLuint vertexBufferId;
+  GLuint textVertexBufferId;
   Program figureProg;
   Shader figureVert;
   Shader figureFrag;
+  Program fontProg;
+  Shader fontVert;
+  Shader fontFrag;
 
   struct Vertex
   {
@@ -57,10 +53,18 @@ private:
     glm::vec4 rgba;
   };
 
-  std::vector<Vertex> vertexBuffer;
+  struct TextVertex
+  {
+    glm::vec2 xy;
+    glm::vec2 uv;
+    glm::vec4 rgba;
+  };
 
-  void loadGlyph(char ch, int size);
+  std::vector<Vertex> vertexBuffer;
+  std::vector<TextVertex> textVertexBuffer;
+
   void addVertex(const glm::vec2 & xy, const glm::vec2 & uv, int texIndex, const glm::vec3 & color, float alpha);
+  void addTextVertex(const glm::vec2 & xy, const glm::vec2 & uv, const glm::vec3 & color, float alpha);
   void clearVertices();
   void sendToDevice();
   void rebuildMesh();
@@ -85,7 +89,7 @@ private:
   void buildWindow(float left, float top, float width, float height, float cornerSize, float glowWidth, const glm::vec3 & topColor, const glm::vec3 & bottomColor, const glm::vec3 & glowColor);
   void buildMenu();
   void buildMenu(MenuLogic * menuLogic, LayoutObject * menuLayout);
-  float buildTextMesh(float left, float top, float width, float height, const char * str, int fontSize, float scale, const glm::vec3 & color, float alpha, HorzAllign horzAllign = haLeft, VertAllign vertAllign = vaTop);
+  float buildTextMesh(float left, float top, float width, float height, const char * str, float size, const glm::vec3 & color, float alpha, HorzAllign horzAllign = haLeft, VertAllign vertAllign = vaTop);
   void buildSettings();
   void buildLeaderboard();
   void buildCountdown();

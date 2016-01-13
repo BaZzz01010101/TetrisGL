@@ -106,7 +106,7 @@ void SettingsLogic::load()
 
   if (file)
   {
-    int success = fread(&saveData, sizeof(saveData), 1, file);
+    int success = (int)fread(&saveData, sizeof(saveData), 1, file);
     fclose(file);
 
     if (success)
@@ -152,12 +152,12 @@ void SettingsLogic::save()
       saveData.actionKeys[action] = Binding::getActionKey(action);
 
     uint32_t * plainData = (uint32_t *)&saveData;
-    int chunkCount = (sizeof(saveData)-sizeof(saveData.checksum)) / sizeof(uint32_t);
+    int chunkCount = (sizeof(saveData) - sizeof(saveData.checksum)) / sizeof(uint32_t);
 
     for (int i = 0; i < chunkCount; i++)
       saveData.checksum ^= plainData[i];
 
-    int success = fwrite(&saveData, sizeof(saveData), 1, file);
+    int success = (int)fwrite(&saveData, sizeof(saveData), 1, file);
     assert(success);
     fclose(file);
   }

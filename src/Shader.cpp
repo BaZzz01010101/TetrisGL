@@ -12,6 +12,7 @@ Shader::Shader(GLenum type)
 
 Shader::~Shader()
 {
+  // TODO: add checking id and opengl errors
   glDeleteShader(id);
 }
 

@@ -101,7 +101,7 @@ bool LayoutObject::getCellFromPoint(float x, float y, int * cellRow, int * cellC
     return false;
 
   int row = 0;
-  int rowCount = rows.size();
+  int rowCount = (int)rows.size();
 
   while(row < rowCount)
   {
@@ -117,7 +117,7 @@ bool LayoutObject::getCellFromPoint(float x, float y, int * cellRow, int * cellC
     return false;
 
   int column = 0;
-  int columnCount = columns.size();
+  int columnCount = (int)columns.size();
 
   while (column < columnCount)
   {
@@ -186,10 +186,10 @@ LayoutObject::Rect LayoutObject::getCellGlobalRect(int row, int column) const
 
 int LayoutObject::getRowCount() const
 {
-  return rows.size();
+  return (int)rows.size();
 }
 
 int LayoutObject::getColumnCount() const
 {
-  return columns.size();
+  return (int)columns.size();
 }

@@ -135,7 +135,7 @@ void LeaderboardLogic::save()
       checksum = checksum ^ buf[i];
 
     buf[size / chunkSize - 1] = checksum;
-    int writtenSize = fwrite(buf.data(), 1, size, file);
+    int writtenSize = (int)fwrite(buf.data(), 1, size, file);
     assert(writtenSize == size);
     fclose(file);
   }
@@ -143,7 +143,7 @@ void LeaderboardLogic::save()
 
 int LeaderboardLogic::getLeadersCount()
 {
-  return leaders.size();
+  return (int)leaders.size();
 }
 
 const LeaderboardLogic::LeaderData & LeaderboardLogic::getLeaderData(int place)
@@ -163,7 +163,7 @@ bool LeaderboardLogic::addResult(int level, int score)
   if (leaders.size() < leadersMaxCount)
     leaders.resize(leaders.size() + 1);
 
-  for (int i = 0, cnt = leaders.size(); i < cnt; i++)
+  for (int i = 0, cnt = (int)leaders.size(); i < cnt; i++)
   {
     LeaderData & leader = leaders[i];
 
@@ -190,7 +190,7 @@ void LeaderboardLogic::deleteChar()
   if (editRow >= 0)
   {
     char * name = leaders[editRow].name;
-    int nameLen = strlen(name);
+    int nameLen = (int)strlen(name);
 
     if (nameLen)
       name[nameLen - 1] = '\0';
@@ -204,7 +204,7 @@ void LeaderboardLogic::addChar(char ch)
   if (editRow >= 0)
   {
     char * name = leaders[editRow].name;
-    int nameLen = strlen(name);
+    int nameLen = (int)strlen(name);
 
     if (nameLen < maxNameLength)
     {
