@@ -37,8 +37,6 @@ private:
   SDFF_Font font;
 
   GLuint vaoId;
-  GLuint vertexBufferId;
-  GLuint textVertexBufferId;
   Program figureProg;
   Shader figureVert;
   Shader figureFrag;
@@ -60,8 +58,19 @@ private:
     glm::vec4 rgba;
   };
 
-  std::vector<Vertex> vertexBuffer;
-  std::vector<TextVertex> textVertexBuffer;
+  struct VertexLayer
+  {
+    GLuint vertexBufferId;
+    GLuint textVertexBufferId;
+    std::vector<Vertex> vertexBuffer;
+    std::vector<TextVertex> textVertexBuffer;
+    const int initSize = 1024;
+    VertexLayer() { vertexBuffer.reserve(initSize); textVertexBuffer.reserve(initSize); }
+  };
+
+  enum Layer { FIRST_LAYER = 0, layGame = 0, layGameOver, layMenu, laySettings, laySettingsMenu, layLeaderboard, LAYERS_COUNT };
+  VertexLayer vertexLayers[LAYERS_COUNT];
+  Layer currentLayer;
 
   void addVertex(const glm::vec2 & xy, const glm::vec2 & uv, int texIndex, const glm::vec3 & color, float alpha);
   void addTextVertex(const glm::vec2 & xy, const glm::vec2 & uv, const glm::vec3 & color, float alpha);
@@ -91,6 +100,7 @@ private:
   void buildMenu(MenuLogic * menuLogic, LayoutObject * menuLayout);
   float buildTextMesh(float left, float top, float width, float height, const char * str, float size, const glm::vec3 & color, float alpha, HorzAllign horzAllign = haLeft, VertAllign vertAllign = vaTop);
   void buildSettings();
+  void buildSettingsMenu();
   void buildLeaderboard();
   void buildCountdown();
   void buildLevelUp();

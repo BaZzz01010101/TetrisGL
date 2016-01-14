@@ -16,6 +16,7 @@ OpenGLRender::OpenGLRender() :
   figureFrag(GL_FRAGMENT_SHADER),
   fontVert(GL_VERTEX_SHADER),
   fontFrag(GL_FRAGMENT_SHADER),
+  currentLayer(layGame),
   edgeBlurWidth(0.005f),
   showWireframe(false)
 {
@@ -33,14 +34,14 @@ void OpenGLRender::init(int width, int height)
   glBindVertexArray(vaoId);
   assert(!checkGlErrors());
 
-  glGenBuffers(1, &vertexBufferId);
-  assert(!checkGlErrors());
+  for (int i = (int)FIRST_LAYER; i < LAYERS_COUNT; i++)
+  {
+    glGenBuffers(1, &vertexLayers[i].vertexBufferId);
+    assert(!checkGlErrors());
 
-  glGenBuffers(1, &textVertexBufferId);
-  assert(!checkGlErrors());
-
-  vertexBuffer.reserve(4096);
-  textVertexBuffer.reserve(4096);
+    glGenBuffers(1, &vertexLayers[i].textVertexBufferId);
+    assert(!checkGlErrors());
+  }
 
   figureVert.compileFromString(
     "#version 120\n"
@@ -256,6 +257,7 @@ void OpenGLRender::rebuildMesh()
 {
   clearVertices();
 
+  currentLayer = layGame;
   buildBackground();
 
   if (GameLogic::state == GameLogic::stCountdown)
@@ -274,8 +276,16 @@ void OpenGLRender::rebuildMesh()
     buildLevelUp();
   }
 
+  currentLayer = layMenu;
   buildMenu();
+
+  currentLayer = laySettings;
   buildSettings();
+
+  currentLayer = laySettingsMenu;
+  buildSettingsMenu();
+
+  currentLayer = layLeaderboard;
   buildLeaderboard();
 
   sendToDevice();
@@ -283,7 +293,6 @@ void OpenGLRender::rebuildMesh()
 
 void OpenGLRender::drawMesh()
 {
-  figureProg.use();
   glEnableVertexAttribArray(0);
   assert(!checkGlErrors());
   glEnableVertexAttribArray(1);
@@ -291,35 +300,40 @@ void OpenGLRender::drawMesh()
   glEnableVertexAttribArray(2);
   assert(!checkGlErrors());
 
-  glBindTexture(GL_TEXTURE_2D, mainTextureId);
-  assert(!checkGlErrors());
-  glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId);
-  assert(!checkGlErrors());
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, xy));
-  assert(!checkGlErrors());
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uvw));
-  assert(!checkGlErrors());
-  glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, rgba));
-  assert(!checkGlErrors());
+  for (int i = (int)FIRST_LAYER; i < LAYERS_COUNT; i++)
+  {
+    figureProg.use();
 
-  glDrawArrays(GL_TRIANGLES, 0, (int)vertexBuffer.size());
-  assert(!checkGlErrors());
+    glBindTexture(GL_TEXTURE_2D, mainTextureId);
+    assert(!checkGlErrors());
+    glBindBuffer(GL_ARRAY_BUFFER, vertexLayers[i].vertexBufferId);
+    assert(!checkGlErrors());
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, xy));
+    assert(!checkGlErrors());
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uvw));
+    assert(!checkGlErrors());
+    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, rgba));
+    assert(!checkGlErrors());
 
-  fontProg.use();
+    glDrawArrays(GL_TRIANGLES, 0, (int)vertexLayers[i].vertexBuffer.size());
+    assert(!checkGlErrors());
 
-  glBindTexture(GL_TEXTURE_2D, fontTextureId);
-  assert(!checkGlErrors());
-  glBindBuffer(GL_ARRAY_BUFFER, textVertexBufferId);
-  assert(!checkGlErrors());
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(TextVertex), (void*)offsetof(TextVertex, xy));
-  assert(!checkGlErrors());
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(TextVertex), (void*)offsetof(TextVertex, uv));
-  assert(!checkGlErrors());
-  glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(TextVertex), (void*)offsetof(TextVertex, rgba));
-  assert(!checkGlErrors());
+    fontProg.use();
 
-  glDrawArrays(GL_TRIANGLES, 0, (int)textVertexBuffer.size());
-  assert(!checkGlErrors());
+    glBindTexture(GL_TEXTURE_2D, fontTextureId);
+    assert(!checkGlErrors());
+    glBindBuffer(GL_ARRAY_BUFFER, vertexLayers[i].textVertexBufferId);
+    assert(!checkGlErrors());
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(TextVertex), (void*)offsetof(TextVertex, xy));
+    assert(!checkGlErrors());
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(TextVertex), (void*)offsetof(TextVertex, uv));
+    assert(!checkGlErrors());
+    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(TextVertex), (void*)offsetof(TextVertex, rgba));
+    assert(!checkGlErrors());
+
+    glDrawArrays(GL_TRIANGLES, 0, (int)vertexLayers[i].textVertexBuffer.size());
+    assert(!checkGlErrors());
+  }
 
   glDisableVertexAttribArray(0);
   assert(!checkGlErrors());
@@ -335,7 +349,7 @@ void OpenGLRender::addVertex(const glm::vec2 & xy, const glm::vec2 & uv, int tex
   vertex.xy = xy;
   vertex.uvw = glm::vec3(uv, float(texIndex));
   vertex.rgba = glm::vec4(color, alpha);
-  vertexBuffer.push_back(vertex);
+  vertexLayers[currentLayer].vertexBuffer.push_back(vertex);
 }
 
 void OpenGLRender::addTextVertex(const glm::vec2 & xy, const glm::vec2 & uv, const glm::vec3 & color, float alpha)
@@ -344,31 +358,37 @@ void OpenGLRender::addTextVertex(const glm::vec2 & xy, const glm::vec2 & uv, con
   vertex.xy = xy;
   vertex.uv = uv;
   vertex.rgba = glm::vec4(color, alpha);
-  textVertexBuffer.push_back(vertex);
+  vertexLayers[currentLayer].textVertexBuffer.push_back(vertex);
 }
 
 void OpenGLRender::clearVertices()
 {
-  vertexBuffer.clear();
-  textVertexBuffer.clear();
+  for (int i = (int)FIRST_LAYER; i < LAYERS_COUNT; i++)
+  {
+    vertexLayers[i].vertexBuffer.clear();
+    vertexLayers[i].textVertexBuffer.clear();
+  }
 }
 
 void OpenGLRender::sendToDevice()
 {
-  if (!vertexBuffer.empty())
+  for (int i = (int)FIRST_LAYER; i < LAYERS_COUNT; i++)
   {
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId);
-    assert(!checkGlErrors());
-    glBufferData(GL_ARRAY_BUFFER, vertexBuffer.size() * sizeof(Vertex), vertexBuffer.data(), GL_STATIC_DRAW);
-    assert(!checkGlErrors());
-  }
+    if (!vertexLayers[i].vertexBuffer.empty())
+    {
+      glBindBuffer(GL_ARRAY_BUFFER, vertexLayers[i].vertexBufferId);
+      assert(!checkGlErrors());
+      glBufferData(GL_ARRAY_BUFFER, vertexLayers[i].vertexBuffer.size() * sizeof(Vertex), vertexLayers[i].vertexBuffer.data(), GL_STATIC_DRAW);
+      assert(!checkGlErrors());
+    }
 
-  if (!textVertexBuffer.empty())
-  {
-    glBindBuffer(GL_ARRAY_BUFFER, textVertexBufferId);
-    assert(!checkGlErrors());
-    glBufferData(GL_ARRAY_BUFFER, textVertexBuffer.size() * sizeof(TextVertex), textVertexBuffer.data(), GL_STATIC_DRAW);
-    assert(!checkGlErrors());
+    if (!vertexLayers[i].textVertexBuffer.empty())
+    {
+      glBindBuffer(GL_ARRAY_BUFFER, vertexLayers[i].textVertexBufferId);
+      assert(!checkGlErrors());
+      glBufferData(GL_ARRAY_BUFFER, vertexLayers[i].textVertexBuffer.size() * sizeof(TextVertex), vertexLayers[i].textVertexBuffer.data(), GL_STATIC_DRAW);
+      assert(!checkGlErrors());
+    }
   }
 }
 
@@ -532,7 +552,6 @@ void OpenGLRender::buildProgressBar(float left, float top, float width, float he
 void OpenGLRender::buildBackground()
 {
   // add game base background to the mesh
-
   glm::vec2 origin(Layout::backgroundLeft, Layout::backgroundTop);
 
   const int xTess = 6;
@@ -2438,7 +2457,13 @@ void OpenGLRender::buildSettings()
       else
         keyBindBkShade = glm::clamp(keyBindBkShade - keyBindBkShadingSpeed * Time::timerDelta, 0.0f, 1.0f);
     }
+  }
+}
 
+void OpenGLRender::buildSettingsMenu()
+{
+  if (InterfaceLogic::state == InterfaceLogic::stSettings)
+  {
     if (InterfaceLogic::settingsLogic.state == SettingsLogic::stSaveConfirmation)
     {
       if (LayoutObject * menuLayout = Layout::screen.getChild(loSaveSettingsMenu))
