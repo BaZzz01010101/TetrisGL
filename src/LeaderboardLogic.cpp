@@ -14,16 +14,19 @@ LeaderboardLogic::LeaderboardLogic() :
   backButtonHighlighted(false)
 {
   load();
-  //leaders.push_back({ "EVERY", 15, 99999999 });
-  //leaders.push_back({ "HUNTER", 14, 9999999 });
-  //leaders.push_back({ "WANT", 13, 999999 });
-  //leaders.push_back({ "TO", 12, 99999 });
-  //leaders.push_back({ "KNOW", 11, 9999 });
-  //leaders.push_back({ "WHERE", 10, 999 });
-  //leaders.push_back({ "PHEASANT", 9, 99 });
-  //leaders.push_back({ "SITS", 8, 9 });
-  //leaders.push_back({ "BAZZZ", 8, 9 });
-  //leaders.push_back({ "ZEUS", 8, 9 });
+  if (leaders.empty())
+  {
+    leaders.push_back({ "ARNOLD", 15, 10000 });
+    leaders.push_back({ "SARA", 14, 9000 });
+    leaders.push_back({ "JOHN", 13, 8000 });
+    leaders.push_back({ "NIKOL", 12, 7000 });
+    leaders.push_back({ "SAM", 11, 6000 });
+    leaders.push_back({ "LARA", 10, 5000 });
+    leaders.push_back({ "BRUCE", 9, 4000 });
+    leaders.push_back({ "CINDY", 8, 3000 });
+    leaders.push_back({ "BOB", 8, 2000 });
+    leaders.push_back({ "HELEN", 8, 1000 });
+  }
 }
 
 
