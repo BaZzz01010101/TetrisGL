@@ -97,15 +97,18 @@ void OpenGLRender::init(int width, int height)
   fontVert.compileFromString(
     "#version 120\n"
     "attribute vec2 vertexPos;"
-    "attribute vec2 vertexUV;"
+    "attribute vec3 vertexUVW;"
     "attribute vec4 vertexRGBA;"
+    "uniform float pxSize;"
     "varying vec2 uv;"
+    "varying float threshold;"
     "varying vec4 color;"
 
     "void main()"
     "{"
     "  gl_Position = vec4(vertexPos.x * 2.0 - 1.0, 1.0 - vertexPos.y * 2.0, 0, 1);"
-    "  uv = vertexUV;"
+    "  uv = vertexUVW.xy;"
+    "  threshold = 0.4 * pxSize / vertexUVW.z;"
     "  color = vertexRGBA;"
     "}");
 
@@ -113,11 +116,11 @@ void OpenGLRender::init(int width, int height)
     "#version 120\n"
     "uniform sampler2D tex;"
     "varying vec2 uv;"
+    "varying float threshold;"
     "varying vec4 color;"
 
     "void main()"
     "{"
-    "  const float threshold = 0.1;"
     "  float alpha = smoothstep(0.5 - threshold, 0.5 + threshold, texture2D(tex, uv).a);"
     "  gl_FragColor = color * alpha;"
     "}");
@@ -199,9 +202,15 @@ void OpenGLRender::resize(int width, int height)
   const float gameAspect = Layout::backgroundWidth / Layout::backgroundHeight;
 
   if (!height || float(width) / height > gameAspect)
+  {
     glViewport((width - height) / 2, 0, height, height);
+    fontProg.setUniform("pxSize", 1.0f / height);
+  }
   else
+  {
     glViewport(int(width * (1.0f - 1.0f / gameAspect)) / 2, (height - int(width / gameAspect)) / 2, int(width / gameAspect), int(width / gameAspect));
+    fontProg.setUniform("pxSize", gameAspect / width);
+  }
 
   assert(!checkGlErrors());
 
@@ -324,11 +333,11 @@ void OpenGLRender::drawMesh()
     assert(!checkGlErrors());
     glBindBuffer(GL_ARRAY_BUFFER, vertexLayers[i].textVertexBufferId);
     assert(!checkGlErrors());
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(TextVertex), (void*)offsetof(TextVertex, xy));
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, xy));
     assert(!checkGlErrors());
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(TextVertex), (void*)offsetof(TextVertex, uv));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uvw));
     assert(!checkGlErrors());
-    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(TextVertex), (void*)offsetof(TextVertex, rgba));
+    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, rgba));
     assert(!checkGlErrors());
 
     glDrawArrays(GL_TRIANGLES, 0, (int)vertexLayers[i].textVertexBuffer.size());
@@ -352,11 +361,11 @@ void OpenGLRender::addVertex(const glm::vec2 & xy, const glm::vec2 & uv, int tex
   vertexLayers[currentLayer].vertexBuffer.push_back(vertex);
 }
 
-void OpenGLRender::addTextVertex(const glm::vec2 & xy, const glm::vec2 & uv, const glm::vec3 & color, float alpha)
+void OpenGLRender::addTextVertex(const glm::vec2 & xy, const glm::vec2 & uv, float falloffSize, const glm::vec3 & color, float alpha)
 {
-  TextVertex vertex;
+  Vertex vertex;
   vertex.xy = xy;
-  vertex.uv = uv;
+  vertex.uvw = glm::vec3(uv, falloffSize);
   vertex.rgba = glm::vec4(color, alpha);
   vertexLayers[currentLayer].textVertexBuffer.push_back(vertex);
 }
@@ -386,7 +395,7 @@ void OpenGLRender::sendToDevice()
     {
       glBindBuffer(GL_ARRAY_BUFFER, vertexLayers[i].textVertexBufferId);
       assert(!checkGlErrors());
-      glBufferData(GL_ARRAY_BUFFER, vertexLayers[i].textVertexBuffer.size() * sizeof(TextVertex), vertexLayers[i].textVertexBuffer.data(), GL_STATIC_DRAW);
+      glBufferData(GL_ARRAY_BUFFER, vertexLayers[i].textVertexBuffer.size() * sizeof(Vertex), vertexLayers[i].textVertexBuffer.data(), GL_STATIC_DRAW);
       assert(!checkGlErrors());
     }
   }
@@ -2224,14 +2233,16 @@ float OpenGLRender::buildTextMesh(float left, float top, float width, float heig
     else if (vertAllign == vaCenter)
       origin.y += 0.5f * (height - size * font.maxBearingY);
 
+    const float falloffSize = size * font.falloff;
+
     for (int i = 0, cnt = (int)strlen(str); i < cnt; i++)
     {
-      addTextVertex(origin + verts[i * 4 + 0], uv[i * 4 + 0], color, alpha);
-      addTextVertex(origin + verts[i * 4 + 1], uv[i * 4 + 1], color, alpha);
-      addTextVertex(origin + verts[i * 4 + 2], uv[i * 4 + 2], color, alpha);
-      addTextVertex(origin + verts[i * 4 + 1], uv[i * 4 + 1], color, alpha);
-      addTextVertex(origin + verts[i * 4 + 2], uv[i * 4 + 2], color, alpha);
-      addTextVertex(origin + verts[i * 4 + 3], uv[i * 4 + 3], color, alpha);
+      addTextVertex(origin + verts[i * 4 + 0], uv[i * 4 + 0], falloffSize, color, alpha);
+      addTextVertex(origin + verts[i * 4 + 1], uv[i * 4 + 1], falloffSize, color, alpha);
+      addTextVertex(origin + verts[i * 4 + 2], uv[i * 4 + 2], falloffSize, color, alpha);
+      addTextVertex(origin + verts[i * 4 + 1], uv[i * 4 + 1], falloffSize, color, alpha);
+      addTextVertex(origin + verts[i * 4 + 2], uv[i * 4 + 2], falloffSize, color, alpha);
+      addTextVertex(origin + verts[i * 4 + 3], uv[i * 4 + 3], falloffSize, color, alpha);
     }
   }
 

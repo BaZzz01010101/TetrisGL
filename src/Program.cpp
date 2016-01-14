@@ -75,42 +75,67 @@ void Program::use() const
 
 void Program::setUniform(const char * name, GLint value)
 {
-  GLuint uid = glGetUniformLocation(id, name);
+  GLint uid = glGetUniformLocation(id, name);
   assert(!checkGlErrors());
-  glUniform1i(uid, value);
-  assert(!checkGlErrors());
+  assert(uid >= 0);
+
+  if (uid >= 0)
+  {
+    glUniform1i(uid, value);
+    assert(!checkGlErrors());
+  }
 }
 
 void Program::setUniform(const char * name, GLfloat value)
 {
-  GLuint uid = glGetUniformLocation(id, name);
+  GLint uid = glGetUniformLocation(id, name);
   assert(!checkGlErrors());
-  glUniform1f(uid, value);
-  assert(!checkGlErrors());
+  assert(uid >= 0);
+
+  if (uid >= 0)
+  {
+    glUniform1f(uid, value);
+    assert(!checkGlErrors());
+  }
 }
 
 void Program::setUniform(const char * name, GLfloat value1, GLfloat value2)
 {
-  GLuint uid = glGetUniformLocation(id, name);
+  GLint uid = glGetUniformLocation(id, name);
   assert(!checkGlErrors());
-  glUniform2f(uid, value1, value2);
-  assert(!checkGlErrors());
+  assert(uid >= 0);
+
+  if (uid >= 0)
+  {
+    glUniform2f(uid, value1, value2);
+    assert(!checkGlErrors());
+  }
 }
 
 void Program::setUniform(const char * name, const glm::vec2 & value)
 {
-  GLuint uid = glGetUniformLocation(id, name);
+  GLint uid = glGetUniformLocation(id, name);
   assert(!checkGlErrors());
-  glUniform2fv(uid, 1, &value.x);
-  assert(!checkGlErrors());
+  assert(uid >= 0);
+
+  if (uid >= 0)
+  {
+    glUniform2fv(uid, 1, &value.x);
+    assert(!checkGlErrors());
+  }
 }
 
 void Program::setUniform(const char * name, const glm::mat3 & value)
 {
-  GLuint uid = glGetUniformLocation(id, name);
+  GLint uid = glGetUniformLocation(id, name);
   assert(!checkGlErrors());
-  glUniformMatrix3fv(uid, 1, false, &value[0][0]);
-  assert(!checkGlErrors());
+  assert(uid >= 0);
+
+  if (uid >= 0)
+  {
+    glUniformMatrix3fv(uid, 1, false, &value[0][0]);
+    assert(!checkGlErrors());
+  }
 }
 
 void Program::bindAttribLocation(GLuint pos, const char * name)

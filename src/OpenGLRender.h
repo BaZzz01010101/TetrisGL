@@ -51,19 +51,12 @@ private:
     glm::vec4 rgba;
   };
 
-  struct TextVertex
-  {
-    glm::vec2 xy;
-    glm::vec2 uv;
-    glm::vec4 rgba;
-  };
-
   struct VertexLayer
   {
     GLuint vertexBufferId;
     GLuint textVertexBufferId;
     std::vector<Vertex> vertexBuffer;
-    std::vector<TextVertex> textVertexBuffer;
+    std::vector<Vertex> textVertexBuffer;
     const int initSize = 1024;
     VertexLayer() { vertexBuffer.reserve(initSize); textVertexBuffer.reserve(initSize); }
   };
@@ -73,7 +66,7 @@ private:
   Layer currentLayer;
 
   void addVertex(const glm::vec2 & xy, const glm::vec2 & uv, int texIndex, const glm::vec3 & color, float alpha);
-  void addTextVertex(const glm::vec2 & xy, const glm::vec2 & uv, const glm::vec3 & color, float alpha);
+  void addTextVertex(const glm::vec2 & xy, const glm::vec2 & uv, float falloffSize, const glm::vec3 & color, float alpha);
   void clearVertices();
   void sendToDevice();
   void rebuildMesh();
