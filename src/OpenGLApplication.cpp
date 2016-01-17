@@ -136,14 +136,27 @@ void OpenGLApplication::OnKeyClick(GLFWwindow * wnd, int key, int scancode, int 
 
   OpenGLApplication & app = *reinterpret_cast<OpenGLApplication *>(glfwGetWindowUserPointer(wnd));
 
+  if ((action == GLFW_PRESS || action == GLFW_REPEAT) && key == GLFW_KEY_KP_SUBTRACT)
+    glfwSetWindowSize(wnd, app.wndWidth - 1, app.wndHeight - 1);
+  else if ((action == GLFW_PRESS || action == GLFW_REPEAT) && key == GLFW_KEY_KP_ADD)
+    glfwSetWindowSize(wnd, app.wndWidth + 1, app.wndHeight + 1);
+
   if (action == GLFW_PRESS && key == GLFW_KEY_F11)
     app.vSync = !app.vSync;
 
+#ifdef _DEBUG
   if (action == GLFW_PRESS && key == GLFW_KEY_RIGHT_ALT)
     app.render.showWireframe = true;
 
   if (action == GLFW_RELEASE && key == GLFW_KEY_RIGHT_ALT)
     app.render.showWireframe = false;
+
+  if (action == GLFW_PRESS && key == GLFW_KEY_F5)
+  {
+    Layout::load("default");
+    Palette::load("default");
+  }
+#endif
 
   switch (action)
   {

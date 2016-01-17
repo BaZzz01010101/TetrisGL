@@ -102,8 +102,7 @@ void OpenGLRender::init(int width, int height)
     "attribute vec2 vertexPos;"
     "attribute vec2 vertexUV;"
     "attribute vec4 vertexRGBA;"
-    "attribute float vertexFalloff;"
-    "uniform float pxSize;"
+    "attribute float vertexBlur;"
     "varying vec2 uv;"
     "varying float threshold;"
     "varying vec4 color;"
@@ -112,7 +111,7 @@ void OpenGLRender::init(int width, int height)
     "{"
     "  gl_Position = vec4(vertexPos.x * 2.0 - 1.0, 1.0 - vertexPos.y * 2.0, 0, 1);"
     "  uv = vertexUV;"
-    "  threshold = 0.4 * pxSize / vertexFalloff;"
+    "  threshold = vertexBlur;"
     "  color = vertexRGBA;"
     "}");
 
@@ -134,6 +133,7 @@ void OpenGLRender::init(int width, int height)
   fontProg.bindAttribLocation(0, "vertexPos");
   fontProg.bindAttribLocation(1, "vertexUV");
   fontProg.bindAttribLocation(2, "vertexRGBA");
+  fontProg.bindAttribLocation(3, "vertexBlur");
   fontProg.link();
   fontProg.use();
   fontProg.setUniform("tex", 0);
@@ -258,6 +258,7 @@ void OpenGLRender::resize(int width, int height)
 
 void OpenGLRender::update()
 {
+#ifdef _DEBUG
   if (showWireframe)
   {
     glDisable(GL_BLEND);
@@ -270,6 +271,7 @@ void OpenGLRender::update()
     assert(!checkGlErrors());
   }
   else
+#endif _DEBUG
   {
     glEnable(GL_BLEND);
     assert(!checkGlErrors());
@@ -372,7 +374,6 @@ void OpenGLRender::drawMesh()
     assert(!checkGlErrors());
 
     fontProg.use();
-    fontProg.setUniform("pxSize", pxSize);
 
     glBindTexture(GL_TEXTURE_2D, fontTextureId);
     assert(!checkGlErrors());
@@ -744,7 +745,7 @@ void OpenGLRender::buildBackground()
     const float width = scoreBarCaptionLayout->width;
     const float height = scoreBarCaptionLayout->height;
     buildRect(left, top, width, height, Palette::scoreBarBackground, Palette::scoreBarBackgroundAlpha);
-    buildTextMesh(left, top, width, height, "SCORE", height, Palette::scoreBarText, 1.0f, haCenter, vaCenter);
+    buildTextMesh(left, top, width, height, "SCORE", height, Palette::scoreBarText, 1.0f, 0.0f, haCenter, vaCenter);
   }
 
   // add score value to the mesh
@@ -756,7 +757,7 @@ void OpenGLRender::buildBackground()
     const float width = scoreBarValueLayout->width;
     const float height = scoreBarValueLayout->height;
     buildRect(left, top, width, height, glm::vec3(0.0f), 0.6f);
-    buildTextMesh(left, top, width, height, std::to_string(GameLogic::curScore).c_str(), height, Palette::scoreBarText, 1.0f, haCenter, vaCenter);
+    buildTextMesh(left, top, width, height, std::to_string(GameLogic::curScore).c_str(), height, Palette::scoreBarText, 1.0f, 0.0f, haCenter, vaCenter);
   }
 
   // add MENU button to mesh
@@ -773,7 +774,7 @@ void OpenGLRender::buildBackground()
     const glm::vec3 fgColor = GameLogic::menuButtonHighlighted ? Palette::scoreBarMenuButtonHighlightedText : Palette::scoreBarMenuButtonText;
     buildRect(left + 0.5f * border, top + 0.5f * border, width - border, height - border, bkColor, 1.0f);
     buildFrameRect(left, top, width, height, border, fgColor, 1.0f);
-    buildTextMesh(left, top, width, height, "MENU", textHeight, fgColor, 1.0f, haCenter, vaCenter);
+    buildTextMesh(left, top, width, height, "MENU", textHeight, fgColor, 1.0f, 0.0f, haCenter, vaCenter);
   }
 
   // add hold figure panel to mesh
@@ -784,7 +785,7 @@ void OpenGLRender::buildBackground()
     const float top = holdPanelCaptionLayout->getGlobalTop();
     const float width = holdPanelCaptionLayout->width;
     const float height = holdPanelCaptionLayout->height;
-    buildTextMesh(left, top, width, height, "HOLD", height, Palette::holdCaptionText, 1.0f, haCenter, vaCenter);
+    buildTextMesh(left, top, width, height, "HOLD", height, Palette::holdCaptionText, 1.0f, 0.0f, haCenter, vaCenter);
   }
 
   if (LayoutObject * holdPanelLayout = Layout::screen.getChildRecursive(loHoldPanel))
@@ -806,7 +807,7 @@ void OpenGLRender::buildBackground()
     const float top = nextPanelCaptionLayout->getGlobalTop();
     const float width = nextPanelCaptionLayout->width;
     const float height = nextPanelCaptionLayout->height;
-    buildTextMesh(left, top, width, height, "NEXT   ", height, Palette::nextCaptionText, 1.0f, haCenter, vaCenter);
+    buildTextMesh(left, top, width, height, "NEXT   ", height, Palette::nextCaptionText, 1.0f, 0.0f, haCenter, vaCenter);
   }
 
   if (LayoutObject * nextPanelLayout = Layout::screen.getChildRecursive(loNextPanel))
@@ -828,7 +829,7 @@ void OpenGLRender::buildBackground()
     const float top = levelPanelCaptionLayout->getGlobalTop();
     const float width = levelPanelCaptionLayout->width;
     const float height = levelPanelCaptionLayout->height;
-    buildTextMesh(left, top, width, height, "LEVEL", height, Palette::levelCaptionText, 1.0f, haCenter, vaCenter);
+    buildTextMesh(left, top, width, height, "LEVEL", height, Palette::levelCaptionText, 1.0f, 0.0f, haCenter, vaCenter);
   }
 
   if (LayoutObject * levelPanelLayout = Layout::screen.getChildRecursive(loLevelPanel))
@@ -838,7 +839,7 @@ void OpenGLRender::buildBackground()
     const float width = levelPanelLayout->width;
     const float height = levelPanelLayout->height;
     buildTexturedRect(left, top, width, height, tiLevelGoalBackground, Palette::levelPanelBackground, 1.0f);
-    buildTextMesh(left, top, width, height, std::to_string(GameLogic::curLevel).c_str(), Layout::levelGoalTextHeight, Palette::levelPanelText, 1.0f, haCenter, vaCenter);
+    buildTextMesh(left, top, width, height, std::to_string(GameLogic::curLevel).c_str(), Layout::levelGoalTextHeight, Palette::levelPanelText, 1.0f, 0.0f, haCenter, vaCenter);
   }
 
   // add goal panel to mesh
@@ -849,7 +850,7 @@ void OpenGLRender::buildBackground()
     const float top = goalPanelCaptionLayout->getGlobalTop();
     const float width = goalPanelCaptionLayout->width;
     const float height = goalPanelCaptionLayout->height;
-    buildTextMesh(left, top, width, height, "GOAL", height, Palette::goalCaptionText, 1.0f, haCenter, vaCenter);
+    buildTextMesh(left, top, width, height, "GOAL", height, Palette::goalCaptionText, 1.0f, 0.0f, haCenter, vaCenter);
   }
 
   if (LayoutObject * goalPanelLayout = Layout::screen.getChildRecursive(loGoalPanel))
@@ -859,7 +860,7 @@ void OpenGLRender::buildBackground()
     const float width = goalPanelLayout->width;
     const float height = goalPanelLayout->height;
     buildTexturedRect(left, top, width, height, tiLevelGoalBackground, Palette::goalPanelBackground, 1.0f);
-    buildTextMesh(left, top, width, height, std::to_string(GameLogic::curGoal).c_str(), Layout::levelGoalTextHeight, Palette::goalPanelText, 1.0f, haCenter, vaCenter);
+    buildTextMesh(left, top, width, height, std::to_string(GameLogic::curGoal).c_str(), Layout::levelGoalTextHeight, Palette::goalPanelText, 1.0f, 0.0f, haCenter, vaCenter);
   }
 }
 
@@ -2175,12 +2176,13 @@ void OpenGLRender::buildMenu(MenuLogic * menuLogic, LayoutObject * menuLayout)
     const float textHeight = 0.08f;
     const glm::vec3 & textColor = highlight ? Palette::menuSelectedRowText : Palette::menuNormalRowText;
     const char * text = menuLogic->getText(row);
-    buildTextMesh(menuRowRect.left, menuRowRect.top, menuRowRect.width, menuRowRect.height, text, Layout::menuFontHeight, textColor, 1.0f, haLeft, vaCenter);
+    buildTextMesh(menuRowRect.left, menuRowRect.top - 0.0025f, menuRowRect.width, menuRowRect.height, text, Layout::menuFontHeight, glm::vec3(0.0f), 0.5f, 1.0f, haLeft, vaCenter);
+    buildTextMesh(menuRowRect.left, menuRowRect.top, menuRowRect.width, menuRowRect.height, text, Layout::menuFontHeight, textColor, 1.0f, 0.0f, haLeft, vaCenter);
   }
 }
 
 // returns text width
-float OpenGLRender::buildTextMesh(float left, float top, float width, float height, const char * str, float size, const glm::vec3 & color, float alpha, HorzAllign horzAllign, VertAllign vertAllign)
+float OpenGLRender::buildTextMesh(float left, float top, float width, float height, const char * str, float size, const glm::vec3 & color, float alpha, float blur, HorzAllign horzAllign, VertAllign vertAllign)
 {
   float penX = 0;
   char leftChar = 0;
@@ -2235,16 +2237,16 @@ float OpenGLRender::buildTextMesh(float left, float top, float width, float heig
     else if (vertAllign == vaCenter)
       origin.y += 0.5f * (height - size * font.maxBearingY + vOffset);
 
-    const float falloffSize = size * font.falloff;
+    const float fontBlur = 0.4f * pxSize / (size * font.falloff) * (1.0f - blur) + blur * 0.5f;
 
     for (int i = 0, cnt = (int)strlen(str); i < cnt; i++)
     {
-      addTextVertex(origin + verts[i * 4 + 0], uv[i * 4 + 0], falloffSize, color, alpha);
-      addTextVertex(origin + verts[i * 4 + 1], uv[i * 4 + 1], falloffSize, color, alpha);
-      addTextVertex(origin + verts[i * 4 + 2], uv[i * 4 + 2], falloffSize, color, alpha);
-      addTextVertex(origin + verts[i * 4 + 1], uv[i * 4 + 1], falloffSize, color, alpha);
-      addTextVertex(origin + verts[i * 4 + 2], uv[i * 4 + 2], falloffSize, color, alpha);
-      addTextVertex(origin + verts[i * 4 + 3], uv[i * 4 + 3], falloffSize, color, alpha);
+      addTextVertex(origin + verts[i * 4 + 0], uv[i * 4 + 0], fontBlur, color, alpha);
+      addTextVertex(origin + verts[i * 4 + 1], uv[i * 4 + 1], fontBlur, color, alpha);
+      addTextVertex(origin + verts[i * 4 + 2], uv[i * 4 + 2], fontBlur, color, alpha);
+      addTextVertex(origin + verts[i * 4 + 1], uv[i * 4 + 1], fontBlur, color, alpha);
+      addTextVertex(origin + verts[i * 4 + 2], uv[i * 4 + 2], fontBlur, color, alpha);
+      addTextVertex(origin + verts[i * 4 + 3], uv[i * 4 + 3], fontBlur, color, alpha);
     }
   }
 
@@ -2274,7 +2276,7 @@ void OpenGLRender::buildSettingsWindow()
         const float top = settingTitleShadowLayout->getGlobalTop() + shift;
         const float width = settingTitleShadowLayout->width;
         const float height = settingTitleShadowLayout->height;
-        buildTextMesh(left, top, width, height, "SETTINGS", Layout::settingsTitleHeight, glm::vec3(0.0f), Palette::settingsTitleShadowAlpha, haLeft, vaTop);
+        buildTextMesh(left, top, width, height, "SETTINGS", Layout::settingsTitleHeight, glm::vec3(0.0f), Palette::settingsTitleShadowAlpha, Palette::settingsTitleShadowBlur, haLeft, vaTop);
       }
 
       if (LayoutObject * settingTitleLayout = settingsWindowLayout->getChild(loSettingsTitle))
@@ -2283,7 +2285,7 @@ void OpenGLRender::buildSettingsWindow()
         const float top = settingTitleLayout->getGlobalTop() + shift;
         const float width = settingTitleLayout->width;
         const float height = settingTitleLayout->height;
-        buildTextMesh(left, top, width, height, "SETTINGS", Layout::settingsTitleHeight, Palette::settingsTitleText, 1.0f, haLeft, vaCenter);
+        buildTextMesh(left, top, width, height, "SETTINGS", Layout::settingsTitleHeight, Palette::settingsTitleText, 1.0f, 0.0f, haLeft, vaTop);
       }
 
       if (LayoutObject * settingPanelLayout = settingsWindowLayout->getChild(loSettingsPanel))
@@ -2301,7 +2303,7 @@ void OpenGLRender::buildSettingsWindow()
           const float top = volumeTitleLayout->getGlobalTop() + shift;
           const float width = volumeTitleLayout->width;
           const float height = volumeTitleLayout->height;
-          buildTextMesh(left, top, width, height, "VOLUME", height, Palette::settingsPanelTitleText, 1.0f, haLeft, vaCenter);
+          buildTextMesh(left, top, width, height, "VOLUME", height, Palette::settingsPanelTitleText, 1.0f, 0.0f, haLeft, vaCenter);
         }
 
         if (LayoutObject * soundVolumeRowLayout = settingPanelLayout->getChild(loSoundVolume))
@@ -2319,7 +2321,7 @@ void OpenGLRender::buildSettingsWindow()
             InterfaceLogic::settingsLogic.highlightedControl == SettingsLogic::ctrlSoundVolume ? Palette::settingsMouseoverRowText :
             Palette::settingsInactiveRowText;
           buildSmoothRect(left, top, width, height, edgeBlurWidth, bkColor, 1.0);
-          buildTextMesh(left + Layout::settingsPanelRowCaptionIndent, top, width, height, "Sound", Layout::settingsPanelRowCaptionHeight, textColor, 1.0f, haLeft, vaCenter);
+          buildTextMesh(left + Layout::settingsPanelRowCaptionIndent, top, width, height, "Sound", Layout::settingsPanelRowCaptionHeight, textColor, 1.0f, 0.0f, haLeft, vaCenter);
 
           if (LayoutObject * progressBarLayout = soundVolumeRowLayout->getChild(loSoundProgressBar))
           {
@@ -2352,7 +2354,7 @@ void OpenGLRender::buildSettingsWindow()
             InterfaceLogic::settingsLogic.highlightedControl == SettingsLogic::ctrlMusicVolume ? Palette::settingsMouseoverRowText :
             Palette::settingsInactiveRowText;
           buildSmoothRect(left, top, width, height, edgeBlurWidth, bkColor, 1.0);
-          buildTextMesh(left + Layout::settingsPanelRowCaptionIndent, top, width, height, "Music", Layout::settingsPanelRowCaptionHeight, textColor, 1.0f, haLeft, vaCenter);
+          buildTextMesh(left + Layout::settingsPanelRowCaptionIndent, top, width, height, "Music", Layout::settingsPanelRowCaptionHeight, textColor, 1.0f, 0.0f, haLeft, vaCenter);
 
           if (LayoutObject * progressBarLayout = musicVolumeRowLayout->getChild(loMusicProgressBar))
           {
@@ -2376,7 +2378,7 @@ void OpenGLRender::buildSettingsWindow()
           const float top = keyBindingTitleLayout->getGlobalTop() + shift;
           const float width = keyBindingTitleLayout->width;
           const float height = keyBindingTitleLayout->height;
-          buildTextMesh(left, top, width, height, "KEY BINDING", height, Palette::settingsPanelTitleText, 1.0f, haLeft, vaCenter);
+          buildTextMesh(left, top, width, height, "KEY BINDING", height, Palette::settingsPanelTitleText, 1.0f, 0.0f, haLeft, vaCenter);
         }
 
         if (LayoutObject * keyBindingGridLayout = settingPanelLayout->getChild(loKeyBindingGrid))
@@ -2411,8 +2413,8 @@ void OpenGLRender::buildSettingsWindow()
             buildSmoothRect(left0, top, width0, height, edgeBlurWidth, bkColor, 1.0);
             buildSmoothRect(left1, top, width1, height, edgeBlurWidth, bkColor, 1.0);
             left0 += Layout::settingsPanelRowCaptionIndent;
-            buildTextMesh(left0, top, width0, height, actionName, Layout::settingsPanelRowCaptionHeight, fgColor, 1.0f, haLeft, vaCenter);
-            buildTextMesh(left1, top, width1, height, keyName, Layout::settingsPanelRowCaptionHeight, fgColor, 1.0f, haCenter, vaCenter);
+            buildTextMesh(left0, top, width0, height, actionName, Layout::settingsPanelRowCaptionHeight, fgColor, 1.0f, 0.0f, haLeft, vaCenter);
+            buildTextMesh(left1, top, width1, height, keyName, Layout::settingsPanelRowCaptionHeight, fgColor, 1.0f, 0.0f, haCenter, vaCenter);
           }
         }
       }
@@ -2457,7 +2459,7 @@ void OpenGLRender::buildLeaderboardWindow()
         const float top = settingTitleShadowLayout->getGlobalTop() + shift;
         const float width = settingTitleShadowLayout->width;
         const float height = settingTitleShadowLayout->height;
-        buildTextMesh(left, top, width, height, "LEADERBOARD", Layout::leaderboardTitleHeight, glm::vec3(0.0f), Palette::leaderboardTitleShadowAlpha, haLeft, vaTop);
+        buildTextMesh(left, top, width, height, "LEADERBOARD", Layout::leaderboardTitleHeight, glm::vec3(0.0f), Palette::leaderboardTitleShadowAlpha, Palette::leaderboardTitleShadowBlur, haLeft, vaTop);
       }
 
       if (LayoutObject * settingTitleLayout = leaderboardWindowLayout->getChild(loLeaderboardTitle))
@@ -2466,7 +2468,7 @@ void OpenGLRender::buildLeaderboardWindow()
         const float top = settingTitleLayout->getGlobalTop() + shift;
         const float width = settingTitleLayout->width;
         const float height = settingTitleLayout->height;
-        buildTextMesh(left, top, width, height, "LEADERBOARD", Layout::leaderboardTitleHeight, Palette::leaderboardTitleText, 1.0f, haLeft, vaCenter);
+        buildTextMesh(left, top, width, height, "LEADERBOARD", Layout::leaderboardTitleHeight, Palette::leaderboardTitleText, 1.0f, 0.0f, haLeft, vaTop);
       }
 
       if (LayoutObject * settingPanelLayout = leaderboardWindowLayout->getChild(loLeaderboardPanel))
@@ -2492,9 +2494,9 @@ void OpenGLRender::buildLeaderboardWindow()
 
         const glm::vec3 headerColor = Palette::leaderboardPanelHeaderText;
 
-        buildTextMesh(nameColLeft + Layout::leaderboardPanelNameLeftIndent, headerTop, nameColWidth, headerHeight, "NAME", Layout::leaderboardPanelHeaderTextHeight, headerColor, 1.0f, haLeft, vaCenter);
-        buildTextMesh(levelColLeft, headerTop, levelColWidth, headerHeight, "LEVEL", Layout::leaderboardPanelHeaderTextHeight, headerColor, 1.0f, haCenter, vaCenter);
-        buildTextMesh(scoreColLeft, headerTop, scoreColWidth - Layout::leaderboardPanelScoreRightIndent, headerHeight, "SCORE", Layout::leaderboardPanelHeaderTextHeight, headerColor, 1.0f, haRight, vaCenter);
+        buildTextMesh(nameColLeft + Layout::leaderboardPanelNameLeftIndent, headerTop, nameColWidth, headerHeight, "NAME", Layout::leaderboardPanelHeaderTextHeight, headerColor, 1.0f, 0.0f, haLeft, vaCenter);
+        buildTextMesh(levelColLeft, headerTop, levelColWidth, headerHeight, "LEVEL", Layout::leaderboardPanelHeaderTextHeight, headerColor, 1.0f, 0.0f, haCenter, vaCenter);
+        buildTextMesh(scoreColLeft, headerTop, scoreColWidth - Layout::leaderboardPanelScoreRightIndent, headerHeight, "SCORE", Layout::leaderboardPanelHeaderTextHeight, headerColor, 1.0f, 0.0f, haRight, vaCenter);
 
         const int leadersCount = InterfaceLogic::leaderboardLogic.getLeadersCount();
 
@@ -2507,8 +2509,8 @@ void OpenGLRender::buildLeaderboardWindow()
           const float rowTop = settingPanelLayout->getRowGlobalTop(i + 1) + shift;
           const float rowHeight = settingPanelLayout->getRowHeight(i + 1);
 
-          buildTextMesh(placeColLeft, rowTop, placeColWidth, rowHeight, std::to_string(i + 1).c_str(), Layout::leaderboardPanelRowTextHeight, textColor, 1.0f, haCenter, vaCenter);
-          float nameWidth = buildTextMesh(nameColLeft + Layout::leaderboardPanelNameLeftIndent, rowTop, nameColWidth, rowHeight, leader.name, Layout::leaderboardPanelRowTextHeight, textColor, 1.0f, haLeft, vaCenter);
+          buildTextMesh(placeColLeft, rowTop, placeColWidth, rowHeight, std::to_string(i + 1).c_str(), Layout::leaderboardPanelRowTextHeight, textColor, 1.0f, 0.0f, haCenter, vaCenter);
+          float nameWidth = buildTextMesh(nameColLeft + Layout::leaderboardPanelNameLeftIndent, rowTop, nameColWidth, rowHeight, leader.name, Layout::leaderboardPanelRowTextHeight, textColor, 1.0f, 0.0f, haLeft, vaCenter);
 
           if (i == editRow && (Time::counter % Time::freq > Time::freq / 2))
           {
@@ -2519,8 +2521,8 @@ void OpenGLRender::buildLeaderboardWindow()
             buildSmoothRect(cursorLeft, cursorTop, cursorWidth, cursorHeight, 0.1f * cursorWidth, textColor, 1.0f);
           }
 
-          buildTextMesh(levelColLeft, rowTop, levelColWidth, rowHeight, std::to_string(leader.level).c_str(), Layout::leaderboardPanelRowTextHeight, textColor, 1.0f, haCenter, vaCenter);
-          buildTextMesh(scoreColLeft, rowTop, scoreColWidth - Layout::leaderboardPanelScoreRightIndent, rowHeight, std::to_string(leader.score).c_str(), Layout::leaderboardPanelRowTextHeight, textColor, 1.0f, haRight, vaCenter);
+          buildTextMesh(levelColLeft, rowTop, levelColWidth, rowHeight, std::to_string(leader.level).c_str(), Layout::leaderboardPanelRowTextHeight, textColor, 1.0f, 0.0f, haCenter, vaCenter);
+          buildTextMesh(scoreColLeft, rowTop, scoreColWidth - Layout::leaderboardPanelScoreRightIndent, rowHeight, std::to_string(leader.score).c_str(), Layout::leaderboardPanelRowTextHeight, textColor, 1.0f, 0.0f, haRight, vaCenter);
         }
       }
 
@@ -2561,8 +2563,8 @@ void OpenGLRender::buildCountdown()
 
     if (ypos + dy + 0.5f * textHeight < glassLayout->getGlobalTop() + glassLayout->height)
     {
-      buildTextMesh(xpos + 0.005f, ypos + dy + 0.005f, 0.0f, 0.0f, text.c_str(), textHeight * scale, glm::vec3(0.0f), 0.75f, haCenter, vaCenter);
-      buildTextMesh(xpos, ypos + dy, 0.0f, 0.0f, text.c_str(), textHeight * scale, glm::vec3(1.0f), 0.0f, haCenter, vaCenter);
+      buildTextMesh(xpos, ypos + dy, 0.0f, 0.0f, text.c_str(), textHeight * scale, glm::vec3(0.0f), 0.75f, 1.0f, haCenter, vaCenter);
+      buildTextMesh(xpos, ypos + dy, 0.0f, 0.0f, text.c_str(), textHeight * scale, glm::vec3(1.0f), 0.0f, 0.0f, haCenter, vaCenter);
     }
   }
 }
@@ -2571,9 +2573,8 @@ void OpenGLRender::buildLevelUp()
 {
   if (LayoutObject * glassLayout = Layout::screen.getChildRecursive(loGlass))
   {
-    const float levelUpTime = 1.5f;
-    const float levelUpInTime = 0.25f;
-    const float levelUpOutTime = 0.25f;
+    const float levelUpTime = 2.0f;
+    const float levelUpScaleInTime = 0.5f;
     static float levelUpTimeLeft = 0.0f;
     static int curLevel = GameLogic::curLevel;
 
@@ -2585,18 +2586,17 @@ void OpenGLRender::buildLevelUp()
       const float xpos = glassLayout->getGlobalLeft() + 0.5f * glassLayout->width;
       const float ypos = glassLayout->getGlobalTop() + 0.5f * glassLayout->height;
 
-      float textHeight = 0.055f;
-      float scale = glm::clamp((levelUpTime - levelUpTimeLeft) / levelUpInTime, 0.0f, 1.0f);
+      const float textHeight = 0.075f;
+      float scale = glm::clamp((levelUpTime - levelUpTimeLeft) / levelUpScaleInTime, 0.0f, 1.0f);
       float progress = (levelUpTime - levelUpTimeLeft) / levelUpTime;
       const float yOffs = 0.2f;
-      float dy = -yOffs + yOffs * (2.0f * progress * progress - 4.0f * pow(progress, 5.0f));
+      float dy = -yOffs + yOffs * (3.0f * progress * progress - 5.0f * pow(progress, 5.0f));
 
       if (ypos + dy > glassLayout->getGlobalTop())
       {
-        const float shadowOffset = 0.005f;
         const char * levelUpText = "LEVEL UP";
-        buildTextMesh(xpos + shadowOffset, ypos + dy + shadowOffset, 0.0f, 0.0f, levelUpText, textHeight * scale, glm::vec3(0.0f), 0.75f, haCenter, vaTop);
-        buildTextMesh(xpos, ypos + dy, 0.0f, 0.0f, levelUpText, textHeight * scale, glm::vec3(1.0f), 0.0f, haCenter, vaTop);
+        buildTextMesh(xpos, ypos + dy, 0.0f, 0.0f, levelUpText, textHeight * scale, glm::vec3(0.0f), 0.75f, 1.0f, haCenter, vaTop);
+        buildTextMesh(xpos, ypos + dy, 0.0f, 0.0f, levelUpText, textHeight * scale, glm::vec3(1.0f), 0.0f, 0.0f, haCenter, vaTop);
       }
       else
         levelUpTimeLeft = -1.0f;
@@ -2667,7 +2667,7 @@ void OpenGLRender::updateSettingsLayer()
           const float height = bindingMsgLayout->height;
           buildRect(left, top, width, height, Palette::settingsBindingMsgBackground, 1.0f);
           buildFrameRect(left, top, width, height, Layout::settingsBindingMsgBorder, Palette::settingsBindingMsgBorder, 1.0f);
-          buildTextMesh(left, top, width, height, "PRESS KEY", Layout::settingsPanelRowCaptionHeight, Palette::settingsBindingMsgText, 1.0f, haCenter, vaCenter);
+          buildTextMesh(left, top, width, height, "PRESS KEY", Layout::settingsPanelRowCaptionHeight, Palette::settingsBindingMsgText, 1.0f, 0.0f, haCenter, vaCenter);
         }
       }
 

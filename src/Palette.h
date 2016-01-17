@@ -52,6 +52,7 @@ public:
   static glm::vec3 settingsGlow;
   static glm::vec3 settingsTitleText;
   static float settingsTitleShadowAlpha;
+  static float settingsTitleShadowBlur;
   static glm::vec3 settingsPanelBackgroundTop;
   static glm::vec3 settingsPanelBackgroundBottom;
   static glm::vec3 settingsPanelBorder;
@@ -75,6 +76,7 @@ public:
   static glm::vec3 leaderboardGlow;
   static glm::vec3 leaderboardTitleText;
   static float leaderboardTitleShadowAlpha;
+  static float leaderboardTitleShadowBlur;
   static glm::vec3 leaderboardPanelBackgroundTop;
   static glm::vec3 leaderboardPanelBackgroundBottom;
   static glm::vec3 leaderboardPanelBorder;
