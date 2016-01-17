@@ -413,7 +413,7 @@ void OpenGLRender::addBkVertex(const glm::vec2 & xy, const glm::vec2 & uv, const
   bkVertexBuffer.push_back(vertex);
 }
 
-void OpenGLRender::addVertex(const glm::vec2 & xy, const glm::vec2 & uv, int texIndex, const glm::vec3 & color, float alpha)
+void OpenGLRender::addAtlasVertex(const glm::vec2 & xy, const glm::vec2 & uv, int texIndex, const glm::vec3 & color, float alpha)
 {
   Vertex vertex;
   vertex.xy = xy;
@@ -447,12 +447,12 @@ void OpenGLRender::buildRect(float left, float top, float width, float height, c
   const glm::vec2 verts3(left + width, top + height);
   const glm::vec2 uv(0.5f);
 
-  addVertex(verts0, uv, tiEmpty, color, alpha);
-  addVertex(verts1, uv, tiEmpty, color, alpha);
-  addVertex(verts2, uv, tiEmpty, color, alpha);
-  addVertex(verts1, uv, tiEmpty, color, alpha);
-  addVertex(verts2, uv, tiEmpty, color, alpha);
-  addVertex(verts3, uv, tiEmpty, color, alpha);
+  addAtlasVertex(verts0, uv, tiEmpty, color, alpha);
+  addAtlasVertex(verts1, uv, tiEmpty, color, alpha);
+  addAtlasVertex(verts2, uv, tiEmpty, color, alpha);
+  addAtlasVertex(verts1, uv, tiEmpty, color, alpha);
+  addAtlasVertex(verts2, uv, tiEmpty, color, alpha);
+  addAtlasVertex(verts3, uv, tiEmpty, color, alpha);
 }
 
 void OpenGLRender::buildSmoothRect(float left, float top, float width, float height, float blur, const glm::vec3 & color, float alpha)
@@ -474,12 +474,12 @@ void OpenGLRender::buildTexturedRect(float left, float top, float width, float h
   const glm::vec2 uv2(0.0f, 1.0f);
   const glm::vec2 uv3(1.0f, 1.0f);
 
-  addVertex(verts0, uv0, texIndex, color, alpha);
-  addVertex(verts1, uv1, texIndex, color, alpha);
-  addVertex(verts2, uv2, texIndex, color, alpha);
-  addVertex(verts1, uv1, texIndex, color, alpha);
-  addVertex(verts2, uv2, texIndex, color, alpha);
-  addVertex(verts3, uv3, texIndex, color, alpha);
+  addAtlasVertex(verts0, uv0, texIndex, color, alpha);
+  addAtlasVertex(verts1, uv1, texIndex, color, alpha);
+  addAtlasVertex(verts2, uv2, texIndex, color, alpha);
+  addAtlasVertex(verts1, uv1, texIndex, color, alpha);
+  addAtlasVertex(verts2, uv2, texIndex, color, alpha);
+  addAtlasVertex(verts3, uv3, texIndex, color, alpha);
 }
 
 void OpenGLRender::buildVertGradientRect(float left, float top, float width, float height, const glm::vec3 & topColor, float topAlpha, const glm::vec3 & bottomColor, float bottomAlpha)
@@ -490,12 +490,12 @@ void OpenGLRender::buildVertGradientRect(float left, float top, float width, flo
   glm::vec2 verts3(left + width, top + height);
   const glm::vec2 uv(0.5f);
 
-  addVertex(verts0, uv, tiEmpty, topColor, topAlpha);
-  addVertex(verts1, uv, tiEmpty, topColor, topAlpha);
-  addVertex(verts2, uv, tiEmpty, bottomColor, bottomAlpha);
-  addVertex(verts1, uv, tiEmpty, topColor, topAlpha);
-  addVertex(verts2, uv, tiEmpty, bottomColor, bottomAlpha);
-  addVertex(verts3, uv, tiEmpty, bottomColor, bottomAlpha);
+  addAtlasVertex(verts0, uv, tiEmpty, topColor, topAlpha);
+  addAtlasVertex(verts1, uv, tiEmpty, topColor, topAlpha);
+  addAtlasVertex(verts2, uv, tiEmpty, bottomColor, bottomAlpha);
+  addAtlasVertex(verts1, uv, tiEmpty, topColor, topAlpha);
+  addAtlasVertex(verts2, uv, tiEmpty, bottomColor, bottomAlpha);
+  addAtlasVertex(verts3, uv, tiEmpty, bottomColor, bottomAlpha);
 }
 
 void OpenGLRender::buildLine(float x0, float y0, float x1, float y1, float width, const glm::vec3 & color, float alpha)
@@ -534,13 +534,13 @@ void OpenGLRender::buildLine(float x0, float y0, float x1, float y1, float width
 
   for (int i = 0; i < 6; i += 2)
   {
-    addVertex(verts[i + 0], uv[i + 0], tiLine, color, alpha);
-    addVertex(verts[i + 1], uv[i + 1], tiLine, color, alpha);
-    addVertex(verts[i + 2], uv[i + 2], tiLine, color, alpha);
+    addAtlasVertex(verts[i + 0], uv[i + 0], tiLine, color, alpha);
+    addAtlasVertex(verts[i + 1], uv[i + 1], tiLine, color, alpha);
+    addAtlasVertex(verts[i + 2], uv[i + 2], tiLine, color, alpha);
 
-    addVertex(verts[i + 1], uv[i + 1], tiLine, color, alpha);
-    addVertex(verts[i + 2], uv[i + 2], tiLine, color, alpha);
-    addVertex(verts[i + 3], uv[i + 3], tiLine, color, alpha);
+    addAtlasVertex(verts[i + 1], uv[i + 1], tiLine, color, alpha);
+    addAtlasVertex(verts[i + 2], uv[i + 2], tiLine, color, alpha);
+    addAtlasVertex(verts[i + 3], uv[i + 3], tiLine, color, alpha);
   }
 }
 
@@ -573,13 +573,13 @@ void OpenGLRender::buildFrameRect(float left, float top, float width, float heig
 
   for (int i = 0; i < 8; i += 2)
   {
-    addVertex(verts[i + 0], uv[i + 0], tiLine, borderColor, borderAlpha);
-    addVertex(verts[i + 1], uv[i + 1], tiLine, borderColor, borderAlpha);
-    addVertex(verts[(i + 2) & 7], uv[(i + 2) & 7], tiLine, borderColor, borderAlpha);
+    addAtlasVertex(verts[i + 0], uv[i + 0], tiLine, borderColor, borderAlpha);
+    addAtlasVertex(verts[i + 1], uv[i + 1], tiLine, borderColor, borderAlpha);
+    addAtlasVertex(verts[(i + 2) & 7], uv[(i + 2) & 7], tiLine, borderColor, borderAlpha);
 
-    addVertex(verts[i + 1], uv[i + 1], tiLine, borderColor, borderAlpha);
-    addVertex(verts[(i + 2) & 7], uv[(i + 2) & 7], tiLine, borderColor, borderAlpha);
-    addVertex(verts[(i + 3) & 7], uv[(i + 3) & 7], tiLine, borderColor, borderAlpha);
+    addAtlasVertex(verts[i + 1], uv[i + 1], tiLine, borderColor, borderAlpha);
+    addAtlasVertex(verts[(i + 2) & 7], uv[(i + 2) & 7], tiLine, borderColor, borderAlpha);
+    addAtlasVertex(verts[(i + 3) & 7], uv[(i + 3) & 7], tiLine, borderColor, borderAlpha);
   }
 }
 
@@ -726,12 +726,12 @@ void OpenGLRender::buildBackground()
 
       glm::vec2 uv(0.5f, 0.5f);
 
-      addVertex(origin + verts[0], uv, tiEmpty, col[0], 1.0f);
-      addVertex(origin + verts[1], uv, tiEmpty, col[1], 1.0f);
-      addVertex(origin + verts[2], uv, tiEmpty, col[2], 1.0f);
-      addVertex(origin + verts[1], uv, tiEmpty, col[1], 1.0f);
-      addVertex(origin + verts[2], uv, tiEmpty, col[2], 1.0f);
-      addVertex(origin + verts[3], uv, tiEmpty, col[3], 1.0f);
+      addAtlasVertex(origin + verts[0], uv, tiEmpty, col[0], 1.0f);
+      addAtlasVertex(origin + verts[1], uv, tiEmpty, col[1], 1.0f);
+      addAtlasVertex(origin + verts[2], uv, tiEmpty, col[2], 1.0f);
+      addAtlasVertex(origin + verts[1], uv, tiEmpty, col[1], 1.0f);
+      addAtlasVertex(origin + verts[2], uv, tiEmpty, col[2], 1.0f);
+      addAtlasVertex(origin + verts[3], uv, tiEmpty, col[3], 1.0f);
     }
   }
 
@@ -927,12 +927,12 @@ void OpenGLRender::buidGlassShadow()
           verts[3].x += shadowWidth;
         }
 
-        addVertex(origin + scale * verts[0], uv[0], tiFigureShadow, Palette::figureShadow, 1.0f);
-        addVertex(origin + scale * verts[1], uv[1], tiFigureShadow, Palette::figureShadow, 1.0f);
-        addVertex(origin + scale * verts[2], uv[2], tiFigureShadow, Palette::figureShadow, 1.0f);
-        addVertex(origin + scale * verts[1], uv[1], tiFigureShadow, Palette::figureShadow, 1.0f);
-        addVertex(origin + scale * verts[2], uv[2], tiFigureShadow, Palette::figureShadow, 1.0f);
-        addVertex(origin + scale * verts[3], uv[3], tiFigureShadow, Palette::figureShadow, 1.0f);
+        addAtlasVertex(origin + scale * verts[0], uv[0], tiFigureShadow, Palette::figureShadow, 1.0f);
+        addAtlasVertex(origin + scale * verts[1], uv[1], tiFigureShadow, Palette::figureShadow, 1.0f);
+        addAtlasVertex(origin + scale * verts[2], uv[2], tiFigureShadow, Palette::figureShadow, 1.0f);
+        addAtlasVertex(origin + scale * verts[1], uv[1], tiFigureShadow, Palette::figureShadow, 1.0f);
+        addAtlasVertex(origin + scale * verts[2], uv[2], tiFigureShadow, Palette::figureShadow, 1.0f);
+        addAtlasVertex(origin + scale * verts[3], uv[3], tiFigureShadow, Palette::figureShadow, 1.0f);
       }
 
       if (rightCell && rightCell->figureId != cell->figureId)
@@ -972,12 +972,12 @@ void OpenGLRender::buidGlassShadow()
           verts[3].y += shadowWidth;
         }
 
-        addVertex(origin + scale * verts[0], uv[0], tiFigureShadow, Palette::figureShadow, 1.0f);
-        addVertex(origin + scale * verts[1], uv[1], tiFigureShadow, Palette::figureShadow, 1.0f);
-        addVertex(origin + scale * verts[2], uv[2], tiFigureShadow, Palette::figureShadow, 1.0f);
-        addVertex(origin + scale * verts[1], uv[1], tiFigureShadow, Palette::figureShadow, 1.0f);
-        addVertex(origin + scale * verts[2], uv[2], tiFigureShadow, Palette::figureShadow, 1.0f);
-        addVertex(origin + scale * verts[3], uv[3], tiFigureShadow, Palette::figureShadow, 1.0f);
+        addAtlasVertex(origin + scale * verts[0], uv[0], tiFigureShadow, Palette::figureShadow, 1.0f);
+        addAtlasVertex(origin + scale * verts[1], uv[1], tiFigureShadow, Palette::figureShadow, 1.0f);
+        addAtlasVertex(origin + scale * verts[2], uv[2], tiFigureShadow, Palette::figureShadow, 1.0f);
+        addAtlasVertex(origin + scale * verts[1], uv[1], tiFigureShadow, Palette::figureShadow, 1.0f);
+        addAtlasVertex(origin + scale * verts[2], uv[2], tiFigureShadow, Palette::figureShadow, 1.0f);
+        addAtlasVertex(origin + scale * verts[3], uv[3], tiFigureShadow, Palette::figureShadow, 1.0f);
       }
     }
   }
@@ -1061,12 +1061,12 @@ void OpenGLRender::buidGlassBlocks()
 
         const glm::vec3 & color = Palette::cellColorArray[cell->color];
 
-        addVertex(origin + scale * verts[0], segmentUvArray[vertSegmentType][0], tiFigureCellNormal, color, 1.0f);
-        addVertex(origin + scale * verts[1], segmentUvArray[vertSegmentType][1], tiFigureCellNormal, color, 1.0f);
-        addVertex(origin + scale * verts[2], segmentUvArray[vertSegmentType][2], tiFigureCellNormal, color, 1.0f);
-        addVertex(origin + scale * verts[0], segmentUvArray[horzSegmentType][0], tiFigureCellNormal, color, 1.0f);
-        addVertex(origin + scale * verts[3], segmentUvArray[horzSegmentType][1], tiFigureCellNormal, color, 1.0f);
-        addVertex(origin + scale * verts[2], segmentUvArray[horzSegmentType][2], tiFigureCellNormal, color, 1.0f);
+        addAtlasVertex(origin + scale * verts[0], segmentUvArray[vertSegmentType][0], tiFigureCellNormal, color, 1.0f);
+        addAtlasVertex(origin + scale * verts[1], segmentUvArray[vertSegmentType][1], tiFigureCellNormal, color, 1.0f);
+        addAtlasVertex(origin + scale * verts[2], segmentUvArray[vertSegmentType][2], tiFigureCellNormal, color, 1.0f);
+        addAtlasVertex(origin + scale * verts[0], segmentUvArray[horzSegmentType][0], tiFigureCellNormal, color, 1.0f);
+        addAtlasVertex(origin + scale * verts[3], segmentUvArray[horzSegmentType][1], tiFigureCellNormal, color, 1.0f);
+        addAtlasVertex(origin + scale * verts[2], segmentUvArray[horzSegmentType][2], tiFigureCellNormal, color, 1.0f);
       }
     }
   }
@@ -1149,12 +1149,12 @@ void OpenGLRender::biuldGlassGlow()
           verts[3].y += glowWidth;
         }
 
-        addVertex(origin + scale * verts[0], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
-        addVertex(origin + scale * verts[3], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+        addAtlasVertex(origin + scale * verts[0], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+        addAtlasVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+        addAtlasVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+        addAtlasVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+        addAtlasVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+        addAtlasVertex(origin + scale * verts[3], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
       }
 
       if (rightCell && rightCell->figureId != cell->figureId)
@@ -1189,12 +1189,12 @@ void OpenGLRender::biuldGlassGlow()
           verts[3].y += glowWidth;
         }
 
-        addVertex(origin + scale * verts[0], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
-        addVertex(origin + scale * verts[3], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+        addAtlasVertex(origin + scale * verts[0], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+        addAtlasVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+        addAtlasVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+        addAtlasVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+        addAtlasVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+        addAtlasVertex(origin + scale * verts[3], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
       }
 
       if (topCell && topCell->figureId != cell->figureId)
@@ -1229,12 +1229,12 @@ void OpenGLRender::biuldGlassGlow()
           verts[3].x += glowWidth;
         }
 
-        addVertex(origin + scale * verts[0], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
-        addVertex(origin + scale * verts[3], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+        addAtlasVertex(origin + scale * verts[0], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+        addAtlasVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+        addAtlasVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+        addAtlasVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+        addAtlasVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+        addAtlasVertex(origin + scale * verts[3], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
       }
 
       if (bottomCell && bottomCell->figureId != cell->figureId)
@@ -1269,12 +1269,12 @@ void OpenGLRender::biuldGlassGlow()
           verts[3].x += glowWidth;
         }
 
-        addVertex(origin + scale * verts[0], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
-        addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
-        addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
-        addVertex(origin + scale * verts[3], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+        addAtlasVertex(origin + scale * verts[0], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+        addAtlasVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+        addAtlasVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+        addAtlasVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+        addAtlasVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+        addAtlasVertex(origin + scale * verts[3], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
       }
     }
   }
@@ -1428,12 +1428,12 @@ void OpenGLRender::buildFigureBlocks()
 
             const glm::vec3 & color = Palette::cellColorArray[cell->color];
 
-            addVertex(origin + scale * verts[0], segmentUvArray[vertSegmentType][0], tiFigureCellBold, color, 1.0f);
-            addVertex(origin + scale * verts[1], segmentUvArray[vertSegmentType][1], tiFigureCellBold, color, 1.0f);
-            addVertex(origin + scale * verts[2], segmentUvArray[vertSegmentType][2], tiFigureCellBold, color, 1.0f);
-            addVertex(origin + scale * verts[0], segmentUvArray[horzSegmentType][0], tiFigureCellBold, color, 1.0f);
-            addVertex(origin + scale * verts[3], segmentUvArray[horzSegmentType][1], tiFigureCellBold, color, 1.0f);
-            addVertex(origin + scale * verts[2], segmentUvArray[horzSegmentType][2], tiFigureCellBold, color, 1.0f);
+            addAtlasVertex(origin + scale * verts[0], segmentUvArray[vertSegmentType][0], tiFigureCellBold, color, 1.0f);
+            addAtlasVertex(origin + scale * verts[1], segmentUvArray[vertSegmentType][1], tiFigureCellBold, color, 1.0f);
+            addAtlasVertex(origin + scale * verts[2], segmentUvArray[vertSegmentType][2], tiFigureCellBold, color, 1.0f);
+            addAtlasVertex(origin + scale * verts[0], segmentUvArray[horzSegmentType][0], tiFigureCellBold, color, 1.0f);
+            addAtlasVertex(origin + scale * verts[3], segmentUvArray[horzSegmentType][1], tiFigureCellBold, color, 1.0f);
+            addAtlasVertex(origin + scale * verts[2], segmentUvArray[horzSegmentType][2], tiFigureCellBold, color, 1.0f);
           }
         }
       }
@@ -1589,12 +1589,12 @@ void OpenGLRender::buildFigureGlow()
               verts[3].y += glowWidth;
             }
 
-            addVertex(origin + scale * verts[0], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
-            addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
-            addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
-            addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
-            addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
-            addVertex(origin + scale * verts[3], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+            addAtlasVertex(origin + scale * verts[0], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+            addAtlasVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+            addAtlasVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+            addAtlasVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+            addAtlasVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+            addAtlasVertex(origin + scale * verts[3], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
           }
 
           if (!haveRightCell)
@@ -1629,12 +1629,12 @@ void OpenGLRender::buildFigureGlow()
               verts[3].y += glowWidth;
             }
 
-            addVertex(origin + scale * verts[0], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
-            addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
-            addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
-            addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
-            addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
-            addVertex(origin + scale * verts[3], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+            addAtlasVertex(origin + scale * verts[0], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+            addAtlasVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+            addAtlasVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+            addAtlasVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+            addAtlasVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+            addAtlasVertex(origin + scale * verts[3], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
           }
 
           if (!haveTopCell)
@@ -1669,12 +1669,12 @@ void OpenGLRender::buildFigureGlow()
               verts[3].x += glowWidth;
             }
 
-            addVertex(origin + scale * verts[0], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
-            addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
-            addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
-            addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
-            addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
-            addVertex(origin + scale * verts[3], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+            addAtlasVertex(origin + scale * verts[0], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+            addAtlasVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+            addAtlasVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+            addAtlasVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+            addAtlasVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+            addAtlasVertex(origin + scale * verts[3], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
           }
 
           if (!haveBottomCell)
@@ -1709,12 +1709,12 @@ void OpenGLRender::buildFigureGlow()
               verts[3].x += glowWidth;
             }
 
-            addVertex(origin + scale * verts[0], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
-            addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
-            addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
-            addVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
-            addVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
-            addVertex(origin + scale * verts[3], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+            addAtlasVertex(origin + scale * verts[0], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+            addAtlasVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+            addAtlasVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+            addAtlasVertex(origin + scale * verts[1], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
+            addAtlasVertex(origin + scale * verts[2], glm::vec2(0.5f), tiEmpty, glowInnerColor, 0.0f);
+            addAtlasVertex(origin + scale * verts[3], glm::vec2(0.5f), tiEmpty, glowOuterColor, 0.0f);
           }
         }
       }
@@ -1831,9 +1831,9 @@ void OpenGLRender::buildRowFlashes()
         { glassLeft + scale * (gapX + rayEndDX), glassTop + scale * (gapY2 + rayEndDY2) },
       };
 
-      addVertex(verts[0], uv[0], tiRowShineRay, rayBeginColor, 0.0f);
-      addVertex(verts[1], uv[1], tiRowShineRay, rayEndColor, 0.0f);
-      addVertex(verts[2], uv[2], tiRowShineRay, rayEndColor, 0.0f);
+      addAtlasVertex(verts[0], uv[0], tiRowShineRay, rayBeginColor, 0.0f);
+      addAtlasVertex(verts[1], uv[1], tiRowShineRay, rayEndColor, 0.0f);
+      addAtlasVertex(verts[2], uv[2], tiRowShineRay, rayEndColor, 0.0f);
     }
 
     float shineSize = 3.5f;
@@ -1971,21 +1971,21 @@ void OpenGLRender::buildSideBar(float left, float top, float width, float height
 
   for (int i = 0; i < 5; i++)
   {
-    addVertex(origin + borderVerts[i], borderUV[i], tiGuiPanelGlow, glowColor, 0.0f);
-    addVertex(origin + outerGlowVerts[i], outerGlowUV[i], tiGuiPanelGlow, glowColor, 0.0f);
-    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
+    addAtlasVertex(origin + borderVerts[i], borderUV[i], tiGuiPanelGlow, glowColor, 0.0f);
+    addAtlasVertex(origin + outerGlowVerts[i], outerGlowUV[i], tiGuiPanelGlow, glowColor, 0.0f);
+    addAtlasVertex(origin + borderVerts[i + 1], borderUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
 
-    addVertex(origin + outerGlowVerts[i], outerGlowUV[i], tiGuiPanelGlow, glowColor, 0.0f);
-    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
-    addVertex(origin + outerGlowVerts[i + 1], outerGlowUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
+    addAtlasVertex(origin + outerGlowVerts[i], outerGlowUV[i], tiGuiPanelGlow, glowColor, 0.0f);
+    addAtlasVertex(origin + borderVerts[i + 1], borderUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
+    addAtlasVertex(origin + outerGlowVerts[i + 1], outerGlowUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
 
-    addVertex(origin + borderVerts[i], borderUV[i], tiGuiPanelGlow, glowColor, 0.0f);
-    addVertex(origin + innerGlowVerts[i], innerGlowUV[i], tiGuiPanelGlow, glowColor, 0.0f);
-    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
+    addAtlasVertex(origin + borderVerts[i], borderUV[i], tiGuiPanelGlow, glowColor, 0.0f);
+    addAtlasVertex(origin + innerGlowVerts[i], innerGlowUV[i], tiGuiPanelGlow, glowColor, 0.0f);
+    addAtlasVertex(origin + borderVerts[i + 1], borderUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
 
-    addVertex(origin + innerGlowVerts[i], innerGlowUV[i], tiGuiPanelGlow, glowColor, 0.0f);
-    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
-    addVertex(origin + innerGlowVerts[i + 1], innerGlowUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
+    addAtlasVertex(origin + innerGlowVerts[i], innerGlowUV[i], tiGuiPanelGlow, glowColor, 0.0f);
+    addAtlasVertex(origin + borderVerts[i + 1], borderUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
+    addAtlasVertex(origin + innerGlowVerts[i + 1], innerGlowUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
   }
 }
 
@@ -2121,21 +2121,21 @@ void OpenGLRender::buildWindow(float left, float top, float width, float height,
 
   for (int i = 0; i < 6; i++)
   {
-    addVertex(origin + borderVerts[i], borderUV[i], tiGuiPanelGlow, glowColor, 0.0f);
-    addVertex(origin + outerGlowVerts[i], outerGlowUV[i], tiGuiPanelGlow, glowColor, 0.0f);
-    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
+    addAtlasVertex(origin + borderVerts[i], borderUV[i], tiGuiPanelGlow, glowColor, 0.0f);
+    addAtlasVertex(origin + outerGlowVerts[i], outerGlowUV[i], tiGuiPanelGlow, glowColor, 0.0f);
+    addAtlasVertex(origin + borderVerts[i + 1], borderUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
 
-    addVertex(origin + outerGlowVerts[i], outerGlowUV[i], tiGuiPanelGlow, glowColor, 0.0f);
-    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
-    addVertex(origin + outerGlowVerts[i + 1], outerGlowUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
+    addAtlasVertex(origin + outerGlowVerts[i], outerGlowUV[i], tiGuiPanelGlow, glowColor, 0.0f);
+    addAtlasVertex(origin + borderVerts[i + 1], borderUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
+    addAtlasVertex(origin + outerGlowVerts[i + 1], outerGlowUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
 
-    addVertex(origin + borderVerts[i], borderUV[i], tiGuiPanelGlow, glowColor, 0.0f);
-    addVertex(origin + innerGlowVerts[i], innerGlowUV[i], tiGuiPanelGlow, glowColor, 0.0f);
-    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
+    addAtlasVertex(origin + borderVerts[i], borderUV[i], tiGuiPanelGlow, glowColor, 0.0f);
+    addAtlasVertex(origin + innerGlowVerts[i], innerGlowUV[i], tiGuiPanelGlow, glowColor, 0.0f);
+    addAtlasVertex(origin + borderVerts[i + 1], borderUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
 
-    addVertex(origin + innerGlowVerts[i], innerGlowUV[i], tiGuiPanelGlow, glowColor, 0.0f);
-    addVertex(origin + borderVerts[i + 1], borderUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
-    addVertex(origin + innerGlowVerts[i + 1], innerGlowUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
+    addAtlasVertex(origin + innerGlowVerts[i], innerGlowUV[i], tiGuiPanelGlow, glowColor, 0.0f);
+    addAtlasVertex(origin + borderVerts[i + 1], borderUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
+    addAtlasVertex(origin + innerGlowVerts[i + 1], innerGlowUV[i + 1], tiGuiPanelGlow, glowColor, 0.0f);
   }
 }
 

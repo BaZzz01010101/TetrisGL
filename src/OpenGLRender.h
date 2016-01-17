@@ -89,7 +89,7 @@ private:
   float pxSize;
 
   void addBkVertex(const glm::vec2 & xy, const glm::vec2 & uv, const glm::vec3 & color, float alpha);
-  void addVertex(const glm::vec2 & xy, const glm::vec2 & uv, int texIndex, const glm::vec3 & color, float alpha);
+  void addAtlasVertex(const glm::vec2 & xy, const glm::vec2 & uv, int texIndex, const glm::vec3 & color, float alpha);
   void addTextVertex(const glm::vec2 & xy, const glm::vec2 & uv, float falloffSize, const glm::vec3 & color, float alpha);
   void clearVertices();
   void drawMesh();
@@ -101,7 +101,6 @@ private:
   void buildFrameRect(float left, float top, float width, float height, float borderWidth, const glm::vec3 & borderColor, float borderAlpha);
   void buildProgressBar(float left, float top, float width, float height, const glm::vec3 & bkColor, const glm::vec3 & borderColor, const glm::vec3 & barColor, float alpha, float progress);
   void buildBackground();
-  void buildFigureBackgroundsMesh();
   void buidGlassShadow();
   void buidGlassBlocks();
   void biuldGlassGlow();
@@ -121,6 +120,4 @@ private:
   void updateSettingsLayer();
   void updateLeaderboardLayer();
   void updateMenuLayer();
-  void buildPressKey();
-  void buildPressKeyBkShade();
 };
