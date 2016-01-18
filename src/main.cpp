@@ -8,14 +8,10 @@
 
 int main()
 {
-#ifdef _DEBUG
-//  std::cout << "Press 'Enter'\n";
-//  getchar();
-#endif // DEBUG
   srand((unsigned int)Crosy::getPerformanceCounter());
 
-  Logic::init();
   Binding::init();
+  Logic::init();
   std::unique_ptr<Application> application = std::make_unique<OpenGLApplication>();
 
   if (!application->init())

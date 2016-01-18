@@ -1299,7 +1299,7 @@ void OpenGLRender::buildFigureBlocks()
   const float nextPanelWidth = nextPanelLayout->width;
   const float nextPanelHeight = nextPanelLayout->height;
 
-  for (int figureIndex = (GameLogic::haveHold ? -1 : 0); figureIndex < Globals::nextFiguresCount; figureIndex++)
+  for (int figureIndex = (GameLogic::haveHold ? -1 : 0); figureIndex < GameLogic::nextFiguresCount; figureIndex++)
   {
 
     Figure * figure = NULL;
@@ -1462,7 +1462,7 @@ void OpenGLRender::buildFigureGlow()
   const float glowWidth = 0.3f;
   const float innerOffset = 2.0f / 64.0f;
 
-  for (int i = -1; i < Globals::nextFiguresCount; i++)
+  for (int i = -1; i < GameLogic::nextFiguresCount; i++)
   {
 
     Figure * figure = NULL;
@@ -1772,7 +1772,7 @@ void OpenGLRender::buildRowFlashes()
   const float glassTop = glassLayout->getGlobalTop();
   const float scale = glassLayout->width / GameLogic::glassWidth;
 
-  float overallProgress = glm::clamp(float(Time::timer - GameLogic::rowsDeleteTimer) / Globals::rowsDeletionEffectTime, 0.0f, 1.0f);
+  float overallProgress = glm::clamp(float(Time::timer - GameLogic::rowsDeleteTimer) / GameLogic::rowsDeletionEffectTime, 0.0f, 1.0f);
   float mul = 1.0f - cos((overallProgress - 0.5f) * (overallProgress < 0.5f ? 0.5f : 2.0f) * (float)M_PI_2);
   float dx = 1.0f - mul * 3.0f;
   float dy = 0.25f - 0.75f * mul;
@@ -2562,10 +2562,7 @@ void OpenGLRender::buildCountdown()
     const float textHeight = 0.1f;
 
     if (ypos + dy + 0.5f * textHeight < glassLayout->getGlobalTop() + glassLayout->height)
-    {
-      buildTextMesh(xpos, ypos + dy, 0.0f, 0.0f, text.c_str(), textHeight * scale, glm::vec3(0.0f), 0.75f, 1.0f, haCenter, vaCenter);
       buildTextMesh(xpos, ypos + dy, 0.0f, 0.0f, text.c_str(), textHeight * scale, glm::vec3(1.0f), 0.0f, 0.0f, haCenter, vaCenter);
-    }
   }
 }
 
@@ -2616,7 +2613,8 @@ void OpenGLRender::updateGameLayer()
     buildCountdown();
 
   if (GameLogic::state == GameLogic::stPlaying ||
-    GameLogic::state == GameLogic::stPaused)
+    GameLogic::state == GameLogic::stPaused || 
+    GameLogic::state == GameLogic::stGameOver)
   {
     buidGlassShadow();
     buidGlassBlocks();
@@ -2629,6 +2627,39 @@ void OpenGLRender::updateGameLayer()
   }
 
   drawMesh();
+
+  const float gameOverTime = (float)GameLogic::gameOverTime;
+  const float gameOverInTime = 0.5f;
+  const float gameOverOutTime = 0.5f;
+  const float gameOverTimeLeft = GameLogic::gameOverTimeLeft;
+
+  if (gameOverTimeLeft > 0.0f)
+  {
+    const float inProgress = glm::clamp((gameOverTime - gameOverTimeLeft) / gameOverInTime, 0.0f, 1.0f);
+    const float progress = glm::clamp((gameOverTime - gameOverTimeLeft) / gameOverTime, 0.0f, 1.0f);
+    const float outProgress = glm::clamp(gameOverTimeLeft / gameOverOutTime, 0.0f, 1.0f);
+    const float opPowInProgress = 1.0f - pow(1.0f - inProgress, 3.0f);
+    const float opPowOutProgress = 1.0f - pow(1.0f - outProgress, 3.0f);
+
+    clearVertices();
+    buildRect(0.0f, 0.0f, 1.0f, 1.0f, glm::vec3(0.0f), Palette::backgroundShadeAlpha * opPowInProgress);
+    drawMesh();
+
+    if (LayoutObject * gameLayout = Layout::screen.getChild(loGame))
+    {
+      const float xpos = gameLayout->getGlobalLeft() + 0.5f * gameLayout->width;
+      const float ypos = gameLayout->getGlobalTop() + 0.5f * gameLayout->height;
+
+      const float textHeight = 0.075f;
+      const float scale = opPowInProgress / glm::clamp(opPowOutProgress, 0.0001f, 1.0f);
+      const float blur = 1.0f - opPowOutProgress;
+      const char * levelUpText = "GAME OVER";
+      clearVertices();
+      buildTextMesh(xpos, ypos, 0.0f, 0.0f, levelUpText, textHeight * scale, opPowOutProgress * glm::vec3(0.0f), 1.0f, 1.0f, haCenter, vaCenter);
+      buildTextMesh(xpos, ypos, 0.0f, 0.0f, levelUpText, textHeight * scale, opPowOutProgress * glm::vec3(1.0f), 0.0f, blur, haCenter, vaCenter);
+      drawMesh();
+    }
+  }
 }
 
 void OpenGLRender::updateSettingsLayer()
@@ -2674,10 +2705,8 @@ void OpenGLRender::updateSettingsLayer()
       drawMesh();
     }
 
-    if (InterfaceLogic::settingsLogic.state == SettingsLogic::stKeyWaiting)
-      keyBindBkShade = glm::clamp(keyBindBkShade + keyBindBkShadingSpeed * Time::timerDelta, 0.0f, 1.0f);
-    else
-      keyBindBkShade = glm::clamp(keyBindBkShade - keyBindBkShadingSpeed * Time::timerDelta, 0.0f, 1.0f);
+    float shadeSpeed = (InterfaceLogic::settingsLogic.state == SettingsLogic::stKeyWaiting) ? +keyBindBkShadingSpeed : -keyBindBkShadingSpeed;
+    keyBindBkShade = glm::clamp(keyBindBkShade + shadeSpeed * Time::timerDelta, 0.0f, 1.0f);
   }
 }
 

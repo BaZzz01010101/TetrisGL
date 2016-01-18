@@ -11,6 +11,8 @@ SettingsLogic::SettingsLogic() :
   saveConfirmationMenu(MenuLogic::resBack),
   changed(false),
   state(stHidden),
+  showingTime(0.3f),
+  hidingTime(0.2f),
   transitionProgress(0.0f),
   soundVolume(0.5f),
   musicVolume(0.5f),
@@ -20,15 +22,19 @@ SettingsLogic::SettingsLogic() :
   highlightedAction(Binding::doNothing),
   backButtonHighlighted(false)
 {
-  saveConfirmationMenu.add("SAVE", MenuLogic::resSave);
-  saveConfirmationMenu.add("DON'T SAVE", MenuLogic::resDontSave);
-  saveConfirmationMenu.add("BACK", MenuLogic::resBack, true);
-  load();
 }
 
 
 SettingsLogic::~SettingsLogic()
 {
+}
+
+void SettingsLogic::init()
+{
+  saveConfirmationMenu.add("SAVE", MenuLogic::resSave);
+  saveConfirmationMenu.add("DON'T SAVE", MenuLogic::resDontSave);
+  saveConfirmationMenu.add("BACK", MenuLogic::resBack, true);
+  load();
 }
 
 SettingsLogic::Result SettingsLogic::update()
@@ -42,7 +48,7 @@ SettingsLogic::Result SettingsLogic::update()
     break;
 
   case stShowing:
-    if ((transitionProgress += Time::timerDelta / Globals::settingsShowingTime) >= 1.0f)
+    if ((transitionProgress += Time::timerDelta / showingTime) >= 1.0f)
     {
       transitionProgress = 1.0f;
       state = stVisible;
@@ -54,7 +60,7 @@ SettingsLogic::Result SettingsLogic::update()
     break;
 
   case stHiding:
-    if ((transitionProgress -= Time::timerDelta / Globals::settingsHidingTime) <= 0.0f)
+    if ((transitionProgress -= Time::timerDelta / hidingTime) <= 0.0f)
     {
       transitionProgress = 0.0f;
       state = stHidden;

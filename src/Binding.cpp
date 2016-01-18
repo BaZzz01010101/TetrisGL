@@ -17,7 +17,6 @@ Key Binding::actionKeys[Action::ACTION_COUNT];
 
 Binding::Binding()
 {
-  init();
 }
 
 

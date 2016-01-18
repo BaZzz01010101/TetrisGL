@@ -18,6 +18,9 @@ double GameLogic::rowsDeleteTimer = -1.0;
 bool GameLogic::menuButtonHighlighted = false;
 unsigned int GameLogic::fastDownCounter = 0;
 float GameLogic::countdownTimeLeft = 0.0f;
+float GameLogic::gameOverTimeLeft = 0.0f;
+int GameLogic::nextFiguresCount = 3;
+float GameLogic::rowsDeletionEffectTime = 0.8f;
 
 Figure GameLogic::holdFigure;
 Figure GameLogic::curFigure;
@@ -49,11 +52,11 @@ void GameLogic::resetGame()
   holdFigure.clear();
   rowElevation.assign(glassHeight, 0);
   rowCurrentElevation.assign(glassHeight, 0.0f);
-  nextFigures.resize(Globals::nextFiguresCount);
+  nextFigures.resize(GameLogic::nextFiguresCount);
   glass.assign(glassWidth * glassHeight, Cell(0, Cell::Color::clNone));
   lastStepTimer = Time::timer;
   
-  for (int i = 0; i < Globals::nextFiguresCount; i++)
+  for (int i = 0; i < GameLogic::nextFiguresCount; i++)
     nextFigures[i].buildRandomFigure();
 
   shiftFigureConveyor();
@@ -73,8 +76,10 @@ GameLogic::Result GameLogic::update()
 
   case stCountdown:
     countdownTimeLeft -= Time::timerDelta;
+
     if (countdownTimeLeft < 0.0f)
       state = stPlaying;
+
     break;
 
   case stPlaying:
@@ -85,8 +90,14 @@ GameLogic::Result GameLogic::update()
     break;
 
   case stGameOver:
-    state = stStopped;
-    result = resGameOver;
+    gameOverTimeLeft -= Time::timerDelta;
+     
+    if (gameOverTimeLeft < 0.0f)
+    {
+      state = stStopped;
+      result = resGameOver;
+    }
+
     break;
 
   case stStopped:
@@ -151,10 +162,10 @@ void GameLogic::shiftFigureConveyor()
 
   Figure::swap(curFigure, nextFigures[0]);
 
-  for (int i = 1; i < Globals::nextFiguresCount; i++)
+  for (int i = 1; i < GameLogic::nextFiguresCount; i++)
     Figure::swap(nextFigures[i - 1], nextFigures[i]);
 
-  nextFigures[Globals::nextFiguresCount - 1].buildRandomFigure();
+  nextFigures[GameLogic::nextFiguresCount - 1].buildRandomFigure();
 
   curFigureX = (glassWidth - curFigure.dim) / 2;
   curFigureY = 0;
@@ -163,6 +174,7 @@ void GameLogic::shiftFigureConveyor()
   {
     curFigure.clear();
     state = stGameOver;
+    gameOverTimeLeft = gameOverTime;
   }
 }
 
@@ -260,18 +272,23 @@ void GameLogic::holdCurrentFigure()
   }
 }
 
-void GameLogic::fastDownCurrentFigure()
+bool GameLogic::fastDownCurrentFigure()
 {
+  bool result = false;
+
   if (checkCurrentFigurePos(0, 1))
     curFigureY++;
   else
   {
     storeCurFigureIntoGlass();
     shiftFigureConveyor();
+    result = true;
   }
 
   lastStepTimer = Time::timer;
   fastDownCounter++;
+
+  return result;
 }
 
 void GameLogic::dropCurrentFigure()
@@ -431,7 +448,7 @@ void GameLogic::deleteObsoleteEffects()
     else ++dropTrail;
   }
 
-  if (!deletedRows.empty() && Time::timer - rowsDeleteTimer > Globals::rowsDeletionEffectTime)
+  if (!deletedRows.empty() && Time::timer - rowsDeleteTimer > GameLogic::rowsDeletionEffectTime)
   {
     deletedRows.clear();
     deletedRowGaps.clear();

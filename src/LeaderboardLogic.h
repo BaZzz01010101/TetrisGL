@@ -6,6 +6,8 @@ public:
   enum Result { resNone, resClose };
 
   State state;
+  const float showingTime;
+  const float hidingTime;
   float transitionProgress;
   int editRow;
   bool backButtonHighlighted;
@@ -22,6 +24,7 @@ public:
   LeaderboardLogic();
   ~LeaderboardLogic();
 
+  void init();
   Result update();
   void escape();
   void load();

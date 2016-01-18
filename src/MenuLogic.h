@@ -8,6 +8,8 @@ public:
 
   State state;
   Result result;
+  const float showingTime;
+  const float hidingTime;
   float transitionProgress;
   int rowCount;
   int selectedRow;

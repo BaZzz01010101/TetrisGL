@@ -12,8 +12,9 @@ void Logic::init()
 
 void Logic::update()
 {
-  if (GameLogic::update() == GameLogic::resGameOver)
+  switch(GameLogic::update())
   {
+  case GameLogic::resGameOver:
     if (InterfaceLogic::leaderboardLogic.addResult(GameLogic::curLevel, GameLogic::curScore))
       InterfaceLogic::showLeaderboard();
     else

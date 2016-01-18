@@ -33,7 +33,10 @@ public:
   static unsigned int fastDownCounter;
   static const int countdownTime = 3;
   static float countdownTimeLeft;
+  static const int gameOverTime = 3;
   static float gameOverTimeLeft;
+  static int nextFiguresCount;
+  static float rowsDeletionEffectTime;
 
   struct CellCoord
   {
@@ -49,7 +52,7 @@ public:
   static Result update();
 
   static void holdCurrentFigure();
-  static void fastDownCurrentFigure();
+  static bool fastDownCurrentFigure();
   static void dropCurrentFigure();
   static void rotateCurrentFigureLeft();
   static void rotateCurrentFigureRight();

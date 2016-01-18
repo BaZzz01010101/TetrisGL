@@ -72,7 +72,7 @@ void Sound::init()
 
             if (result == FMOD_OK)
             {
-              result = samples[smpMusic]->setLoopPoints(Globals::beginMs, FMOD_TIMEUNIT_MS, Globals::endMs, FMOD_TIMEUNIT_MS);
+              result = samples[smpMusic]->setLoopPoints(musicLoopBeginMs , FMOD_TIMEUNIT_MS, musicLoopEndMs, FMOD_TIMEUNIT_MS);
               assert(result == FMOD_OK);
               result = system->playSound(samples[smpMusic], NULL, false, &musicChannel);
               assert(result == FMOD_OK);

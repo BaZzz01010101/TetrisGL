@@ -1,22 +1,8 @@
 #include "static_headers.h"
 
-#include "Layout.h"
 #include "Globals.h"
-#include "Crosy.h"
 
 std::string Globals::glErrorMessage;
-
-int Globals::nextFiguresCount = 3;
-float Globals::rowsDeletionEffectTime = 0.8f;
-float Globals::menuShowingTime = 0.4f;
-float Globals::menuHidingTime = 0.3f;
-float Globals::settingsShowingTime = 0.3f;
-float Globals::settingsHidingTime = 0.2f;
-float Globals::leaderboardShowingTime = 0.3f;
-float Globals::leaderboardHidingTime = 0.2f;
-int Globals::smallFontSize = 24;
-int Globals::midFontSize = 32;
-int Globals::bigFontSize = 48;
 
 Globals::Globals()
 {

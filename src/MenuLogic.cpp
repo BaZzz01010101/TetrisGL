@@ -10,10 +10,12 @@ MenuLogic::MenuLogic(Result escapeResult) :
   escapeResult(escapeResult),
   defaultRow(0),
   selectedRow(0),
+  showingTime(0.4f),
+  hidingTime(0.3f),
   transitionProgress(0.0f)
 {
-  assert(Globals::menuShowingTime > VERY_SMALL_NUMBER);
-  assert(Globals::menuHidingTime > VERY_SMALL_NUMBER);
+  assert(showingTime > VERY_SMALL_NUMBER);
+  assert(hidingTime > VERY_SMALL_NUMBER);
 }
 
 
@@ -34,7 +36,7 @@ MenuLogic::Result MenuLogic::update()
     break;
 
   case stShowing:
-    if ((transitionProgress += Time::timerDelta / Globals::menuShowingTime) >= 1.0f)
+    if ((transitionProgress += Time::timerDelta / showingTime) >= 1.0f)
     {
       transitionProgress = 1.0f;
       state = stVisible;
@@ -46,7 +48,7 @@ MenuLogic::Result MenuLogic::update()
     break;
 
   case stHiding:
-    if ((transitionProgress -= Time::timerDelta / Globals::menuHidingTime) <= 0.0f)
+    if ((transitionProgress -= Time::timerDelta / hidingTime) <= 0.0f)
     {
       transitionProgress = 0.0f;
       state = stHidden;

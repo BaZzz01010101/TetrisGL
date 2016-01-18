@@ -79,9 +79,11 @@ bool OpenGLApplication::init()
 
   glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
   assert(!checkGlErrors());
+
   Layout::load("default");
   Palette::load("default");
   Sound::init();
+  control.init();
   render.init(wndWidth, wndHeight);
   fps.init();
 

@@ -11,15 +11,20 @@ Control::Control() :
   repeatDelay(uint64_t(0.2 * freq)),
   repeatInterval(uint64_t(freq / 30)),
   mouseMoved(false),
-  mouseDoubleClicked(false)
+  mouseDoubleClicked(false),
+  fastDownBlocked(false)
 {
   assert(freq);
-  memset(internalKeyStates, 0, sizeof(internalKeyStates));
 }
 
 
 Control::~Control()
 {
+}
+
+void Control::init()
+{
+  memset(internalKeyStates, 0, sizeof(internalKeyStates));
 }
 
 void Control::keyDown(Key key)
@@ -199,7 +204,10 @@ void Control::updateGameControl()
           case Binding::moveRight:   GameLogic::shiftCurrentFigureRight();  break;
           case Binding::rotateLeft:  GameLogic::rotateCurrentFigureLeft();  break;
           case Binding::rotateRight: GameLogic::rotateCurrentFigureRight(); break;
-          case Binding::fastDown:    GameLogic::fastDownCurrentFigure();    break;
+          case Binding::fastDown:    
+            if (!fastDownBlocked)
+              fastDownBlocked = GameLogic::fastDownCurrentFigure();    
+            break;
           default: break;
         }
 
@@ -212,6 +220,9 @@ void Control::updateGameControl()
           default: break;
         }
       }
+
+      if (action == Binding::fastDown && !keyState.isPressed)
+        fastDownBlocked = false;
     }
   }
 }

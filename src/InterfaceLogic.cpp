@@ -36,6 +36,9 @@ void InterfaceLogic::init()
 
   exitToMainConfirmationMenu.add("EXIT", MenuLogic::resExitToMain);
   exitToMainConfirmationMenu.add("BACK", MenuLogic::resBack, true);
+
+  settingsLogic.init();
+  leaderboardLogic.init();
 }
 
 InterfaceLogic::Result InterfaceLogic::update()
@@ -90,8 +93,7 @@ void InterfaceLogic::mainMenuUpdate()
   default: break;
   }
 
-  if ((mainMenu.state == MenuLogic::stShowing && prevState == stHidden) ||
-  (mainMenu.state == MenuLogic::stHiding && mainMenu.result == MenuLogic::resNewGame))
+  if (mainMenu.state == MenuLogic::stHiding && mainMenu.result == MenuLogic::resNewGame)
     menuShadeProgress = mainMenu.transitionProgress;
   else
     menuShadeProgress = 1.0f;

@@ -25,6 +25,8 @@ public:
 
   MenuLogic saveConfirmationMenu;
   State state;
+  const float showingTime;
+  const float hidingTime;
   float transitionProgress;
   Control selectedControl;
   Control highlightedControl;
@@ -35,6 +37,7 @@ public:
   SettingsLogic();
   ~SettingsLogic();
 
+  void init();
   Result update();
   void escape();
   void load();

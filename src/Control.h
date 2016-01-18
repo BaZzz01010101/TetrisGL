@@ -17,6 +17,7 @@ public:
   void mouseDown(Key key);
   void mouseUp(Key key);
   void mouseScroll(float dx, float dy);
+  void init();
   void update();
 
 private:
@@ -47,6 +48,7 @@ private:
   bool mouseMoved;
   bool mouseDoubleClicked;
   LayoutObjectId draggedProgressBarId;
+  bool fastDownBlocked;
 
   void updateGameControl();
   void updateMenuControl(MenuLogic & menu, LayoutObjectId layoutObjectId);

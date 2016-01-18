@@ -9,29 +9,36 @@ const char * LeaderboardLogic::fileName = "leaderboard.dat";
 
 LeaderboardLogic::LeaderboardLogic() :
   state(stHidden),
+  showingTime(0.3f),
+  hidingTime(0.2f),
   transitionProgress(0.0f),
   editRow(-1),
   backButtonHighlighted(false)
 {
-  load();
-  if (leaders.empty())
-  {
-    leaders.push_back({ "ARNOLD", 15, 10000 });
-    leaders.push_back({ "SARA", 14, 9000 });
-    leaders.push_back({ "JOHN", 13, 8000 });
-    leaders.push_back({ "NIKOL", 12, 7000 });
-    leaders.push_back({ "SAM", 11, 6000 });
-    leaders.push_back({ "LARA", 10, 5000 });
-    leaders.push_back({ "BRUCE", 9, 4000 });
-    leaders.push_back({ "CINDY", 8, 3000 });
-    leaders.push_back({ "BOB", 8, 2000 });
-    leaders.push_back({ "HELEN", 8, 1000 });
-  }
 }
 
 
 LeaderboardLogic::~LeaderboardLogic()
 {
+}
+
+void LeaderboardLogic::init()
+{
+  load();
+
+  if (leaders.empty())
+  {
+    leaders.push_back({ "ARNOLD", 13, 12000 });
+    leaders.push_back({ "SARA", 11, 9000 });
+    leaders.push_back({ "JOHN", 9, 6000 });
+    leaders.push_back({ "NIKOL", 7, 4000 });
+    leaders.push_back({ "SAM", 6, 3000 });
+    leaders.push_back({ "LARA", 5, 2000 });
+    leaders.push_back({ "BRUCE", 4, 1500 });
+    leaders.push_back({ "CINDY", 3, 1000 });
+    leaders.push_back({ "BOB", 2, 500 });
+    leaders.push_back({ "HELEN", 1, 300 });
+  }
 }
 
 LeaderboardLogic::Result LeaderboardLogic::update()
@@ -45,7 +52,7 @@ LeaderboardLogic::Result LeaderboardLogic::update()
     break;
 
   case stShowing:
-    if ((transitionProgress += Time::timerDelta / Globals::leaderboardShowingTime) >= 1.0f)
+    if ((transitionProgress += Time::timerDelta / showingTime) >= 1.0f)
     {
       transitionProgress = 1.0f;
       state = stVisible;
@@ -57,7 +64,7 @@ LeaderboardLogic::Result LeaderboardLogic::update()
     break;
 
   case stHiding:
-    if ((transitionProgress -= Time::timerDelta / Globals::leaderboardHidingTime) <= 0.0f)
+    if ((transitionProgress -= Time::timerDelta / hidingTime) <= 0.0f)
     {
       transitionProgress = 0.0f;
       state = stHidden;
