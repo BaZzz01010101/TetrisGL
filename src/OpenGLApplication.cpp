@@ -46,8 +46,10 @@ bool OpenGLApplication::init()
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
   //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-  wndWidth = 640;
-  wndHeight = 480;
+  GLFWmonitor * monitor = glfwGetPrimaryMonitor();
+  const GLFWvidmode * vidMode = glfwGetVideoMode(monitor);
+  wndHeight = glm::min(glm::max(vidMode->height * 7 / 10, 720), vidMode->height);
+  wndWidth = int(wndHeight * Layout::backgroundWidth / Layout::backgroundHeight);
   wnd = glfwCreateWindow(wndWidth, wndHeight, "glTetris", NULL, NULL);
 
   if (!wnd)
@@ -69,9 +71,9 @@ bool OpenGLApplication::init()
   assert(glewInitResult == GLEW_OK);
   glGetError(); // workaround GLEW issue with GL_INVALID_ENUM rising just after glewInit
 
-  if (!GLEW_VERSION_1_1)
+  if (!GLEW_VERSION_2_1)
   {
-    std::cout << "Required OpenGL 1.1 or later\nTry to update your video driver\n";
+    std::cout << "Required OpenGL 2.1 or later\nTry to update your video driver\n";
     return false;
   }
 
