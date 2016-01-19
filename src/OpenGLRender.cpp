@@ -2612,7 +2612,7 @@ void OpenGLRender::buildDropPredictor()
   {
     const float glassLeft = glassLayout->getGlobalLeft();
     const float glassTop = glassLayout->getGlobalTop();
-    const float cellSize = glassLayout->getGlobalRect().width / GameLogic::glassWidth;
+    const float cellSize = glassLayout->width / GameLogic::glassWidth;
     const glm::vec3 figureColor = Palette::cellColorArray[GameLogic::curFigure.color];
     const int glassWidth = GameLogic::glassWidth;
     const int glassHeight = GameLogic::glassHeight;
@@ -2644,9 +2644,9 @@ void OpenGLRender::buildDropPredictor()
 
     static const float glowMinHeight = 0.3f;
     static const float glowMaxHeight = 0.6f;
-    static const float glowHeightRange = glowMaxHeight - glowMinHeight;
     static const float glowMinSpeed = 1.0f;
     static const float glowMaxSpeed = 2.0f;
+    static const float glowHeightRange = glowMaxHeight - glowMinHeight;
     static const float glowSpeedRange = glowMaxSpeed - glowMinSpeed;
 
     struct FlameJitter
@@ -2675,7 +2675,6 @@ void OpenGLRender::buildDropPredictor()
     static const float partMaxSize = 0.1f;
     static const float partMinAlpha = 0.5f;
     static const float partMaxAlpha = 0.75f;
-
     static const float partLifeRange = partMaxLife - partMinLife;
     static const float partSpeedRange = partMaxSpeed - partMinSpeed;
     static const float partSizeRange = partMaxSize - partMinSize;
@@ -2735,6 +2734,7 @@ void OpenGLRender::buildDropPredictor()
         bool rightEmpty = (x == dim - 1) || glassY != yArray[(x + 1)];
         float rowElevation = (glassY < glassHeight) ? GameLogic::getRowCurrentElevation(glassY) : 0.0f;
 
+        // flame
         float & currentHeight0 = jitter[x].currentHeight;
         float & currentHeight1 = jitter[x + 1].currentHeight;
 

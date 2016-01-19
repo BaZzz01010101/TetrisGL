@@ -103,9 +103,8 @@ void OpenGLApplication::run()
     render.update();
 
     glfwSetWindowTitle(wnd, fps.count(0.5f));
-    glfwSwapInterval((int)vSync);
-    glfwSwapBuffers(wnd);
     glfwPollEvents();
+    glfwSwapInterval((int)vSync);
 
     if (!glfwGetWindowAttrib(wnd, GLFW_FOCUSED) && GameLogic::state == GameLogic::stPlaying)
     {
@@ -115,6 +114,26 @@ void OpenGLApplication::run()
 
     if (glfwWindowShouldClose(wnd) || Logic::result == Logic::resExitApp)
       exitFlag = true;
+
+    if (vSync)
+    {
+      float maxSleepTime = 0.0f;
+      const float targetFps = 70.0f;
+      float currentTimerDelta;
+
+      do
+      {
+        float prevDelta = Time::getCurrentTimerDelta();
+        Crosy::sleep(1);
+        currentTimerDelta = Time::getCurrentTimerDelta();
+        maxSleepTime = glm::max(currentTimerDelta - prevDelta, maxSleepTime);
+      } while (currentTimerDelta + maxSleepTime < 1.0f / targetFps);
+    }
+
+    glfwSwapBuffers(wnd);
+    // call glClear to ensue the vSync waiting will be here
+    glClear(GL_COLOR_BUFFER_BIT);
+    assert(!checkGlErrors());
   }
 }
 
