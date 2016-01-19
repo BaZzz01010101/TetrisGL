@@ -34,4 +34,5 @@
 static const float VERY_SMALL_NUMBER = sqrtf(FLT_MIN);
 static const float M_SQRT2 = 1.4142135623730950488016887242097f;
 static const float M_PI = 3.1415926535897932384626433832795f;
+static const float M_2_PI = 2.0f * M_PI;
 static const float M_PI_2 = 0.5f * M_PI;

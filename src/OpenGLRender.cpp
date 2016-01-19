@@ -2604,6 +2604,244 @@ void OpenGLRender::buildLevelUp()
   }
 }
 
+void OpenGLRender::buildDropPredictor()
+{
+  int dim = GameLogic::curFigure.dim;
+
+  if (LayoutObject * glassLayout = Layout::screen.getChildRecursive(loGlass))
+  {
+    const float glassLeft = glassLayout->getGlobalLeft();
+    const float glassTop = glassLayout->getGlobalTop();
+    const float cellSize = glassLayout->getGlobalRect().width / GameLogic::glassWidth;
+    const glm::vec3 figureColor = Palette::cellColorArray[GameLogic::curFigure.color];
+    const int glassWidth = GameLogic::glassWidth;
+    const int glassHeight = GameLogic::glassHeight;
+    static std::vector<int> yArray;
+    yArray.resize(dim);
+    std::fill_n(yArray.begin(), dim, 0);
+
+    for (int x = 0; x < dim; x++)
+    {
+      for (int y = dim - 1; y >= 0; y--)
+      {
+        int index = x + y * dim;
+
+        if (!GameLogic::curFigure.cells[index].isEmpty())
+        {
+          int glassX = GameLogic::curFigureX + x;
+          int glassY = GameLogic::curFigureY + y + 1;
+
+          while (glassY < glassHeight && GameLogic::glass[glassX + glassY * glassWidth].isEmpty())
+            glassY++;
+
+          if (glassY > GameLogic::curFigureY + y + 1)
+            yArray[x] = glassY;
+
+          break;
+        }
+      }
+    }
+
+    static const float glowMinHeight = 0.3f;
+    static const float glowMaxHeight = 0.6f;
+    static const float glowHeightRange = glowMaxHeight - glowMinHeight;
+    static const float glowMinSpeed = 1.0f;
+    static const float glowMaxSpeed = 2.0f;
+    static const float glowSpeedRange = glowMaxSpeed - glowMinSpeed;
+
+    struct FlameJitter
+    {
+      float currentHeight;
+      float targetHeight;
+      float speed;
+
+      FlameJitter()
+      {
+        currentHeight = glowMinHeight + glowHeightRange * float(rand()) / RAND_MAX;
+        targetHeight = glowMinHeight + glowHeightRange * float(rand()) / RAND_MAX;
+        speed = glowMinSpeed + glowSpeedRange * float(rand()) / RAND_MAX;
+      }
+    };
+
+    static std::vector<FlameJitter> jitter;
+    jitter.resize(dim + 1);
+
+    static const int partCount = 50;
+    static const float partMinLife = 0.75f;
+    static const float partMaxLife = 1.5f;
+    static const float partMinSpeed = 1.0f;
+    static const float partMaxSpeed = 1.5f;
+    static const float partMinSize = 0.06f;
+    static const float partMaxSize = 0.1f;
+    static const float partMinAlpha = 0.5f;
+    static const float partMaxAlpha = 0.75f;
+
+    static const float partLifeRange = partMaxLife - partMinLife;
+    static const float partSpeedRange = partMaxSpeed - partMinSpeed;
+    static const float partSizeRange = partMaxSize - partMinSize;
+    static const float partAlphaRange = partMaxAlpha - partMinAlpha;
+
+    struct CellParticles
+    {
+      float timeLeft[partCount];
+      float lifeTime[partCount];
+      float dx[partCount];
+      float speed[partCount];
+      float size[partCount];
+      float alpha[partCount];
+
+      CellParticles()
+      {
+        for (int i = 0; i < partCount; i++)
+        {
+          lifeTime[i] = partMinLife + partLifeRange * float(rand()) / RAND_MAX;
+          timeLeft[i] = lifeTime[i] * float(rand()) / RAND_MAX;
+          dx[i] = float(rand()) / RAND_MAX;
+          speed[i] = partMinSpeed + partSpeedRange * float(rand()) / RAND_MAX;
+          size[i] = partMinSize + partSizeRange * float(rand()) / RAND_MAX;
+          alpha[i] = partMinAlpha + partAlphaRange * float(rand()) / RAND_MAX;
+        }
+      }
+    };
+
+    static std::vector<CellParticles> particles;
+    particles.resize(dim);
+
+    for (int x = 0; x < dim + 1; x++)
+    {
+      float & currentHeight = jitter[x].currentHeight;
+      float & targetHeight = jitter[x].targetHeight;
+      float & speed = jitter[x].speed;
+
+      float dh = targetHeight - currentHeight;
+      float sign = dh / glm::abs(dh);
+      currentHeight += sign * speed * Time::timerDelta;
+
+      if (sign * (targetHeight - currentHeight) < 0.0f)
+      {
+        targetHeight = glowMinHeight + glowHeightRange * float(rand()) / RAND_MAX;
+        speed = glowMinSpeed + glowSpeedRange * float(rand()) / RAND_MAX;
+      }
+    }
+
+    for (int x = 0; x < dim; x++)
+    {
+      int glassX = GameLogic::curFigureX + x;
+      int glassY = yArray[x];
+
+      if (glassY)
+      {
+        bool leftEmpty = !x || glassY != yArray[(x - 1)];
+        bool rightEmpty = (x == dim - 1) || glassY != yArray[(x + 1)];
+        float rowElevation = (glassY < glassHeight) ? GameLogic::getRowCurrentElevation(glassY) : 0.0f;
+
+        float & currentHeight0 = jitter[x].currentHeight;
+        float & currentHeight1 = jitter[x + 1].currentHeight;
+
+        float left = glassLeft + cellSize * glassX;
+        float top0 = glassTop + cellSize * (glassY - rowElevation - currentHeight0);
+        float top1 = glassTop + cellSize * (glassY - rowElevation - currentHeight1);
+
+        float width = cellSize;
+        float height0 = cellSize * currentHeight0;
+        float height1 = cellSize * currentHeight1;
+        float top05 = 0.5f * (top0 + top1);
+        float height05 = 0.5f * (height0 + height1);
+
+        if (glassY < glassHeight)
+        {
+          const float innerOffset = cellSize * 2.0f / 64.0f;
+          top0 += innerOffset;
+          top1 += innerOffset;
+          top05 += innerOffset;
+        }
+
+        const int vertCnt = 6;
+
+        glm::vec2 verts[vertCnt] =
+        {
+          { left,                 top0 },
+          { left,                 top0 + height0 },
+          { left + 0.5f * width,  top05 },
+          { left + 0.5f * width,  top05 + height05 },
+          { left + width,         top1 },
+          { left + width,         top1 + height1 },
+        };
+
+        float uvLeft = leftEmpty ? 0.0f : 0.5f;
+        float uvRight = rightEmpty ? 1.0f : 0.5f;
+
+        glm::vec2 uv[vertCnt] =
+        {
+          { uvLeft,   0.0f },
+          { uvLeft,   1.0f },
+          { 0.5f,     0.0f },
+          { 0.5f,     1.0f },
+          { uvRight,  0.0f },
+          { uvRight,  1.0f },
+        };
+
+        const glm::vec3 color = 0.05f + glm::vec3(0.4f) * figureColor;
+
+        for (int vi = 0; vi < vertCnt - 2; vi++)
+        {
+          addAtlasVertex(verts[vi + 0], uv[vi + 0], tiFlame, color, 0.0f);
+          addAtlasVertex(verts[vi + 1], uv[vi + 1], tiFlame, color, 0.0f);
+          addAtlasVertex(verts[vi + 2], uv[vi + 2], tiFlame, color, 0.0f);
+        }
+
+        // particles
+        CellParticles & cellParticles = particles[x];
+
+        for (int i = 0; i < partCount; i++)
+        {
+          float & lifeTime = cellParticles.lifeTime[i];
+          float & timeLeft = cellParticles.timeLeft[i];
+          float & dx = cellParticles.dx[i];
+          float & speed = cellParticles.speed[i];
+          float & size = cellParticles.size[i];
+          float & alpha = cellParticles.alpha[i];
+
+          float timePassed = lifeTime - timeLeft;
+          float sqTimePassed = timePassed * timePassed;
+          float leftSpeedCorr = leftEmpty ? 0.25f + pow(1.0f - glm::max(2.0f * (0.5f - dx), 0.0f), 2.0f) : 1.0f;
+          float rightSpeedCorr = rightEmpty ? 0.25f + pow(1.0f - glm::max(2.0f * (dx - 0.5f), 0.0f), 2.0f) : 1.0f;
+          float curSpeed = leftSpeedCorr * rightSpeedCorr * speed;
+          float dy = curSpeed * sqTimePassed - rowElevation;
+          float leftAlphaCorr = leftEmpty ? 1.0f - glm::max(2.0f * (0.5f - dx), 0.0f) : 1.0f;
+          float rightAlphaCorr = rightEmpty ? 1.0f - glm::max(2.0f * (dx - 0.5f), 0.0f) : 1.0f; 
+          float nominalAlpha = glm::clamp(alpha - (1.0f - timeLeft * timeLeft / (lifeTime * lifeTime)), 0.0f, 1.0f);
+          float curAlpha = leftAlphaCorr * rightAlphaCorr * nominalAlpha;
+          float left = glassLeft + cellSize * (glassX + dx - 0.5f * size);
+          float top = glassTop + cellSize * (glassY - dy - size);
+
+          if (glassY < glassHeight)
+          {
+            const float innerOffset = cellSize * 2.0f / 64.0f;
+            top += innerOffset;
+          }
+
+          buildTexturedRect(left, top, cellSize * size, cellSize * size, tiDropSparkle, figureColor * curAlpha, 0.0f);
+
+          timeLeft -= Time::timerDelta;
+
+          if (timeLeft < 0.0f)
+          {
+            lifeTime = partMinLife + partLifeRange * float(rand()) / RAND_MAX;
+            while (timeLeft < 0.0f) timeLeft += lifeTime;
+            dx = float(rand()) / RAND_MAX;
+            speed = partMinSpeed + partSpeedRange * float(rand()) / RAND_MAX;
+            size = partMinSize + partSizeRange * float(rand()) / RAND_MAX;
+            alpha = partMinAlpha + partAlphaRange * float(rand()) / RAND_MAX;
+          }
+        }
+      }
+    }
+  }
+  else assert(0);
+}
+
+
 void OpenGLRender::updateGameLayer()
 {
   clearVertices();
@@ -2624,6 +2862,7 @@ void OpenGLRender::updateGameLayer()
     buildDropTrails();
     buildRowFlashes();
     buildLevelUp();
+    buildDropPredictor();
   }
 
   drawMesh();

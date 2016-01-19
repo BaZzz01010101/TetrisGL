@@ -29,7 +29,7 @@ private:
   {
     FIRST_TEX_INDEX = 0,
     tiEmpty = 0, 
-    tiBackground_deprecated = 1,
+    tiFlame = 1,
     tiFigureCellNormal = 2, 
     tiFigureCellBold = 3, 
     tiFigureShadow = 4, 
@@ -116,6 +116,7 @@ private:
   void buildLeaderboardWindow();
   void buildCountdown();
   void buildLevelUp();
+  void buildDropPredictor();
   void updateGameLayer();
   void updateSettingsLayer();
   void updateLeaderboardLayer();
