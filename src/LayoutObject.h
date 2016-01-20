@@ -80,7 +80,7 @@ enum LayoutObjectId
   loScoreBarCaption,
   loScoreBarValue,
   loScoreBarMenuButton,
-  loGlass,
+  loField,
   loHoldPanelCaption,
   loNextPanelCaption,
   loHoldPanel,

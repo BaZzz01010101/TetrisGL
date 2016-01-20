@@ -101,9 +101,9 @@ private:
   void buildFrameRect(float left, float top, float width, float height, float borderWidth, const glm::vec3 & borderColor, float borderAlpha);
   void buildProgressBar(float left, float top, float width, float height, const glm::vec3 & bkColor, const glm::vec3 & borderColor, const glm::vec3 & barColor, float alpha, float progress);
   void buildBackground();
-  void buidGlassShadow();
-  void buidGlassBlocks();
-  void biuldGlassGlow();
+  void buidFieldShadows();
+  void buidFieldBlocks();
+  void biuldFieldGlow();
   void buildFigureBlocks();
   void buildFigureGlow();
   void buildDropTrails();

@@ -32,11 +32,11 @@ float Layout::scoreBarHeight = 0.08f;
 float Layout::scoreBarCaptionWidth = 0.45f;
 float Layout::scoreBarMenuButtonWidth = 0.25f;
 
-float Layout::glassWidth = 0.9f;
-float Layout::glassHeight = 1.8f;
-float Layout::glassTop= 0.85f;
+float Layout::fieldWidth = 0.9f;
+float Layout::fieldHeight = 1.8f;
+float Layout::fieldTop= 0.85f;
 
-float Layout::infoPanelsHorzGapFromGlass = 0.04f;
+float Layout::infoPanelsHorzGapFromField = 0.04f;
 float Layout::infoPanelsWidth = 0.2f;
 float Layout::holdNextCaptionsTop = -0.15f;
 float Layout::holdNextPanelsTop = -0.19f;
@@ -168,11 +168,11 @@ void Layout::load(const char * name)
     loadValue(gameSection, "ScoreBarCaptionWidth", &scoreBarCaptionWidth);
     loadValue(gameSection, "ScoreBarMenuButtonWidth", &scoreBarMenuButtonWidth);
 
-    loadValue(gameSection, "GlassWidth", &glassWidth);
-    loadValue(gameSection, "GlassHeight", &glassHeight);
-    loadValue(gameSection, "GlassTop", &glassTop);
+    loadValue(gameSection, "FieldWidth", &fieldWidth);
+    loadValue(gameSection, "FieldHeight", &fieldHeight);
+    loadValue(gameSection, "FieldTop", &fieldTop);
 
-    loadValue(gameSection, "InfoPanelsHorzGapFromGlass", &infoPanelsHorzGapFromGlass);
+    loadValue(gameSection, "InfoPanelsHorzGapFromField", &infoPanelsHorzGapFromField);
     loadValue(gameSection, "InfoPanelsWidth", &infoPanelsWidth);
     loadValue(gameSection, "HoldNextCaptionsTop", &holdNextCaptionsTop);
     loadValue(gameSection, "HoldNextPanelsTop", &holdNextPanelsTop);
@@ -305,11 +305,11 @@ void Layout::load(const char * name)
   gameLayout->addChild(loScoreBarValue, scoreBarValueLeft, scoreBarTopGap, scoreBarValueWidth, scoreBarHeight);
   gameLayout->addChild(loScoreBarMenuButton, scoreBarMenuButtonLeft, scoreBarTopGap, scoreBarMenuButtonWidth, scoreBarHeight);
 
-  const float glassLeft = 0.5f * (backgroundWidth - glassWidth);
-  gameLayout->addChild(loGlass, glassLeft, glassTop, glassWidth, glassHeight);
+  const float fieldLeft = 0.5f * (backgroundWidth - fieldWidth);
+  gameLayout->addChild(loField, fieldLeft, fieldTop, fieldWidth, fieldHeight);
 
-  const float leftSidePanelsLeft = glassLeft - infoPanelsHorzGapFromGlass - infoPanelsWidth;
-  const float rightSidePanelsLeft = glassLeft + glassWidth + infoPanelsHorzGapFromGlass;
+  const float leftSidePanelsLeft = fieldLeft - infoPanelsHorzGapFromField - infoPanelsWidth;
+  const float rightSidePanelsLeft = fieldLeft + fieldWidth + infoPanelsHorzGapFromField;
   gameLayout->addChild(loHoldPanelCaption, leftSidePanelsLeft, holdNextCaptionsTop, infoPanelsWidth, infoPanelsCaptionHeight);
   gameLayout->addChild(loNextPanelCaption, rightSidePanelsLeft, holdNextCaptionsTop, infoPanelsWidth, infoPanelsCaptionHeight);
   gameLayout->addChild(loHoldPanel, leftSidePanelsLeft, holdNextPanelsTop, infoPanelsWidth, holdNextPanelsHeight);

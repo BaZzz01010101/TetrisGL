@@ -15,12 +15,12 @@ public:
   enum State { stInit, stCountdown, stPlaying, stPaused, stGameOver, stStopped };
   enum Result { resNone, resGameOver };
   static State state;
-  static std::vector<Cell> glass;
+  static std::vector<Cell> field;
   static std::vector<Figure> nextFigures;
   static Figure holdFigure;
   static Figure curFigure;
-  static int glassWidth;
-  static int glassHeight;
+  static int fieldWidth;
+  static int fieldHeight;
   static int curFigureX;
   static int curFigureY;
   static int curScore;
@@ -58,7 +58,7 @@ public:
   static void rotateCurrentFigureRight();
   static void shiftCurrentFigureLeft();
   static void shiftCurrentFigureRight();
-  static void storeCurFigureIntoGlass();
+  static void storeCurFigureIntoField();
   static void newGame() { state = stInit; }
   static void pauseGame() { state = stPaused; }
   static void continueGame() { state = stPlaying; }
@@ -76,7 +76,7 @@ public:
   static void init();
   static int getRowElevation(int y);
   static float getRowCurrentElevation(int y);
-  static const Cell * getGlassCell(int x, int y);
+  static const Cell * getFieldCell(int x, int y);
   static const Cell * getFigureCell(Figure & figure, int x, int y);
 
 private:
@@ -98,7 +98,7 @@ private:
   static void shiftFigureConveyor();
   static bool checkCurrentFigurePos(int dx, int dy);
   static bool tryToPlaceCurrentFigure();
-  static void checkGlassRows();
+  static void checkFieldRows();
   static void proceedFallingRows();
   static void createDropTrail(int x, int y, int height, Cell::Color color);
   static void deleteObsoleteEffects();

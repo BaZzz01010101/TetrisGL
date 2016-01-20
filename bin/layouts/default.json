@@ -15,11 +15,11 @@
     "ScoreBarCaptionWidth" : 0.25,
     "ScoreBarMenuButtonWidth" : 0.125,
 
-    "GlassWidth" : 0.45,
-    "GlassHeight" : 0.9,
-    "GlassTop" : 0.075,
+    "FieldWidth" : 0.45,
+    "FieldHeight" : 0.9,
+    "FieldTop" : 0.075,
 
-    "InfoPanelsHorzGapFromGlass" : 0.02,
+    "InfoPanelsHorzGapFromField" : 0.02,
     "InfoPanelsWidth" : 0.1,
     "HoldNextCaptionsTop" : 0.075,
     "HoldNextPanelsTop" : 0.095,

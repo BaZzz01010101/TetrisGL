@@ -5,8 +5,8 @@
 #include "Time.h"
 
 GameLogic::State GameLogic::state = stStopped;
-int GameLogic::glassWidth = 10;
-int GameLogic::glassHeight = 20;
+int GameLogic::fieldWidth = 10;
+int GameLogic::fieldHeight = 20;
 int GameLogic::curFigureX = 0;
 int GameLogic::curFigureY = 0;
 int GameLogic::curScore = 0;
@@ -27,7 +27,7 @@ Figure GameLogic::curFigure;
 const int GameLogic::maxLevel = 20;
 double GameLogic::lastStepTimer = -1.0f;
 bool  GameLogic::justHolded = false;
-std::vector<Cell> GameLogic::glass;
+std::vector<Cell> GameLogic::field;
 std::vector<Figure> GameLogic::nextFigures;
 std::vector<int> GameLogic::rowElevation;
 std::vector<float> GameLogic::rowCurrentElevation;
@@ -37,8 +37,8 @@ std::set<GameLogic::CellCoord> GameLogic::deletedRowGaps;
 
 void GameLogic::init()
 {
-  glassWidth = 10;
-  glassHeight = 20;
+  fieldWidth = 10;
+  fieldHeight = 20;
 
   resetGame();
 }
@@ -50,10 +50,10 @@ void GameLogic::resetGame()
   curGoal = 5;
   haveHold = false;
   holdFigure.clear();
-  rowElevation.assign(glassHeight, 0);
-  rowCurrentElevation.assign(glassHeight, 0.0f);
+  rowElevation.assign(fieldHeight, 0);
+  rowCurrentElevation.assign(fieldHeight, 0.0f);
   nextFigures.resize(GameLogic::nextFiguresCount);
-  glass.assign(glassWidth * glassHeight, Cell(0, Cell::Color::clNone));
+  field.assign(fieldWidth * fieldHeight, Cell(0, Cell::Color::clNone));
   lastStepTimer = Time::timer;
   
   for (int i = 0; i < GameLogic::nextFiguresCount; i++)
@@ -122,7 +122,7 @@ void GameLogic::gameUpdate()
       curFigureY++;
     else
     {
-      storeCurFigureIntoGlass();
+      storeCurFigureIntoField();
       shiftFigureConveyor();
     }
 
@@ -144,16 +144,16 @@ float GameLogic::getStepTime()
   return maxStepTime - (maxStepTime - minStepTime) * k;
 }
 
-void GameLogic::storeCurFigureIntoGlass()
+void GameLogic::storeCurFigureIntoField()
 {
   int dim = curFigure.dim;
 
   for (int x = 0; x < dim; x++)
   for (int y = 0; y < dim; y++)
   if (!curFigure.cells[x + y * dim].isEmpty())
-    glass[curFigureX + x + (curFigureY + y) * glassWidth] = curFigure.cells[x + y * dim];
+    field[curFigureX + x + (curFigureY + y) * fieldWidth] = curFigure.cells[x + y * dim];
 
-  checkGlassRows();
+  checkFieldRows();
 }
 
 void GameLogic::shiftFigureConveyor()
@@ -167,7 +167,7 @@ void GameLogic::shiftFigureConveyor()
 
   nextFigures[GameLogic::nextFiguresCount - 1].buildRandomFigure();
 
-  curFigureX = (glassWidth - curFigure.dim) / 2;
+  curFigureX = (fieldWidth - curFigure.dim) / 2;
   curFigureY = 0;
 
   if (!checkCurrentFigurePos(0, 0))
@@ -186,9 +186,9 @@ bool GameLogic::checkCurrentFigurePos(int dx, int dy)
     if (!curFigure.cells[curx + cury * curFigure.dim].isEmpty() && curFigureY + cury + dy >= 0)
     {
       if (curFigureX + curx + dx < 0 ||
-      curFigureX + curx + dx >= glassWidth ||
-      curFigureY + cury + dy >= glassHeight ||
-      !glass[curFigureX + curx + dx + (curFigureY + cury + dy) * glassWidth].isEmpty()) 
+      curFigureX + curx + dx >= fieldWidth ||
+      curFigureY + cury + dy >= fieldHeight ||
+      !field[curFigureX + curx + dx + (curFigureY + cury + dy) * fieldWidth].isEmpty()) 
         return false;
     }
   }
@@ -232,7 +232,7 @@ void GameLogic::holdCurrentFigure()
     if (haveHold)
     {
       Figure::swap(holdFigure, curFigure);
-      curFigureX = (glassWidth - curFigure.dim) / 2;
+      curFigureX = (fieldWidth - curFigure.dim) / 2;
       curFigureY = 0;
 
       if (tryToPlaceCurrentFigure())
@@ -251,7 +251,7 @@ void GameLogic::holdCurrentFigure()
     {
       holdFigure = curFigure;
       curFigure = nextFigures[0];
-      curFigureX = (glassWidth - curFigure.dim) / 2;
+      curFigureX = (fieldWidth - curFigure.dim) / 2;
       curFigureY = 0;
 
       if (tryToPlaceCurrentFigure())
@@ -280,7 +280,7 @@ bool GameLogic::fastDownCurrentFigure()
     curFigureY++;
   else
   {
-    storeCurFigureIntoGlass();
+    storeCurFigureIntoField();
     shiftFigureConveyor();
     result = true;
   }
@@ -317,7 +317,7 @@ void GameLogic::dropCurrentFigure()
   }
 
   lastStepTimer = Time::timer;
-  storeCurFigureIntoGlass();
+  storeCurFigureIntoField();
   shiftFigureConveyor();
 }
 
@@ -351,16 +351,16 @@ void GameLogic::shiftCurrentFigureRight()
     curFigureX++;
 }
 
-void GameLogic::checkGlassRows()
+void GameLogic::checkFieldRows()
 {
   int elevation = 0;
 
-  for (int y = glassHeight - 1; y >= 0; y--)
+  for (int y = fieldHeight - 1; y >= 0; y--)
   {
     bool fullRow = true;
 
-    for (int x = 0; x < glassWidth; x++)
-      if (glass[x + y * glassWidth].isEmpty())
+    for (int x = 0; x < fieldWidth; x++)
+      if (field[x + y * fieldWidth].isEmpty())
         fullRow = false;
 
     if (fullRow)
@@ -368,25 +368,25 @@ void GameLogic::checkGlassRows()
       elevation++;
       deletedRows.push_back(y);
 
-      for (int x = 0; x <= glassWidth; x++)
+      for (int x = 0; x <= fieldWidth; x++)
       {
-        if (!x || x == glassWidth || glass[x + y * glassWidth].figureId != glass[x - 1 + y * glassWidth].figureId)
+        if (!x || x == fieldWidth || field[x + y * fieldWidth].figureId != field[x - 1 + y * fieldWidth].figureId)
           deletedRowGaps.insert(CellCoord(x, y));
       }
     }
     else if (elevation)
     {
-      for (int x = 0; x < glassWidth; x++)
+      for (int x = 0; x < fieldWidth; x++)
       {
-        glass[x + (y + elevation) * glassWidth] = glass[x + y * glassWidth];
+        field[x + (y + elevation) * fieldWidth] = field[x + y * fieldWidth];
         rowElevation[y + elevation] = elevation;
         rowCurrentElevation[y + elevation] = (float)elevation;
       }
     }
   }
 
-  for (int i = 0; i < elevation * glassWidth; i++)
-    glass[i].clear();
+  for (int i = 0; i < elevation * fieldWidth; i++)
+    field[i].clear();
 
   if (elevation)
   {
@@ -410,8 +410,8 @@ void GameLogic::proceedFallingRows()
     haveFallingRows = false;
     float timePassed = float(Time::timer - rowsDeleteTimer);
 
-    for (int y = 0; y < glassHeight; y++)
-    for (int x = 0; x < glassWidth; x++)
+    for (int y = 0; y < fieldHeight; y++)
+    for (int x = 0; x < fieldWidth; x++)
     if (rowElevation[y] > 0)
     {
       rowCurrentElevation[y] = glm::max(float(rowElevation[y]) - 25.0f * timePassed * timePassed * timePassed, 0.0f);
@@ -458,25 +458,25 @@ void GameLogic::deleteObsoleteEffects()
 int GameLogic::getRowElevation(int y)
 {
   assert(y >= 0);
-  assert(y < glassHeight);
+  assert(y < fieldHeight);
 
-  return (y >= 0 && y < glassHeight) ? rowElevation[y] : 0;
+  return (y >= 0 && y < fieldHeight) ? rowElevation[y] : 0;
 }
 
 float GameLogic::getRowCurrentElevation(int y) 
 {
   assert(y >= 0);
-  assert(y < glassHeight);
+  assert(y < fieldHeight);
 
-  return (y >= 0 && y < glassHeight) ? rowCurrentElevation[y] : 0.0f;
+  return (y >= 0 && y < fieldHeight) ? rowCurrentElevation[y] : 0.0f;
 }
 
-const Cell * GameLogic::getGlassCell(int x, int y) 
+const Cell * GameLogic::getFieldCell(int x, int y) 
 {
-  if (x < 0 || y < 0 || x >= glassWidth || y >= glassHeight)
+  if (x < 0 || y < 0 || x >= fieldWidth || y >= fieldHeight)
     return NULL;
 
-  const Cell * cell = glass.data() + x + y * glassWidth;
+  const Cell * cell = field.data() + x + y * fieldWidth;
 
   if (!cell->figureId && !haveFallingRows)
   {

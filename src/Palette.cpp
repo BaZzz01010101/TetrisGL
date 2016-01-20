@@ -5,8 +5,8 @@
 
 glm::vec3 Palette::gameBackgroundOuter(0.05f, 0.1f, 0.2f);
 glm::vec3 Palette::gameBackgroundInner(0.3f, 0.6f, 1.0f);
-glm::vec3 Palette::glassBackgroundMin(0.1f, 0.1f, 0.2f);
-glm::vec3 Palette::glassBackgroundMax(0.3f, 0.3f, 0.5f);
+glm::vec3 Palette::fieldBackgroundMin(0.1f, 0.1f, 0.2f);
+glm::vec3 Palette::fieldBackgroundMax(0.3f, 0.3f, 0.5f);
 glm::vec3 Palette::scoreBarBackground(0.0f, 0.0f, 0.0f);
 float Palette::scoreBarBackgroundAlpha = 0.6f;
 glm::vec3 Palette::scoreBarMenuButtonBackground(0.3f, 0.6f, 0.9f);
@@ -91,7 +91,7 @@ float Palette::figureGlowInnerBright = 0.25f;
 float Palette::deletedRowFlashBright = 1.0f;
 float Palette::deletedRowRaysBright = 1.0f;
 float Palette::deletedRowShineBright = 1.0f;
-float Palette::glassBackgroundInnerBright = 0.25f;
+float Palette::fieldBackgroundInnerBright = 0.25f;
 
 void Palette::load(const char * name)
 {
@@ -106,8 +106,8 @@ void Palette::load(const char * name)
 
   loadValue(doc, "GameBackgroundOuter", &gameBackgroundOuter);
   loadValue(doc, "GameBackgroundInner", &gameBackgroundInner);
-  loadValue(doc, "GlassBackgroundMin", &glassBackgroundMin);
-  loadValue(doc, "GlassBackgroundMax", &glassBackgroundMax);
+  loadValue(doc, "FieldBackgroundMin", &fieldBackgroundMin);
+  loadValue(doc, "FieldBackgroundMax", &fieldBackgroundMax);
   loadValue(doc, "ScoreBarBackground", &scoreBarBackground);
   loadValue(doc, "ScoreBarBackgroundAlpha", &scoreBarBackgroundAlpha);
   loadValue(doc, "ScoreBarMenuButtonBackground", &scoreBarMenuButtonBackground);
@@ -189,7 +189,7 @@ void Palette::load(const char * name)
   loadValue(doc, "DeletedRowFlashBright", &deletedRowFlashBright);
   loadValue(doc, "DeletedRowRaysBright", &deletedRowRaysBright);
   loadValue(doc, "DeletedRowShineBright", &deletedRowShineBright);
-  loadValue(doc, "GlassBackgroundInnerBright", &glassBackgroundInnerBright);
+  loadValue(doc, "FieldBackgroundInnerBright", &fieldBackgroundInnerBright);
 }
 
 void Palette::loadValue(rapidjson::Value & source, const char * name, float * result)

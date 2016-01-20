@@ -15,8 +15,8 @@ private:
 public:
   static glm::vec3 gameBackgroundOuter;
   static glm::vec3 gameBackgroundInner;
-  static glm::vec3 glassBackgroundMin;
-  static glm::vec3 glassBackgroundMax;
+  static glm::vec3 fieldBackgroundMin;
+  static glm::vec3 fieldBackgroundMax;
   static glm::vec3 scoreBarBackground;
   static float scoreBarBackgroundAlpha;
   static glm::vec3 scoreBarMenuButtonBackground;
@@ -92,7 +92,7 @@ public:
   static float deletedRowFlashBright;
   static float deletedRowRaysBright;
   static float deletedRowShineBright;
-  static float glassBackgroundInnerBright;
+  static float fieldBackgroundInnerBright;
 
   static void load(const char * name);
 };

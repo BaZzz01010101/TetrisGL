@@ -32,11 +32,11 @@ public:
   static float scoreBarCaptionWidth;
   static float scoreBarMenuButtonWidth;
 
-  static float glassWidth;
-  static float glassHeight;
-  static float glassTop;
+  static float fieldWidth;
+  static float fieldHeight;
+  static float fieldTop;
 
-  static float infoPanelsHorzGapFromGlass;
+  static float infoPanelsHorzGapFromField;
   static float infoPanelsWidth;
   static float holdNextCaptionsTop;
   static float holdNextPanelsTop;

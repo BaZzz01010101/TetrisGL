@@ -658,25 +658,25 @@ void OpenGLRender::buildBackground()
     addBkVertex(origin + verts[2], uv[2], col[2], 1.0f);
     addBkVertex(origin + verts[3], uv[3], col[3], 1.0f);
   }
-  // add glass background to the mesh
+  // add field background to the mesh
 
-  if (LayoutObject * glassLayout = Layout::screen.getChildRecursive(loGlass))
+  if (LayoutObject * fieldLayout = Layout::screen.getChildRecursive(loField))
   {
 
-    origin.x = glassLayout->getGlobalLeft();
-    origin.y = glassLayout->getGlobalTop();
-    const float glassWidth = glassLayout->width;
-    const float glassHeight = glassLayout->height;
+    origin.x = fieldLayout->getGlobalLeft();
+    origin.y = fieldLayout->getGlobalTop();
+    const float fieldWidth = fieldLayout->width;
+    const float fieldHeight = fieldLayout->height;
 
     for (int y = 0, yTess = 6; y < yTess; y++)
     for (int x = 0, xTess = 6; x < xTess; x++)
     {
       glm::vec2 verts[4] =
       {
-        { glassWidth * x / xTess, glassHeight * y / yTess },
-        { glassWidth * x / xTess, glassHeight * (y + 1) / yTess },
-        { glassWidth * (x + 1) / xTess, glassHeight * y / yTess },
-        { glassWidth * (x + 1) / xTess, glassHeight * (y + 1) / yTess },
+        { fieldWidth * x / xTess, fieldHeight * y / yTess },
+        { fieldWidth * x / xTess, fieldHeight * (y + 1) / yTess },
+        { fieldWidth * (x + 1) / xTess, fieldHeight * y / yTess },
+        { fieldWidth * (x + 1) / xTess, fieldHeight * (y + 1) / yTess },
       };
 
       const float fx0 = float(abs(xTess - 2 * x)) / xTess;
@@ -698,13 +698,13 @@ void OpenGLRender::buildBackground()
       if (freq)
         a = double(Crosy::getPerformanceCounter()) / freq / 300.0f;
 
-      const float rMin = Palette::glassBackgroundMin.r;
-      const float gMin = Palette::glassBackgroundMin.g;
-      const float bMin = Palette::glassBackgroundMin.b;
-      const float rMax = Palette::glassBackgroundMax.r;
-      const float gMax = Palette::glassBackgroundMax.g;
-      const float bMax = Palette::glassBackgroundMax.b;
-      const float darkMul = Palette::glassBackgroundInnerBright;
+      const float rMin = Palette::fieldBackgroundMin.r;
+      const float gMin = Palette::fieldBackgroundMin.g;
+      const float bMin = Palette::fieldBackgroundMin.b;
+      const float rMax = Palette::fieldBackgroundMax.r;
+      const float gMax = Palette::fieldBackgroundMax.g;
+      const float bMax = Palette::fieldBackgroundMax.b;
+      const float darkMul = Palette::fieldBackgroundInnerBright;
       const float darkDiff = (float)M_PI / 20.0f;
       const float gDiff = (float)M_PI / 3.0f;
       const float bDiff = 2.0f * (float)M_PI / 3.0f;
@@ -864,37 +864,37 @@ void OpenGLRender::buildBackground()
   }
 }
 
-void OpenGLRender::buidGlassShadow()
+void OpenGLRender::buidFieldShadows()
 {
-  LayoutObject * glassLayout = Layout::screen.getChildRecursive(loGlass);
+  LayoutObject * fieldLayout = Layout::screen.getChildRecursive(loField);
 
-  if (!glassLayout)
+  if (!fieldLayout)
     return;
 
-  const float scale = glassLayout->width / GameLogic::glassWidth;
-  const glm::vec2 glassPos(glassLayout->getGlobalLeft(), glassLayout->getGlobalTop());
+  const float scale = fieldLayout->width / GameLogic::fieldWidth;
+  const glm::vec2 fieldPos(fieldLayout->getGlobalLeft(), fieldLayout->getGlobalTop());
   const float shadowWidth = 0.15f;
   const float innerOffset = 2.0f / 64.0f;
 
-  for (int y = 0; y < GameLogic::glassHeight; y++)
-  for (int x = 0; x < GameLogic::glassWidth; x++)
+  for (int y = 0; y < GameLogic::fieldHeight; y++)
+  for (int x = 0; x < GameLogic::fieldWidth; x++)
   {
-    const Cell * cell = GameLogic::getGlassCell(x, y);
-    glm::vec2 origin = glassPos;
+    const Cell * cell = GameLogic::getFieldCell(x, y);
+    glm::vec2 origin = fieldPos;
     
     if (GameLogic::getRowElevation(y))
       origin.y -= scale * GameLogic::getRowCurrentElevation(y);
 
     if (cell->figureId)
     {
-      const Cell * rightCell = GameLogic::getGlassCell(x + 1, y);
-      const Cell * rightBottomCell = GameLogic::getGlassCell(x + 1, y + 1);
-      const Cell * bottomCell = GameLogic::getGlassCell(x, y + 1);
+      const Cell * rightCell = GameLogic::getFieldCell(x + 1, y);
+      const Cell * rightBottomCell = GameLogic::getFieldCell(x + 1, y + 1);
+      const Cell * bottomCell = GameLogic::getFieldCell(x, y + 1);
 
       if (bottomCell && bottomCell->figureId != cell->figureId)
       {
-        const Cell * leftCell = GameLogic::getGlassCell(x - 1, y);
-        const Cell * bottomLeftCell = GameLogic::getGlassCell(x - 1, y + 1);
+        const Cell * leftCell = GameLogic::getFieldCell(x - 1, y);
+        const Cell * bottomLeftCell = GameLogic::getFieldCell(x - 1, y + 1);
         bool softLeft = !leftCell || leftCell->figureId != cell->figureId;
 
         glm::vec2 verts[4] =
@@ -938,8 +938,8 @@ void OpenGLRender::buidGlassShadow()
 
       if (rightCell && rightCell->figureId != cell->figureId)
       {
-        const Cell * topCell = GameLogic::getGlassCell(x, y - 1);
-        const Cell * topRightCell = GameLogic::getGlassCell(x + 1, y - 1);
+        const Cell * topCell = GameLogic::getFieldCell(x, y - 1);
+        const Cell * topRightCell = GameLogic::getFieldCell(x + 1, y - 1);
         bool softTop = !topCell || topCell->figureId != cell->figureId;
 
         glm::vec2 verts[4] =
@@ -984,21 +984,21 @@ void OpenGLRender::buidGlassShadow()
   }
 }
 
-void OpenGLRender::buidGlassBlocks()
+void OpenGLRender::buidFieldBlocks()
 {
-  LayoutObject * glassLayout = Layout::screen.getChildRecursive(loGlass);
+  LayoutObject * fieldLayout = Layout::screen.getChildRecursive(loField);
 
-  if (!glassLayout)
+  if (!fieldLayout)
     return;
 
-  const float scale = glassLayout->width / GameLogic::glassWidth;
-  const glm::vec2 glassPos(glassLayout->getGlobalLeft(), glassLayout->getGlobalTop());
+  const float scale = fieldLayout->width / GameLogic::fieldWidth;
+  const glm::vec2 fieldPos(fieldLayout->getGlobalLeft(), fieldLayout->getGlobalTop());
 
-  for (int y = 0; y < GameLogic::glassHeight; y++)
-  for (int x = 0; x < GameLogic::glassWidth; x++)
+  for (int y = 0; y < GameLogic::fieldHeight; y++)
+  for (int x = 0; x < GameLogic::fieldWidth; x++)
   {
-    const Cell * cell = GameLogic::getGlassCell(x, y);
-    glm::vec2 origin = glassPos;
+    const Cell * cell = GameLogic::getFieldCell(x, y);
+    glm::vec2 origin = fieldPos;
     
     if (GameLogic::getRowElevation(y))
       origin.y -= scale * GameLogic::getRowCurrentElevation(y);
@@ -1012,9 +1012,9 @@ void OpenGLRender::buidGlassBlocks()
         int cornerDX = (i & 1) * 2 - 1;
         int cornerDY = (i & 2) - 1;
 
-        const Cell * horzAdjCell = GameLogic::getGlassCell(x + cornerDX, y);
-        const Cell * vertAdjCell = GameLogic::getGlassCell(x, y + cornerDY);
-        const Cell * cornerAdjCell = GameLogic::getGlassCell(x + cornerDX, y + cornerDY);
+        const Cell * horzAdjCell = GameLogic::getFieldCell(x + cornerDX, y);
+        const Cell * vertAdjCell = GameLogic::getFieldCell(x, y + cornerDY);
+        const Cell * cornerAdjCell = GameLogic::getFieldCell(x + cornerDX, y + cornerDY);
 
         bool haveHorzAdjCell = (horzAdjCell && horzAdjCell->figureId == cellId);
         bool haveVertAdjCell = (vertAdjCell && vertAdjCell->figureId == cellId);
@@ -1073,37 +1073,37 @@ void OpenGLRender::buidGlassBlocks()
   }
 }
 
-void OpenGLRender::biuldGlassGlow()
+void OpenGLRender::biuldFieldGlow()
 {
-  LayoutObject * glassLayout = Layout::screen.getChildRecursive(loGlass);
+  LayoutObject * fieldLayout = Layout::screen.getChildRecursive(loField);
 
-  if (!glassLayout)
+  if (!fieldLayout)
     return;
 
-  const float scale = glassLayout->width / GameLogic::glassWidth;
-  const glm::vec2 glassPos(glassLayout->getGlobalLeft(), glassLayout->getGlobalTop());
+  const float scale = fieldLayout->width / GameLogic::fieldWidth;
+  const glm::vec2 fieldPos(fieldLayout->getGlobalLeft(), fieldLayout->getGlobalTop());
   const float innerOffset = 2.0f / 64.0f;
   const float glowWidth = 0.5f;
 
-  for (int y = 0; y < GameLogic::glassHeight; y++)
-  for (int x = 0; x < GameLogic::glassWidth; x++)
+  for (int y = 0; y < GameLogic::fieldHeight; y++)
+  for (int x = 0; x < GameLogic::fieldWidth; x++)
   {
-    const Cell * cell = GameLogic::getGlassCell(x, y);
-    glm::vec2 origin = glassPos;
+    const Cell * cell = GameLogic::getFieldCell(x, y);
+    glm::vec2 origin = fieldPos;
 
     if (GameLogic::getRowElevation(y))
       origin.y -= scale * GameLogic::getRowCurrentElevation(y);
 
     if (cell->figureId)
     {
-      const Cell * leftCell = GameLogic::getGlassCell(x - 1, y);
-      const Cell * leftTopCell = GameLogic::getGlassCell(x - 1, y - 1);
-      const Cell * topCell = GameLogic::getGlassCell(x, y - 1);
-      const Cell * topRightCell = GameLogic::getGlassCell(x + 1, y - 1);
-      const Cell * rightCell = GameLogic::getGlassCell(x + 1, y);
-      const Cell * rightBottomCell = GameLogic::getGlassCell(x + 1, y + 1);
-      const Cell * bottomCell = GameLogic::getGlassCell(x, y + 1);
-      const Cell * bottomLeftCell = GameLogic::getGlassCell(x - 1, y + 1);
+      const Cell * leftCell = GameLogic::getFieldCell(x - 1, y);
+      const Cell * leftTopCell = GameLogic::getFieldCell(x - 1, y - 1);
+      const Cell * topCell = GameLogic::getFieldCell(x, y - 1);
+      const Cell * topRightCell = GameLogic::getFieldCell(x + 1, y - 1);
+      const Cell * rightCell = GameLogic::getFieldCell(x + 1, y);
+      const Cell * rightBottomCell = GameLogic::getFieldCell(x + 1, y + 1);
+      const Cell * bottomCell = GameLogic::getFieldCell(x, y + 1);
+      const Cell * bottomLeftCell = GameLogic::getFieldCell(x - 1, y + 1);
 
       bool haveLeftCell = leftCell && leftCell->figureId == cell->figureId;
       bool haveLeftTopCell = leftTopCell && leftTopCell->figureId == cell->figureId;
@@ -1725,14 +1725,14 @@ void OpenGLRender::buildFigureGlow()
 
 void OpenGLRender::buildDropTrails()
 {
-  LayoutObject * glassLayout = Layout::screen.getChildRecursive(loGlass);
+  LayoutObject * fieldLayout = Layout::screen.getChildRecursive(loField);
 
-  if (!glassLayout)
+  if (!fieldLayout)
     return;
 
-  const float left = glassLayout->getGlobalLeft();
-  const float top = glassLayout->getGlobalTop();
-  const float scale = glassLayout->width / GameLogic::glassWidth;
+  const float left = fieldLayout->getGlobalLeft();
+  const float top = fieldLayout->getGlobalTop();
+  const float scale = fieldLayout->width / GameLogic::fieldWidth;
 
   for (GameLogic::DropTrailsIterator dropTrailIt = GameLogic::getDropTrailsBegin(), end = GameLogic::getDropTrailsEnd(); dropTrailIt != end; ++dropTrailIt)
   {
@@ -1755,7 +1755,7 @@ void OpenGLRender::buildDropTrails()
       const float sparkleSize = scale * 0.07f;
       float sparkleAlpha = sparkle.alpha;
 
-      if (sparkleX < GameLogic::glassWidth - sparkleSize && sparkleY > 0.0f)
+      if (sparkleX < GameLogic::fieldWidth - sparkleSize && sparkleY > 0.0f)
         buildTexturedRect(left + sparkleX, top + sparkleY, sparkleSize, sparkleSize, tiDropSparkle, sparkleColor * sparkleAlpha, 0.0f);
     }
   }
@@ -1763,14 +1763,14 @@ void OpenGLRender::buildDropTrails()
 
 void OpenGLRender::buildRowFlashes()
 {
-  LayoutObject * glassLayout = Layout::screen.getChildRecursive(loGlass);
+  LayoutObject * fieldLayout = Layout::screen.getChildRecursive(loField);
 
-  if (!glassLayout)
+  if (!fieldLayout)
     return;
 
-  const float glassLeft = glassLayout->getGlobalLeft();
-  const float glassTop = glassLayout->getGlobalTop();
-  const float scale = glassLayout->width / GameLogic::glassWidth;
+  const float fieldLeft = fieldLayout->getGlobalLeft();
+  const float fieldTop = fieldLayout->getGlobalTop();
+  const float scale = fieldLayout->width / GameLogic::fieldWidth;
 
   float overallProgress = glm::clamp(float(Time::timer - GameLogic::rowsDeleteTimer) / GameLogic::rowsDeletionEffectTime, 0.0f, 1.0f);
   float mul = 1.0f - cos((overallProgress - 0.5f) * (overallProgress < 0.5f ? 0.5f : 2.0f) * (float)M_PI_2);
@@ -1782,9 +1782,9 @@ void OpenGLRender::buildRowFlashes()
   for (GameLogic::DeletedRowsIterator delRowIt = GameLogic::getDeletedRowsBegin(), end = GameLogic::getDeletedRowsEnd(); delRowIt != end; ++delRowIt)
   {
     int row = *delRowIt;
-    float flashLeft = glassLeft - scale * dx;
-    float flashTop = glassTop + scale * (row - dy);
-    float flashWidth = scale * (GameLogic::glassWidth + 2.0f * dx);
+    float flashLeft = fieldLeft - scale * dx;
+    float flashTop = fieldTop + scale * (row - dy);
+    float flashWidth = scale * (GameLogic::fieldWidth + 2.0f * dx);
     float flashHeight = scale * (1.0f + 2.0f * dy);
     buildTexturedRect(flashLeft, flashTop, flashWidth, flashHeight, tiRowFlash, flashColor, 0.0f);
   }
@@ -1795,7 +1795,7 @@ void OpenGLRender::buildRowFlashes()
     int firstRow = *GameLogic::getDeletedRowsBegin();
     int lastRow = *(GameLogic::getDeletedRowsEnd() - 1);
 
-    float lightSourceX = (shineProgress - 0.5f) * 3.0f * GameLogic::glassWidth;
+    float lightSourceX = (shineProgress - 0.5f) * 3.0f * GameLogic::fieldWidth;
     float lightSourceY = 0.5f * (firstRow + lastRow + 1);
 
     for (GameLogic::DeletedRowGapsIterator rowGapsIt = GameLogic::getDeletedRowGapsBegin();
@@ -1827,9 +1827,9 @@ void OpenGLRender::buildRowFlashes()
 
       glm::vec2 verts[3] =
       {
-        { glassLeft + scale * lightSourceX, glassTop + scale * lightSourceY },
-        { glassLeft + scale * (gapX + rayEndDX), glassTop + scale * (gapY1 + rayEndDY1) },
-        { glassLeft + scale * (gapX + rayEndDX), glassTop + scale * (gapY2 + rayEndDY2) },
+        { fieldLeft + scale * lightSourceX, fieldTop + scale * lightSourceY },
+        { fieldLeft + scale * (gapX + rayEndDX), fieldTop + scale * (gapY1 + rayEndDY1) },
+        { fieldLeft + scale * (gapX + rayEndDX), fieldTop + scale * (gapY2 + rayEndDY2) },
       };
 
       addAtlasVertex(verts[0], uv[0], tiRowShineRay, rayBeginColor, 0.0f);
@@ -1838,8 +1838,8 @@ void OpenGLRender::buildRowFlashes()
     }
 
     float shineSize = 3.5f;
-    float shineLeft = glassLeft + scale * lightSourceX - 0.5f * shineSize;
-    float shineTop = glassTop + scale * lightSourceY - 0.5f * shineSize;
+    float shineLeft = fieldLeft + scale * lightSourceX - 0.5f * shineSize;
+    float shineTop = fieldTop + scale * lightSourceY - 0.5f * shineSize;
     const glm::vec3 shineColor(0.1f * sin(shineProgress * (float)M_PI) * Palette::deletedRowShineBright);
 
     buildTexturedRect(shineLeft, shineTop, shineSize, shineSize, tiRowShineLight, shineColor, 0.0f);
@@ -2545,10 +2545,10 @@ void OpenGLRender::buildLeaderboardWindow()
 
 void OpenGLRender::buildCountdown()
 {
-  if (LayoutObject * glassLayout = Layout::screen.getChildRecursive(loGlass))
+  if (LayoutObject * fieldLayout = Layout::screen.getChildRecursive(loField))
   {
-    const float xpos = glassLayout->getGlobalLeft() + 0.5f * glassLayout->width;
-    const float ypos = glassLayout->getGlobalTop() + 0.5f * glassLayout->height;
+    const float xpos = fieldLayout->getGlobalLeft() + 0.5f * fieldLayout->width;
+    const float ypos = fieldLayout->getGlobalTop() + 0.5f * fieldLayout->height;
     const int num = (int)GameLogic::countdownTimeLeft;
     const float numProgress = GameLogic::countdownTimeLeft - num;
     std::string text = num ? std::to_string(num) : "GO";
@@ -2561,14 +2561,14 @@ void OpenGLRender::buildCountdown()
     const float dy = -0.2f + (num || numProgress > 0.5f ? 0.1f : 0.65f) * progressParam * progressParam * progressParam;
     const float textHeight = 0.1f;
 
-    if (ypos + dy + 0.5f * textHeight < glassLayout->getGlobalTop() + glassLayout->height)
+    if (ypos + dy + 0.5f * textHeight < fieldLayout->getGlobalTop() + fieldLayout->height)
       buildTextMesh(xpos, ypos + dy, 0.0f, 0.0f, text.c_str(), textHeight * scale, glm::vec3(1.0f), 0.0f, 0.0f, haCenter, vaCenter);
   }
 }
 
 void OpenGLRender::buildLevelUp()
 {
-  if (LayoutObject * glassLayout = Layout::screen.getChildRecursive(loGlass))
+  if (LayoutObject * fieldLayout = Layout::screen.getChildRecursive(loField))
   {
     const float levelUpTime = 2.0f;
     const float levelUpScaleInTime = 0.5f;
@@ -2580,8 +2580,8 @@ void OpenGLRender::buildLevelUp()
 
     if (levelUpTimeLeft > 0.0f)
     {
-      const float xpos = glassLayout->getGlobalLeft() + 0.5f * glassLayout->width;
-      const float ypos = glassLayout->getGlobalTop() + 0.5f * glassLayout->height;
+      const float xpos = fieldLayout->getGlobalLeft() + 0.5f * fieldLayout->width;
+      const float ypos = fieldLayout->getGlobalTop() + 0.5f * fieldLayout->height;
 
       const float textHeight = 0.075f;
       float scale = glm::clamp((levelUpTime - levelUpTimeLeft) / levelUpScaleInTime, 0.0f, 1.0f);
@@ -2589,7 +2589,7 @@ void OpenGLRender::buildLevelUp()
       const float yOffs = 0.2f;
       float dy = -yOffs + yOffs * (3.0f * progress * progress - 5.0f * pow(progress, 5.0f));
 
-      if (ypos + dy > glassLayout->getGlobalTop())
+      if (ypos + dy > fieldLayout->getGlobalTop())
       {
         const char * levelUpText = "LEVEL UP";
         buildTextMesh(xpos, ypos + dy, 0.0f, 0.0f, levelUpText, textHeight * scale, glm::vec3(0.0f), 0.75f, 1.0f, haCenter, vaTop);
@@ -2608,14 +2608,14 @@ void OpenGLRender::buildDropPredictor()
 {
   int dim = GameLogic::curFigure.dim;
 
-  if (LayoutObject * glassLayout = Layout::screen.getChildRecursive(loGlass))
+  if (LayoutObject * fieldLayout = Layout::screen.getChildRecursive(loField))
   {
-    const float glassLeft = glassLayout->getGlobalLeft();
-    const float glassTop = glassLayout->getGlobalTop();
-    const float cellSize = glassLayout->width / GameLogic::glassWidth;
+    const float fieldLeft = fieldLayout->getGlobalLeft();
+    const float fieldTop = fieldLayout->getGlobalTop();
+    const float cellSize = fieldLayout->width / GameLogic::fieldWidth;
     const glm::vec3 figureColor = Palette::cellColorArray[GameLogic::curFigure.color];
-    const int glassWidth = GameLogic::glassWidth;
-    const int glassHeight = GameLogic::glassHeight;
+    const int fieldWidth = GameLogic::fieldWidth;
+    const int fieldHeight = GameLogic::fieldHeight;
     static std::vector<int> yArray;
     yArray.resize(dim);
     std::fill_n(yArray.begin(), dim, 0);
@@ -2628,14 +2628,14 @@ void OpenGLRender::buildDropPredictor()
 
         if (!GameLogic::curFigure.cells[index].isEmpty())
         {
-          int glassX = GameLogic::curFigureX + x;
-          int glassY = GameLogic::curFigureY + y + 1;
+          int fieldX = GameLogic::curFigureX + x;
+          int fieldY = GameLogic::curFigureY + y + 1;
 
-          while (glassY < glassHeight && GameLogic::glass[glassX + glassY * glassWidth].isEmpty())
-            glassY++;
+          while (fieldY < fieldHeight && GameLogic::field[fieldX + fieldY * fieldWidth].isEmpty())
+            fieldY++;
 
-          if (glassY > GameLogic::curFigureY + y + 1)
-            yArray[x] = glassY;
+          if (fieldY > GameLogic::curFigureY + y + 1)
+            yArray[x] = fieldY;
 
           break;
         }
@@ -2725,22 +2725,22 @@ void OpenGLRender::buildDropPredictor()
 
     for (int x = 0; x < dim; x++)
     {
-      int glassX = GameLogic::curFigureX + x;
-      int glassY = yArray[x];
+      int fieldX = GameLogic::curFigureX + x;
+      int fieldY = yArray[x];
 
-      if (glassY)
+      if (fieldY)
       {
-        bool leftEmpty = !x || glassY != yArray[(x - 1)];
-        bool rightEmpty = (x == dim - 1) || glassY != yArray[(x + 1)];
-        float rowElevation = (glassY < glassHeight) ? GameLogic::getRowCurrentElevation(glassY) : 0.0f;
+        bool leftEmpty = !x || fieldY != yArray[(x - 1)];
+        bool rightEmpty = (x == dim - 1) || fieldY != yArray[(x + 1)];
+        float rowElevation = (fieldY < fieldHeight) ? GameLogic::getRowCurrentElevation(fieldY) : 0.0f;
 
         // flame
         float & currentHeight0 = jitter[x].currentHeight;
         float & currentHeight1 = jitter[x + 1].currentHeight;
 
-        float left = glassLeft + cellSize * glassX;
-        float top0 = glassTop + cellSize * (glassY - rowElevation - currentHeight0);
-        float top1 = glassTop + cellSize * (glassY - rowElevation - currentHeight1);
+        float left = fieldLeft + cellSize * fieldX;
+        float top0 = fieldTop + cellSize * (fieldY - rowElevation - currentHeight0);
+        float top1 = fieldTop + cellSize * (fieldY - rowElevation - currentHeight1);
 
         float width = cellSize;
         float height0 = cellSize * currentHeight0;
@@ -2748,7 +2748,7 @@ void OpenGLRender::buildDropPredictor()
         float top05 = 0.5f * (top0 + top1);
         float height05 = 0.5f * (height0 + height1);
 
-        if (glassY < glassHeight)
+        if (fieldY < fieldHeight)
         {
           const float innerOffset = cellSize * 2.0f / 64.0f;
           top0 += innerOffset;
@@ -2812,10 +2812,10 @@ void OpenGLRender::buildDropPredictor()
           float rightAlphaCorr = rightEmpty ? 1.0f - glm::max(2.0f * (dx - 0.5f), 0.0f) : 1.0f; 
           float nominalAlpha = glm::clamp(alpha - (1.0f - timeLeft * timeLeft / (lifeTime * lifeTime)), 0.0f, 1.0f);
           float curAlpha = leftAlphaCorr * rightAlphaCorr * nominalAlpha;
-          float left = glassLeft + cellSize * (glassX + dx - 0.5f * size);
-          float top = glassTop + cellSize * (glassY - dy - size);
+          float left = fieldLeft + cellSize * (fieldX + dx - 0.5f * size);
+          float top = fieldTop + cellSize * (fieldY - dy - size);
 
-          if (glassY < glassHeight)
+          if (fieldY < fieldHeight)
           {
             const float innerOffset = cellSize * 2.0f / 64.0f;
             top += innerOffset;
@@ -2854,9 +2854,9 @@ void OpenGLRender::updateGameLayer()
     GameLogic::state == GameLogic::stPaused || 
     GameLogic::state == GameLogic::stGameOver)
   {
-    buidGlassShadow();
-    buidGlassBlocks();
-    biuldGlassGlow();
+    buidFieldShadows();
+    buidFieldBlocks();
+    biuldFieldGlow();
     buildFigureBlocks();
     buildFigureGlow();
     buildDropTrails();
