@@ -6,6 +6,7 @@
 class SettingsLogic
 {
 public:
+  typedef uint32_t Checksum;
   enum State { stHidden, stShowing, stVisible, stSaveConfirmation, stKeyWaiting, stHiding };
   enum Result { resNone, resClose };
   enum Control { ctrlNone, ctrlSoundVolume, ctrlMusicVolume, ctrlKeyBindTable, ctrlBackButton };
@@ -17,8 +18,8 @@ public:
     float soundVolume;
     float musicVolume;
     Key actionKeys[Binding::ACTION_COUNT];
-    uint32_t dummy;
-    uint32_t checksum;
+    Checksum dummy;
+    Checksum checksum;
   } saveData;
 
 #pragma pack(pop)
@@ -52,7 +53,7 @@ public:
   void selectPrevious();
 
 private:
-  static const char * fileName;
+  std::string fileName;
   bool changed;
   float soundVolume;
   float musicVolume;

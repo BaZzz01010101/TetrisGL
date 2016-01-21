@@ -5,8 +5,6 @@
 #include "Time.h"
 
 GameLogic::State GameLogic::state = stStopped;
-int GameLogic::fieldWidth = 10;
-int GameLogic::fieldHeight = 20;
 int GameLogic::curFigureX = 0;
 int GameLogic::curFigureY = 0;
 int GameLogic::curScore = 0;
@@ -17,6 +15,7 @@ bool GameLogic::haveFallingRows = false;
 double GameLogic::rowsDeleteTimer = -1.0;
 bool GameLogic::menuButtonHighlighted = false;
 unsigned int GameLogic::fastDownCounter = 0;
+unsigned int GameLogic::dropTrailCounter = 0;
 float GameLogic::countdownTimeLeft = 0.0f;
 float GameLogic::gameOverTimeLeft = 0.0f;
 int GameLogic::nextFiguresCount = 3;
@@ -31,14 +30,21 @@ std::vector<Cell> GameLogic::field;
 std::vector<Figure> GameLogic::nextFigures;
 std::vector<int> GameLogic::rowElevation;
 std::vector<float> GameLogic::rowCurrentElevation;
-std::list<DropTrail> GameLogic::dropTrails;
 std::vector<int> GameLogic::deletedRows;
-std::set<GameLogic::CellCoord> GameLogic::deletedRowGaps;
+std::vector<GameLogic::CellCoord> GameLogic::deletedRowGaps;
+DropTrail GameLogic::dropTrails[dropTrailsSize];
+int GameLogic::dropTrailsHead = 0;
+int GameLogic::dropTrailsTail = 0;
 
 void GameLogic::init()
 {
-  fieldWidth = 10;
-  fieldHeight = 20;
+  nextFiguresCount = 3;
+  field.reserve(fieldWidth * fieldHeight);
+  nextFigures.reserve(nextFiguresCount);
+  rowElevation.reserve(fieldHeight);
+  rowCurrentElevation.reserve(fieldHeight);
+  deletedRows.reserve(fieldHeight);
+  deletedRowGaps.reserve((fieldWidth + 1) * Figure::dimMax);
 
   resetGame();
 }
@@ -131,7 +137,7 @@ void GameLogic::gameUpdate()
 
   proceedFallingRows();
 
-  deleteObsoleteEffects();
+  updateEffects();
 }
 
 float GameLogic::getStepTime()
@@ -310,7 +316,7 @@ void GameLogic::dropCurrentFigure()
     {
       if (!curFigure.cells[x + y * dim].isEmpty())
       {
-        createDropTrail(curFigureX + x, curFigureY + y, y1 - y0, curFigure.color);
+        addDropTrail(curFigureX + x, curFigureY + y, y1 - y0, curFigure.color);
         break;
       }
     }
@@ -367,12 +373,7 @@ void GameLogic::checkFieldRows()
     {
       elevation++;
       deletedRows.push_back(y);
-
-      for (int x = 0; x <= fieldWidth; x++)
-      {
-        if (!x || x == fieldWidth || field[x + y * fieldWidth].figureId != field[x - 1 + y * fieldWidth].figureId)
-          deletedRowGaps.insert(CellCoord(x, y));
-      }
+      addRowGaps(y);
     }
     else if (elevation)
     {
@@ -424,29 +425,31 @@ void GameLogic::proceedFallingRows()
   }
 }
 
-void GameLogic::createDropTrail(int x, int y, int height, Cell::Color color)
+void GameLogic::addDropTrail(int x, int y, int height, Cell::Color color)
 {
-  dropTrails.emplace_back();
-  DropTrail & dropTrail = dropTrails.back();
-  dropTrail.x = x;
-  dropTrail.y = y;
-  dropTrail.color = color;
-  dropTrail.height = height;
+  int newHead = (dropTrailsHead + 1) % dropTrailsSize;
+
+  if (newHead != dropTrailsTail)
+  {
+    DropTrail & dropTrail = dropTrails[dropTrailsHead];
+    dropTrail.set(x, y, height, color);
+    dropTrailCounter++;
+    dropTrailsHead = newHead;
+  }
 }
 
-void GameLogic::deleteObsoleteEffects()
+void GameLogic::addRowGaps(int y)
 {
-  std::list<DropTrail>::iterator dropTrail = dropTrails.begin();
+  for (int x = 0; x <= fieldWidth; x++)
+    if (!x || x == fieldWidth || field[x + y * fieldWidth].figureId != field[x - 1 + y * fieldWidth].figureId)
+      deletedRowGaps.push_back(CellCoord(x, y));
+}
 
-  while (dropTrail != dropTrails.end())
-  {
-    if (dropTrail->getTrailProgress() > 0.999f)
-    {
-      std::list<DropTrail>::iterator delIt = dropTrail++;
-      dropTrails.erase(delIt);
-    }
-    else ++dropTrail;
-  }
+void GameLogic::updateEffects()
+{
+  for (int i = dropTrailsTail; i != dropTrailsHead; i = (i + 1) % dropTrailsSize)
+    if (!dropTrails[i].update(Time::timerDelta))
+      dropTrailsTail = (i + 1) % dropTrailsSize;
 
   if (!deletedRows.empty() && Time::timer - rowsDeleteTimer > GameLogic::rowsDeletionEffectTime)
   {
@@ -487,7 +490,7 @@ const Cell * GameLogic::getFieldCell(int x, int y)
       y < curFigureY + curFigure.dim;
 
     if (isInCurFigure)
-      cell = curFigure.cells.data() + x - curFigureX + (y - curFigureY) * curFigure.dim;
+      cell = &curFigure.cells[x - curFigureX + (y - curFigureY) * curFigure.dim];
   }
 
   return cell;
@@ -498,7 +501,7 @@ const Cell * GameLogic::getFigureCell(Figure & figure, int x, int y)
   if (x < 0 || y < 0 || x >= figure.dim || y >= figure.dim)
     return NULL;
 
-  Cell * cell = figure.cells.data() + x + y * figure.dim;
+  Cell * cell = &figure.cells[x + y * figure.dim];
   return cell;
 }
 

@@ -5,7 +5,19 @@
 #include "Time.h"
 #include "Crosy.h"
 
-const char * LeaderboardLogic::fileName = "leaderboard.dat";
+const LeaderboardLogic::LeaderData LeaderboardLogic::defaultLeaders[LeaderboardLogic::leadersCount] =
+{
+  { "ARNOLD", 13, 12000 },
+  { "SARA", 11, 9000 },
+  { "JOHN", 9, 6000 },
+  { "NIKOL", 7, 4000 },
+  { "SAM", 6, 3000 },
+  { "LARA", 5, 2000 },
+  { "BRUCE", 4, 1500 },
+  { "CINDY", 3, 1000 },
+  { "BOB", 2, 500 },
+  { "HELEN", 1, 300 },
+};
 
 LeaderboardLogic::LeaderboardLogic() :
   state(stHidden),
@@ -24,21 +36,10 @@ LeaderboardLogic::~LeaderboardLogic()
 
 void LeaderboardLogic::init()
 {
-  load();
+  fileName = Crosy::getExePath() + "leaderboard.dat";
 
-  if (leaders.empty())
-  {
-    leaders.push_back({ "ARNOLD", 13, 12000 });
-    leaders.push_back({ "SARA", 11, 9000 });
-    leaders.push_back({ "JOHN", 9, 6000 });
-    leaders.push_back({ "NIKOL", 7, 4000 });
-    leaders.push_back({ "SAM", 6, 3000 });
-    leaders.push_back({ "LARA", 5, 2000 });
-    leaders.push_back({ "BRUCE", 4, 1500 });
-    leaders.push_back({ "CINDY", 3, 1000 });
-    leaders.push_back({ "BOB", 2, 500 });
-    leaders.push_back({ "HELEN", 1, 300 });
-  }
+  if (!load())
+    memcpy(leaders, defaultLeaders, sizeof(leaders));
 }
 
 LeaderboardLogic::Result LeaderboardLogic::update()
@@ -88,80 +89,74 @@ void LeaderboardLogic::escape()
   state = stHiding;
 }
 
-void LeaderboardLogic::load()
+bool LeaderboardLogic::load()
 {
-  std::string fileName = Crosy::getExePath() + LeaderboardLogic::fileName;
+  bool success = false;
   FILE * file = fopen(fileName.c_str(), "rb+");
 
   if (file)
   {
     fseek(file, 0, SEEK_END);
-    const int size = ftell(file);
+    const int fileSize = ftell(file);
     fseek(file, 0, SEEK_SET);
-    const int chunkSize = sizeof(uint32_t);
+    Checksum checksum = 0;
+    const int checksumSize = sizeof(checksum);
+    const int leadersSize = leadersCount * sizeof(LeaderData);
+    const int checksumElementsCount = (leadersSize - 1) / checksumSize + 1;
+    Checksum buf[checksumElementsCount + 1];
+    memset(buf, 0, sizeof(buf));
 
-    if (size % chunkSize == 0)
+    if (fileSize == sizeof(buf) && fread(buf, sizeof(buf), 1, file))
     {
-      std::vector<uint32_t> buf(size / chunkSize);
-      fread(buf.data(), 1, size, file);
-      uint32_t checksum = 0;
+      for (int i = 0; i < checksumElementsCount; i++)
+        checksum ^= buf[i] * i;
 
-      for (int i = 0; i < size / chunkSize; i++)
-        checksum = checksum ^ buf[i];
-
-      if (!checksum)
+      if (checksum == buf[checksumElementsCount])
       {
-        if ((size - chunkSize) % sizeof(LeaderData) == 0)
-        {
-          const int fileLeadersCount = (size - chunkSize) / sizeof(LeaderData);
-          leaders.resize(glm::min(fileLeadersCount, leadersMaxCount));
-          memcpy(leaders.data(), buf.data(), leaders.size() * sizeof(LeaderData));
-        }
+        memcpy(leaders, buf, sizeof(leaders));
+        success = true;
       }
     }
 
     fclose(file);
   }
+
+  return success;
 }
 
 void LeaderboardLogic::save()
 {
-  std::string fileName = Crosy::getExePath() + LeaderboardLogic::fileName;
+  assert(leadersCount > 0);
+
   FILE * file = fopen(fileName.c_str(), "wb+");
   assert(file);
 
   if (file)
   {
-    const int leadersSize = getLeadersCount() * sizeof(LeaderData);
-    const int chunkSize = sizeof(uint32_t);
-    const int size = leadersSize / chunkSize * chunkSize + ((leadersSize % chunkSize > 0) ? 2 * chunkSize : chunkSize);
-    std::vector<uint32_t> buf(size / chunkSize);
-    memset(buf.data(), 0, size);
-    memcpy(buf.data(), leaders.data(), leaders.size() * sizeof(LeaderData));
+    Checksum checksum = 0;
+    const int checksumSize = sizeof(checksum);
+    const int leadersSize = leadersCount * sizeof(LeaderData);
+    const int checksumElementsCount = (leadersSize - 1) / checksumSize + 1;
+    Checksum buf[checksumElementsCount + 1];
+    memset(buf, 0, sizeof(buf));
+    memcpy(buf, leaders, sizeof(leaders));
 
-    uint32_t checksum = 0;
+    for (int i = 0; i < checksumElementsCount; i++)
+      checksum ^= buf[i] * i;
 
-    for (int i = 0; i < size / chunkSize; i++)
-      checksum = checksum ^ buf[i];
-
-    buf[size / chunkSize - 1] = checksum;
-    int writtenSize = (int)fwrite(buf.data(), 1, size, file);
-    assert(writtenSize == size);
+    buf[checksumElementsCount] = checksum;
+    int success = (int)fwrite(buf, sizeof(buf), 1, file);
     fclose(file);
+    assert(success);
   }
-}
-
-int LeaderboardLogic::getLeadersCount()
-{
-  return (int)leaders.size();
 }
 
 const LeaderboardLogic::LeaderData & LeaderboardLogic::getLeaderData(int place)
 {
-  if (place >= (int)leaders.size())
+  if (place >= leadersCount)
   {
     assert(0);
-    static LeaderData dummy;
+    static LeaderData dummy = { { '\0' }, 0, 0 };
     return dummy;
   }
 
@@ -170,21 +165,18 @@ const LeaderboardLogic::LeaderData & LeaderboardLogic::getLeaderData(int place)
 
 bool LeaderboardLogic::addResult(int level, int score)
 {
-  if (leaders.size() < leadersMaxCount)
-    leaders.resize(leaders.size() + 1);
-
-  for (int i = 0, cnt = (int)leaders.size(); i < cnt; i++)
+  for (int i = 0; i < leadersCount; i++)
   {
     LeaderData & leader = leaders[i];
 
     if (score > leader.score || (score == leader.score && level > leader.level))
     {
-      const LeaderData newLeader = { { '\0' }, level, score };
-      leaders.insert(leaders.begin() + i, newLeader);
+      if (i < leadersCount - 1)
+        memmove(leaders + i + 1, leaders + i, (leadersCount - i - 1) * sizeof(LeaderData));
 
-      if (leaders.size() > leadersMaxCount)
-        leaders.resize(leadersMaxCount);
-
+      leader.name[0] = '\0';
+      leader.level = level;
+      leader.score = score;
       editRow = i;
       return true;
     }

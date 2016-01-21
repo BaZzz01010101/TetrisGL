@@ -17,7 +17,8 @@ public:
   int dim;
   int angle;
   Cell::Color color;
-  std::vector<Cell> cells;
+  static const int dimMax = 4;
+  Cell cells[dimMax * dimMax];
 
   Figure();
 

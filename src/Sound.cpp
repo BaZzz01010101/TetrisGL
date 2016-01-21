@@ -140,12 +140,12 @@ void Sound::update()
     fastDownCounter = GameLogic::fastDownCounter;
   }
 
-  static int dropTrailsCount = GameLogic::getDropTrailsCount();
+  static unsigned int dropTrailCounter = GameLogic::dropTrailCounter;
 
-  if (GameLogic::getDropTrailsCount() > dropTrailsCount)
+  if (GameLogic::dropTrailCounter > dropTrailCounter)
     play(smpDrop);
 
-  dropTrailsCount = GameLogic::getDropTrailsCount();
+  dropTrailCounter = GameLogic::dropTrailCounter;
 
   static int deletedRowsCount = GameLogic::getDeletedRowsCount();
   static int curLevel = GameLogic::curLevel;

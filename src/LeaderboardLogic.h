@@ -2,6 +2,8 @@
 class LeaderboardLogic
 {
 public:
+  typedef uint32_t Checksum;
+
   enum State { stHidden, stShowing, stVisible, stHiding };
   enum Result { resNone, resClose };
 
@@ -11,8 +13,8 @@ public:
   float transitionProgress;
   int editRow;
   bool backButtonHighlighted;
-  static const int leadersMaxCount = 10;
-  static const int maxNameLength = 10;
+  static const int leadersCount = 10;
+  static const int maxNameLength = 15;
 
   struct LeaderData
   {
@@ -27,9 +29,8 @@ public:
   void init();
   Result update();
   void escape();
-  void load();
+  bool load();
   void save();
-  int getLeadersCount();
   const LeaderData & getLeaderData(int place);
   bool addResult(int level, int score);
   void deleteChar();
@@ -37,7 +38,8 @@ public:
   void commit();
 
 private:
-  static const char * fileName;
-  std::vector<LeaderData> leaders;
+  std::string fileName;
+  static const LeaderData defaultLeaders[leadersCount];
+  LeaderData leaders[leadersCount];
 };
 

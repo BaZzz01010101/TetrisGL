@@ -5,8 +5,6 @@
 #include "Time.h"
 #include "Crosy.h"
 
-const char * SettingsLogic::fileName = "settings.dat";
-
 SettingsLogic::SettingsLogic() :
   saveConfirmationMenu(MenuLogic::resBack),
   changed(false),
@@ -31,6 +29,7 @@ SettingsLogic::~SettingsLogic()
 
 void SettingsLogic::init()
 {
+  fileName = Crosy::getExePath() + "settings.dat";
   saveConfirmationMenu.add("SAVE", MenuLogic::resSave);
   saveConfirmationMenu.add("DON'T SAVE", MenuLogic::resDontSave);
   saveConfirmationMenu.add("BACK", MenuLogic::resBack, true);
@@ -107,7 +106,6 @@ void SettingsLogic::escape()
 
 void SettingsLogic::load()
 {
-  std::string fileName = Crosy::getExePath() + SettingsLogic::fileName;
   FILE * file = fopen(fileName.c_str(), "rb+");
 
   if (file)
@@ -117,12 +115,12 @@ void SettingsLogic::load()
 
     if (success)
     {
-      uint32_t * plainData = (uint32_t *)&saveData;
-      int chunkCount = (sizeof(saveData)-sizeof(saveData.checksum)) / sizeof(uint32_t);
-      uint32_t checksum = 0;
+      Checksum * plainData = (Checksum *)&saveData;
+      int checksumCount = sizeof(saveData) / sizeof(Checksum) - 1;
+      Checksum checksum = 0;
 
-      for (int i = 0; i < chunkCount; i++)
-        checksum ^= plainData[i];
+      for (int i = 0; i < checksumCount; i++)
+        checksum ^= plainData[i] * i;
 
       if (checksum == saveData.checksum)
       {
@@ -143,7 +141,6 @@ void SettingsLogic::load()
 
 void SettingsLogic::save()
 {
-  std::string fileName = Crosy::getExePath() + SettingsLogic::fileName;
   FILE * file = fopen(fileName.c_str(), "wb+");
   assert(file);
 
@@ -157,15 +154,15 @@ void SettingsLogic::save()
     for (Binding::Action action = Binding::FIRST_ACTION; action < Binding::ACTION_COUNT; action++)
       saveData.actionKeys[action] = Binding::getActionKey(action);
 
-    uint32_t * plainData = (uint32_t *)&saveData;
-    int chunkCount = (sizeof(saveData) - sizeof(saveData.checksum)) / sizeof(uint32_t);
+    Checksum * plainData = (Checksum *)&saveData;
+    int checksumCount = sizeof(saveData) / sizeof(Checksum) - 1;
 
-    for (int i = 0; i < chunkCount; i++)
-      saveData.checksum ^= plainData[i];
+    for (int i = 0; i < checksumCount; i++)
+      saveData.checksum ^= plainData[i] * i;
 
     int success = (int)fwrite(&saveData, sizeof(saveData), 1, file);
-    assert(success);
     fclose(file);
+    assert(success);
   }
 
   changed = false;

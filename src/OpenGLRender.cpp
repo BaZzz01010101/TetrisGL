@@ -25,10 +25,9 @@ OpenGLRender::OpenGLRender() :
     texPos[ind].y = 0.0625f + 0.25f * (ind / 4);
   }
 
-  const int initSize = 1024;
-  bkVertexBuffer.reserve(initSize);
-  atlasVertexBuffer.reserve(initSize);
-  textVertexBuffer.reserve(initSize);
+  bkVertexBuffer.reserve(2048);
+  atlasVertexBuffer.reserve(65536);
+  textVertexBuffer.reserve(2048);
 }
 
 OpenGLRender::~OpenGLRender()
@@ -757,7 +756,9 @@ void OpenGLRender::buildBackground()
     const float width = scoreBarValueLayout->width;
     const float height = scoreBarValueLayout->height;
     buildRect(left, top, width, height, glm::vec3(0.0f), 0.6f);
-    buildTextMesh(left, top, width, height, std::to_string(GameLogic::curScore).c_str(), height, Palette::scoreBarText, 1.0f, 0.0f, haCenter, vaCenter);
+    char scoreStr[32];
+    itoa(GameLogic::curScore, scoreStr, 10);
+    buildTextMesh(left, top, width, height, scoreStr, height, Palette::scoreBarText, 1.0f, 0.0f, haCenter, vaCenter);
   }
 
   // add MENU button to mesh
@@ -839,7 +840,9 @@ void OpenGLRender::buildBackground()
     const float width = levelPanelLayout->width;
     const float height = levelPanelLayout->height;
     buildTexturedRect(left, top, width, height, tiLevelGoalBackground, Palette::levelPanelBackground, 1.0f);
-    buildTextMesh(left, top, width, height, std::to_string(GameLogic::curLevel).c_str(), Layout::levelGoalTextHeight, Palette::levelPanelText, 1.0f, 0.0f, haCenter, vaCenter);
+    char levelStr[32];
+    itoa(GameLogic::curLevel, levelStr, 10);
+    buildTextMesh(left, top, width, height, levelStr, Layout::levelGoalTextHeight, Palette::levelPanelText, 1.0f, 0.0f, haCenter, vaCenter);
   }
 
   // add goal panel to mesh
@@ -860,7 +863,9 @@ void OpenGLRender::buildBackground()
     const float width = goalPanelLayout->width;
     const float height = goalPanelLayout->height;
     buildTexturedRect(left, top, width, height, tiLevelGoalBackground, Palette::goalPanelBackground, 1.0f);
-    buildTextMesh(left, top, width, height, std::to_string(GameLogic::curGoal).c_str(), Layout::levelGoalTextHeight, Palette::goalPanelText, 1.0f, 0.0f, haCenter, vaCenter);
+    char goalStr[32];
+    itoa(GameLogic::curGoal, goalStr, 10);
+    buildTextMesh(left, top, width, height, goalStr, Layout::levelGoalTextHeight, Palette::goalPanelText, 1.0f, 0.0f, haCenter, vaCenter);
   }
 }
 
@@ -1725,38 +1730,42 @@ void OpenGLRender::buildFigureGlow()
 
 void OpenGLRender::buildDropTrails()
 {
-  LayoutObject * fieldLayout = Layout::screen.getChildRecursive(loField);
-
-  if (!fieldLayout)
-    return;
-
-  const float left = fieldLayout->getGlobalLeft();
-  const float top = fieldLayout->getGlobalTop();
-  const float scale = fieldLayout->width / GameLogic::fieldWidth;
-
-  for (GameLogic::DropTrailsIterator dropTrailIt = GameLogic::getDropTrailsBegin(), end = GameLogic::getDropTrailsEnd(); dropTrailIt != end; ++dropTrailIt)
+  if (LayoutObject * fieldLayout = Layout::screen.getChildRecursive(loField))
   {
-    float trailProgress = dropTrailIt->getTrailProgress();
-    float trailOpSqProgress = 1.0f - trailProgress * trailProgress;
-    float trailLeft = left + scale * dropTrailIt->x - scale * 0.25f;
-    float trailTop = top + scale * (dropTrailIt->y - dropTrailIt->height * trailOpSqProgress);
-    float trailWidth = scale * 1.5f;
-    float trailHeight = scale * (0.1f + 1.1f * dropTrailIt->height * trailOpSqProgress);
-    glm::vec3 trailColor = Palette::cellColorArray[dropTrailIt->color] * trailOpSqProgress;
-    glm::vec3 sparkleColor = (0.5f + Palette::cellColorArray[dropTrailIt->color]) * trailOpSqProgress;
+    const float left = fieldLayout->getGlobalLeft();
+    const float top = fieldLayout->getGlobalTop();
+    const float scale = fieldLayout->width / GameLogic::fieldWidth;
 
-    buildTexturedRect(trailLeft, trailTop, trailWidth, trailHeight, tiDropTrail, trailColor, 0.0f);
-
-    for (int spInd = 0; spInd < DropTrail::sparkleQty; spInd++)
+    for (int trailInd = GameLogic::dropTrailsTail; 
+         trailInd != GameLogic::dropTrailsHead; 
+         trailInd = (trailInd + 1) % GameLogic::dropTrailsSize)
     {
-      const DropSparkle & sparkle = dropTrailIt->sparkles[spInd];
-      float sparkleX = scale * (dropTrailIt->x + sparkle.relX);
-      float sparkleY = scale * (dropTrailIt->y - sparkle.relY * dropTrailIt->height - sparkle.speed * trailProgress);
-      const float sparkleSize = scale * 0.07f;
-      float sparkleAlpha = sparkle.alpha;
+      DropTrail & dropTrail = GameLogic::dropTrails[trailInd];
 
-      if (sparkleX < GameLogic::fieldWidth - sparkleSize && sparkleY > 0.0f)
-        buildTexturedRect(left + sparkleX, top + sparkleY, sparkleSize, sparkleSize, tiDropSparkle, sparkleColor * sparkleAlpha, 0.0f);
+      float trailProgress = dropTrail.getTrailProgress();
+      float trailOpSqProgress = 1.0f - trailProgress * trailProgress;
+      float trailLeft = left + scale * dropTrail.x - scale * 0.25f;
+      float trailTop = top + scale * (dropTrail.y - dropTrail.height * trailOpSqProgress);
+      float trailWidth = scale * 1.5f;
+      float trailHeight = scale * (0.1f + 1.1f * dropTrail.height * trailOpSqProgress);
+      glm::vec3 trailColor = Palette::cellColorArray[dropTrail.color] * trailOpSqProgress;
+
+      buildTexturedRect(trailLeft, trailTop, trailWidth, trailHeight, tiDropTrail, trailColor, 0.0f);
+
+      float sparklesProgress = dropTrail.getSparklesProgress();
+      float sparklesOpSqProgress = 1.0f - sparklesProgress * sparklesProgress;
+
+      for (int sparkleInd = 0; sparkleInd < DropTrail::sparkleQty; sparkleInd++)
+      {
+        const DropSparkle & sparkle = dropTrail.sparkles[sparkleInd];
+        float sparkleX = scale * (dropTrail.x + sparkle.relX);
+        float sparkleY = scale * (dropTrail.y - sparkle.relY * dropTrail.height - sparkle.speed * sparklesProgress);
+        const float sparkleSize = scale * 0.07f;
+        glm::vec3 sparkleColor = sparkle.alpha * (0.5f + Palette::cellColorArray[dropTrail.color]) * sparklesOpSqProgress;
+
+        if (sparkleX < GameLogic::fieldWidth - sparkleSize && sparkleY > 0.0f)
+          buildTexturedRect(left + sparkleX, top + sparkleY, sparkleSize, sparkleSize, tiDropSparkle, sparkleColor, 0.0f);
+      }
     }
   }
 }
@@ -2498,7 +2507,7 @@ void OpenGLRender::buildLeaderboardWindow()
         buildTextMesh(levelColLeft, headerTop, levelColWidth, headerHeight, "LEVEL", Layout::leaderboardPanelHeaderTextHeight, headerColor, 1.0f, 0.0f, haCenter, vaCenter);
         buildTextMesh(scoreColLeft, headerTop, scoreColWidth - Layout::leaderboardPanelScoreRightIndent, headerHeight, "SCORE", Layout::leaderboardPanelHeaderTextHeight, headerColor, 1.0f, 0.0f, haRight, vaCenter);
 
-        const int leadersCount = InterfaceLogic::leaderboardLogic.getLeadersCount();
+        const int leadersCount = InterfaceLogic::leaderboardLogic.leadersCount;
 
         for (int i = 0; i < leadersCount; i++)
         {
@@ -2509,7 +2518,9 @@ void OpenGLRender::buildLeaderboardWindow()
           const float rowTop = settingPanelLayout->getRowGlobalTop(i + 1) + shift;
           const float rowHeight = settingPanelLayout->getRowHeight(i + 1);
 
-          buildTextMesh(placeColLeft, rowTop, placeColWidth, rowHeight, std::to_string(i + 1).c_str(), Layout::leaderboardPanelRowTextHeight, textColor, 1.0f, 0.0f, haCenter, vaCenter);
+          char placeStr[32];
+          itoa(i + 1, placeStr, 10);
+          buildTextMesh(placeColLeft, rowTop, placeColWidth, rowHeight, placeStr, Layout::leaderboardPanelRowTextHeight, textColor, 1.0f, 0.0f, haCenter, vaCenter);
           float nameWidth = buildTextMesh(nameColLeft + Layout::leaderboardPanelNameLeftIndent, rowTop, nameColWidth, rowHeight, leader.name, Layout::leaderboardPanelRowTextHeight, textColor, 1.0f, 0.0f, haLeft, vaCenter);
 
           if (i == editRow && (Time::counter % Time::freq > Time::freq / 2))
@@ -2521,8 +2532,12 @@ void OpenGLRender::buildLeaderboardWindow()
             buildSmoothRect(cursorLeft, cursorTop, cursorWidth, cursorHeight, 0.1f * cursorWidth, textColor, 1.0f);
           }
 
-          buildTextMesh(levelColLeft, rowTop, levelColWidth, rowHeight, std::to_string(leader.level).c_str(), Layout::leaderboardPanelRowTextHeight, textColor, 1.0f, 0.0f, haCenter, vaCenter);
-          buildTextMesh(scoreColLeft, rowTop, scoreColWidth - Layout::leaderboardPanelScoreRightIndent, rowHeight, std::to_string(leader.score).c_str(), Layout::leaderboardPanelRowTextHeight, textColor, 1.0f, 0.0f, haRight, vaCenter);
+          char levelStr[32];
+          itoa(leader.level, levelStr, 10);
+          buildTextMesh(levelColLeft, rowTop, levelColWidth, rowHeight, levelStr, Layout::leaderboardPanelRowTextHeight, textColor, 1.0f, 0.0f, haCenter, vaCenter);
+          char scoreStr[32];
+          itoa(leader.score, scoreStr, 10);
+          buildTextMesh(scoreColLeft, rowTop, scoreColWidth - Layout::leaderboardPanelScoreRightIndent, rowHeight, scoreStr, Layout::leaderboardPanelRowTextHeight, textColor, 1.0f, 0.0f, haRight, vaCenter);
         }
       }
 
@@ -2551,7 +2566,9 @@ void OpenGLRender::buildCountdown()
     const float ypos = fieldLayout->getGlobalTop() + 0.5f * fieldLayout->height;
     const int num = (int)GameLogic::countdownTimeLeft;
     const float numProgress = GameLogic::countdownTimeLeft - num;
-    std::string text = num ? std::to_string(num) : "GO";
+    char numStr[32];
+    itoa(num, numStr, 10);
+    char * text = num ? numStr : "GO";
     const float animInTime = 0.25f;
     const float animOutTime = 0.25f;
     const float inScale = 1.0f - glm::clamp(1.0f - numProgress, 0.0f, animInTime) / animInTime;
@@ -2562,7 +2579,7 @@ void OpenGLRender::buildCountdown()
     const float textHeight = 0.1f;
 
     if (ypos + dy + 0.5f * textHeight < fieldLayout->getGlobalTop() + fieldLayout->height)
-      buildTextMesh(xpos, ypos + dy, 0.0f, 0.0f, text.c_str(), textHeight * scale, glm::vec3(1.0f), 0.0f, 0.0f, haCenter, vaCenter);
+      buildTextMesh(xpos, ypos + dy, 0.0f, 0.0f, text, textHeight * scale, glm::vec3(1.0f), 0.0f, 0.0f, haCenter, vaCenter);
   }
 }
 
@@ -2616,12 +2633,12 @@ void OpenGLRender::buildDropPredictor()
     const glm::vec3 figureColor = Palette::cellColorArray[GameLogic::curFigure.color];
     const int fieldWidth = GameLogic::fieldWidth;
     const int fieldHeight = GameLogic::fieldHeight;
-    static std::vector<int> yArray;
-    yArray.resize(dim);
-    std::fill_n(yArray.begin(), dim, 0);
+    int yArray[Figure::dimMax];
 
     for (int x = 0; x < dim; x++)
     {
+      yArray[x] = 0;
+
       for (int y = dim - 1; y >= 0; y--)
       {
         int index = x + y * dim;
@@ -2663,8 +2680,7 @@ void OpenGLRender::buildDropPredictor()
       }
     };
 
-    static std::vector<FlameJitter> jitter;
-    jitter.resize(dim + 1);
+    static FlameJitter jitter[Figure::dimMax + 1];
 
     static const int partCount = 50;
     static const float partMinLife = 0.75f;
@@ -2703,8 +2719,7 @@ void OpenGLRender::buildDropPredictor()
       }
     };
 
-    static std::vector<CellParticles> particles;
-    particles.resize(dim);
+    static CellParticles particles[Figure::dimMax];
 
     for (int x = 0; x < dim + 1; x++)
     {

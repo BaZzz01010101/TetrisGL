@@ -418,12 +418,12 @@ void Layout::load(const char * name)
     leaderboardPanelColScoreWidth + 
     leaderboardPanelRightGap;
 
-  const int leadersMaxCount = InterfaceLogic::leaderboardLogic.leadersMaxCount;
+  const int leadersCount = InterfaceLogic::leaderboardLogic.leadersCount;
   const float leaderboardHeight =
     leaderboardPanelTop +
     leaderboardPanelHeaderTop +
     leaderboardPanelHeaderHeight +
-    leadersMaxCount * leaderboardPanelRowHeight +
+    leadersCount * leaderboardPanelRowHeight +
     leaderboardPanelLastRowBottomGap +
     leaderboardPanelBottomGap;
 
@@ -449,7 +449,7 @@ void Layout::load(const char * name)
   leaderboardPanelLayout->addColumn(0.0f, leaderboardPanelColScoreWidth);
   leaderboardPanelLayout->addRow(leaderboardPanelHeaderTop, leaderboardPanelHeaderHeight);
 
-  for (int i = 0; i < leadersMaxCount; i++)
+  for (int i = 0; i < leadersCount; i++)
     leaderboardPanelLayout->addRow(0.0f, leaderboardPanelRowHeight);
 
   const float leaderboardBackButtonWidth = leaderboardBackShevronSize + 2.0f * leaderboardBackShevronStep;

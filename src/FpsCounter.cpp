@@ -16,8 +16,10 @@ FpsCounter::~FpsCounter()
 void FpsCounter::init()
 {
   cnt = 0;
+  fps = 0.0f;
   freq = Crosy::getPerformanceFrequency();
-  ticks = Crosy::getPerformanceCounter();
+  lastIntervalCounter = Crosy::getPerformanceCounter();
+  maxFrameTime = 0.0f;
 }
 
 char * FpsCounter::count(float interval)
@@ -26,15 +28,34 @@ char * FpsCounter::count(float interval)
 
   if (freq)
   {
-    float timePass = float(double(Crosy::getPerformanceCounter() - ticks) / double(freq));
+    bool redraw = false;
+    uint64_t counter = Crosy::getPerformanceCounter();
+    float intervalTime = float(double(counter - lastIntervalCounter) / double(freq));
+    float frameTime = float(double(counter - lastFrameCounter) / double(freq));
+    lastFrameCounter = counter;
 
-    if (timePass > interval)
+    if (intervalTime > interval)
     {
-      float fps = cnt / timePass;
-      Crosy::snprintf(buf, bufSize, "Fps: %.3f", fps);
-      ticks = Crosy::getPerformanceCounter();
+      fps = cnt / intervalTime;
+      redraw = true;
+      lastIntervalCounter = Crosy::getPerformanceCounter();
       cnt = 0;
     }
+
+    if (frameTime  > maxFrameTime)
+    {
+      maxFrameTime = frameTime;
+      frameTimeCounter = counter;
+      redraw = true;
+    }
+    else if (counter - frameTimeCounter > uint64_t(interval * freq))
+    {
+      maxFrameTime = 0.0f;
+      frameTimeCounter = counter;
+    }
+
+    if (redraw)
+      Crosy::snprintf(buf, bufSize, "Fps: %.3f MaxFrameTime: %.3f", fps, maxFrameTime);
   }
 
   return buf;

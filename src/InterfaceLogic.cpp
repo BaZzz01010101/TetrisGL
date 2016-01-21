@@ -18,6 +18,7 @@ std::vector<InterfaceLogic::State> InterfaceLogic::statesStack;
 
 void InterfaceLogic::init()
 {
+  statesStack.reserve(16);
   mainMenu.add("NEW GAME", MenuLogic::resNewGame, true);
   mainMenu.add("SETTINGS", MenuLogic::resSettings);
   mainMenu.add("LEADERBOARD", MenuLogic::resLeaderboard);

@@ -19,8 +19,8 @@ public:
   static std::vector<Figure> nextFigures;
   static Figure holdFigure;
   static Figure curFigure;
-  static int fieldWidth;
-  static int fieldHeight;
+  static const int fieldWidth = 10;
+  static const int fieldHeight = 20;
   static int curFigureX;
   static int curFigureY;
   static int curScore;
@@ -31,12 +31,17 @@ public:
   static double rowsDeleteTimer;
   static bool menuButtonHighlighted;
   static unsigned int fastDownCounter;
+  static unsigned int dropTrailCounter;
   static const int countdownTime = 3;
   static float countdownTimeLeft;
   static const int gameOverTime = 3;
   static float gameOverTimeLeft;
   static int nextFiguresCount;
   static float rowsDeletionEffectTime;
+  static const int dropTrailsSize = fieldWidth * fieldHeight;
+  static DropTrail dropTrails[dropTrailsSize];
+  static int dropTrailsHead;
+  static int dropTrailsTail;
 
   struct CellCoord
   {
@@ -46,8 +51,7 @@ public:
   };
 
   typedef std::vector<int>::const_iterator DeletedRowsIterator;
-  typedef std::list<DropTrail>::const_iterator DropTrailsIterator;
-  typedef std::set<CellCoord>::const_iterator DeletedRowGapsIterator;
+  typedef std::vector<CellCoord>::const_iterator DeletedRowGapsIterator;
 
   static Result update();
 
@@ -64,9 +68,6 @@ public:
   static void continueGame() { state = stPlaying; }
   static void stopGame() { state = stStopped; }
 
-  static DropTrailsIterator getDropTrailsBegin() { return dropTrails.begin(); }
-  static DropTrailsIterator getDropTrailsEnd() { return dropTrails.end(); }
-  static int getDropTrailsCount() { return (int)dropTrails.size(); }
   static DeletedRowsIterator getDeletedRowsBegin() { return deletedRows.begin(); }
   static DeletedRowsIterator getDeletedRowsEnd() { return deletedRows.end(); }
   static int getDeletedRowsCount() { return (int)deletedRows.size(); }
@@ -85,9 +86,8 @@ private:
   static bool justHolded;
   static std::vector<int> rowElevation;
   static std::vector<float> rowCurrentElevation;
-  static std::list<DropTrail> dropTrails;
-  static std::vector<int> deletedRows;
-  static std::set<CellCoord> deletedRowGaps;
+  static std::vector<int> deletedRows; 
+  static std::vector<CellCoord> deletedRowGaps;
 
   GameLogic();
   ~GameLogic();
@@ -100,6 +100,7 @@ private:
   static bool tryToPlaceCurrentFigure();
   static void checkFieldRows();
   static void proceedFallingRows();
-  static void createDropTrail(int x, int y, int height, Cell::Color color);
-  static void deleteObsoleteEffects();
+  static void addDropTrail(int x, int y, int height, Cell::Color color);
+  static void addRowGaps(int y);
+  static void updateEffects();
 };

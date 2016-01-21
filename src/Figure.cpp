@@ -17,7 +17,8 @@ Figure::Figure() :
 
 void Figure::buildRandomFigure()
 {
-  Type type = Type(rand() * TYPE_COUNT / (RAND_MAX + 1));
+  assert(TYPE_COUNT > 0);
+  Type type = Type(rand() % TYPE_COUNT);
   buildFigure(type);
 }
 
@@ -78,31 +79,31 @@ void Figure::buildFigure(Type type)
 
   assert((int)strlen(cdata) == dim * dim);
 
-  cells.clear();
-
-  for (const char * ptr = cdata, *end = cdata + dim * dim; ptr < end; ptr++)
-    cells.push_back(*ptr == '1' ? Cell(id, color) : Cell(0, Cell::Color::clNone));
+  for (int i = 0, cnt = dim * dim; i < cnt; i++)
+    cells[i] = (cdata[i] == '1') ? Cell(id, color) : Cell(0, Cell::clNone);
 }
 
 void Figure::internalRotateLeft()
 {
-  std::vector<Cell> curData = cells;
+  Cell curCells[dimMax * dimMax];
+  memcpy(curCells, cells, sizeof(curCells));
 
   for (int x = 0; x < dim; x++)
   for (int y = 0; y < dim; y++)
   {
-    cells[x + y * dim] = curData[(dim - y - 1) + x * dim];
+    cells[x + y * dim] = curCells[(dim - y - 1) + x * dim];
   }
 }
 
 void Figure::internalRotateRight()
 {
-  std::vector<Cell> curData = cells;
+  Cell curCells[dimMax * dimMax];
+  memcpy(curCells, cells, sizeof(curCells));
 
   for (int x = 0; x < dim; x++)
   for (int y = 0; y < dim; y++)
   {
-    cells[x + y * dim] = curData[y + (dim - x - 1) * dim];
+    cells[x + y * dim] = curCells[y + (dim - x - 1) * dim];
   }
 }
 
@@ -147,13 +148,20 @@ Figure & Figure::operator = (const Figure & figure)
   dim = figure.dim;
   angle = figure.angle;
   color = figure.color;
-  cells = figure.cells;
+  memcpy(cells, figure.cells, sizeof(cells));
   return *this;
 }
 
 void Figure::swap(Figure & figure1, Figure & figure2)
 {
-  std::swap(figure1.cells, figure2.cells);
+  for (int i = 0; i < dimMax * dimMax; i++)
+  {
+    Cell tmp = figure1.cells[i];
+    figure1.cells[i] = figure2.cells[i];
+    figure2.cells[i] = tmp;
+  }
+
+  //std::swap(figure1.cells, figure2.cells);
 
   bool tmp_haveSpecificRotation = figure1.haveSpecificRotation;
   figure1.haveSpecificRotation = figure2.haveSpecificRotation;
@@ -193,5 +201,4 @@ void Figure::clear()
   dim = 0;
   color = Cell::Color::clNone;
   angle = 0;
-  cells.clear();
 }
