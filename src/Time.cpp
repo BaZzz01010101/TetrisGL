@@ -6,7 +6,7 @@
 uint64_t Time::freq = Crosy::getPerformanceFrequency();
 uint64_t Time::counter = Crosy::getPerformanceCounter();
 uint64_t Time::counterDelta = 0;
-double Time::timer = freq > 0.0 ? double(counter) / freq : 0.0;
+double Time::timer = freq > 0 ? double(counter) / freq : 0.0;
 float Time::timerDelta = 0.0f;
 
 void Time::update()

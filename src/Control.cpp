@@ -7,14 +7,12 @@
 
 
 Control::Control() :
-  freq(Crosy::getPerformanceFrequency()),
-  repeatDelay(uint64_t(0.2 * freq)),
-  repeatInterval(uint64_t(freq / 30)),
   mouseMoved(false),
   mouseDoubleClicked(false),
   fastDownBlocked(false)
 {
-  assert(freq);
+  repeatDelay = glm::max<uint64_t>(0.2 * Time::freq, 1);
+  repeatInterval = glm::max<uint64_t>(Time::freq / 30, 1);
 }
 
 
@@ -30,7 +28,7 @@ void Control::init()
 void Control::keyDown(Key key)
 {
   KeyInternalState & internalKeyState = internalKeyStates[key];
-  internalKeyState.keyNextRepeatCounter = currentCounter + repeatDelay;
+  internalKeyState.keyNextRepeatCounter = Time::counter + repeatDelay;
   internalKeyState.pressCount++;
   internalKeyState.wasChanged = true;
 }
@@ -52,7 +50,7 @@ void Control::mouseMove(float x, float y)
 void Control::mouseDown(Key key)
 {
   KeyInternalState & internalKeyState = internalKeyStates[key];
-  internalKeyState.keyNextRepeatCounter = currentCounter + repeatDelay;
+  internalKeyState.keyNextRepeatCounter = Time::counter + repeatDelay;
   internalKeyState.pressCount++;
   internalKeyState.wasChanged = true;
   const double doubleclickTime = 0.4;
@@ -90,9 +88,6 @@ void Control::mouseScroll(float dx, float dy)
 
 void Control::update()
 {
-  //TODO use Timer class instead of direct getPerformanceCounter
-  currentCounter = Crosy::getPerformanceCounter();
-
   switch (InterfaceLogic::state)
   {
   case InterfaceLogic::stHidden:                  updateGameControl();                                                                          break;
@@ -127,8 +122,8 @@ Control::KeyState Control::getKeyState(Key key) const
   keyState.wasChanged = keyInternalState.wasChanged;
   keyState.pressCount = keyInternalState.pressCount;
   keyState.repeatCount = 
-    (keyState.isPressed && currentCounter > keyInternalState.keyNextRepeatCounter && repeatInterval) ?
-    int((currentCounter - keyInternalState.keyNextRepeatCounter) / repeatInterval + 1) : 0;
+    (keyState.isPressed && Time::counter > keyInternalState.keyNextRepeatCounter && repeatInterval) ?
+    int((Time::counter - keyInternalState.keyNextRepeatCounter) / repeatInterval + 1) : 0;
 
   return keyState;
 }
@@ -140,9 +135,9 @@ void Control::updateInternalState()
     KeyInternalState & keyInternalState = internalKeyStates[key];
     bool isPressed = (keyInternalState.keyNextRepeatCounter > 0);
 
-    if (isPressed && currentCounter > keyInternalState.keyNextRepeatCounter && repeatInterval)
+    if (isPressed && Time::counter > keyInternalState.keyNextRepeatCounter && repeatInterval)
       keyInternalState.keyNextRepeatCounter = keyInternalState.keyNextRepeatCounter + 
-      ((currentCounter - keyInternalState.keyNextRepeatCounter) / repeatInterval + 1) * repeatInterval;
+      ((Time::counter - keyInternalState.keyNextRepeatCounter) / repeatInterval + 1) * repeatInterval;
 
     keyInternalState.pressCount = 0;
     keyInternalState.wasChanged = false;

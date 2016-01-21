@@ -36,10 +36,8 @@ private:
     bool wasChanged;
   };
 
-  const uint64_t freq;
-  const uint64_t repeatDelay;
-  const uint64_t repeatInterval;
-  uint64_t currentCounter;
+  uint64_t repeatDelay;
+  uint64_t repeatInterval;
   KeyInternalState internalKeyStates[KEY_COUNT];
   double lastLButtonClickTimer;
   glm::vec2 lastLButtonClickPos;
