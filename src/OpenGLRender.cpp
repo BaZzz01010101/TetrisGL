@@ -2728,10 +2728,10 @@ void OpenGLRender::buildDropPredictor()
       float & speed = jitter[x].speed;
 
       float dh = targetHeight - currentHeight;
-      float sign = dh / glm::abs(dh);
-      currentHeight += sign * speed * Time::timerDelta;
+      float sign = (dh >= 0.0f) ? 1.0f : -1.0f;
+      currentHeight = glm::clamp(currentHeight + sign * speed * Time::timerDelta, glowMinHeight, glowMaxHeight);
 
-      if (sign * (targetHeight - currentHeight) < 0.0f)
+      if (sign * (targetHeight - currentHeight) <= 0.0f)
       {
         targetHeight = glowMinHeight + glowHeightRange * float(rand()) / RAND_MAX;
         speed = glowMinSpeed + glowSpeedRange * float(rand()) / RAND_MAX;
