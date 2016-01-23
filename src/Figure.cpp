@@ -15,11 +15,14 @@ Figure::Figure() :
 {
 }
 
+
 void Figure::buildRandomFigure()
 {
-  Type type = Type(rand() * TYPE_COUNT / (RAND_MAX + 1));
+  assert(TYPE_COUNT > 0);
+  Type type = Type(rand() % TYPE_COUNT);
   buildFigure(type);
 }
+
 
 void Figure::buildFigure(Type type)
 {
@@ -30,81 +33,91 @@ void Figure::buildFigure(Type type)
 
   switch (type)
   {
-  case typeI:
-    haveSpecificRotation = true;
-    dim = 4;
-    color = Cell::Color::clCyan;
-    cdata = "0000111100000000";
-    break;
-  case typeJ:
-    haveSpecificRotation = false;
-    dim = 3;
-    color = Cell::Color::clBlue;
-    cdata = "100111000";
-    break;
-  case typeL:
-    haveSpecificRotation = false;
-    dim = 3;
-    color = Cell::Color::clOrange;
-    cdata = "001111000";
-    break;
-  case typeO:
-    haveSpecificRotation = false;
-    dim = 2;
-    color = Cell::Color::clYellow;
-    cdata = "1111";
-    break;
-  case typeS:
-    haveSpecificRotation = true;
-    dim = 3;
-    color = Cell::Color::clGreen;
-    cdata = "011110000";
-    break;
-  case typeT:
-    haveSpecificRotation = false;
-    dim = 3;
-    color = Cell::Color::clPurple;
-    cdata = "010111000";
-    break;
-  case typeZ:
-    haveSpecificRotation = true;
-    dim = 3;
-    color = Cell::Color::clRed;
-    cdata = "110011000";
-    break;
-  default: 
-    assert(0);
+    case typeI:
+      haveSpecificRotation = true;
+      dim = 4;
+      color = Cell::Color::clCyan;
+      cdata = "0000111100000000";
+      break;
+
+    case typeJ:
+      haveSpecificRotation = false;
+      dim = 3;
+      color = Cell::Color::clBlue;
+      cdata = "100111000";
+      break;
+
+    case typeL:
+      haveSpecificRotation = false;
+      dim = 3;
+      color = Cell::Color::clOrange;
+      cdata = "001111000";
+      break;
+
+    case typeO:
+      haveSpecificRotation = false;
+      dim = 2;
+      color = Cell::Color::clYellow;
+      cdata = "1111";
+      break;
+
+    case typeS:
+      haveSpecificRotation = true;
+      dim = 3;
+      color = Cell::Color::clGreen;
+      cdata = "011110000";
+      break;
+
+    case typeT:
+      haveSpecificRotation = false;
+      dim = 3;
+      color = Cell::Color::clPurple;
+      cdata = "010111000";
+      break;
+
+    case typeZ:
+      haveSpecificRotation = true;
+      dim = 3;
+      color = Cell::Color::clRed;
+      cdata = "110011000";
+      break;
+
+    default:
+      assert(0);
   }
 
   assert((int)strlen(cdata) == dim * dim);
 
-  cells.clear();
-
-  for (const char * ptr = cdata, *end = cdata + dim * dim; ptr < end; ptr++)
-    cells.push_back(*ptr == '1' ? Cell(id, color) : Cell(0, Cell::Color::clNone));
+  for (int i = 0, cnt = dim * dim; i < cnt; i++)
+    cells[i] = (cdata[i] == '1') ? Cell(id, color) : Cell(0, Cell::clNone);
 }
+
 
 void Figure::internalRotateLeft()
 {
-  std::vector<Cell> curData = cells;
+  Cell curCells[dimMax * dimMax];
+  memcpy(curCells, cells, sizeof(curCells));
 
   for (int x = 0; x < dim; x++)
-  for (int y = 0; y < dim; y++)
-  {
-    cells[x + y * dim] = curData[(dim - y - 1) + x * dim];
-  }
+    for (int y = 0; y < dim; y++)
+    {
+      cells[x + y * dim] = curCells[(dim - y - 1) + x * dim];
+    }
 }
+
 
 void Figure::internalRotateRight()
 {
-  std::vector<Cell> curData = cells;
+  Cell curCells[dimMax * dimMax];
+  memcpy(curCells, cells, sizeof(curCells));
 
   for (int x = 0; x < dim; x++)
-  for (int y = 0; y < dim; y++)
-  {
-    cells[x + y * dim] = curData[y + (dim - x - 1) * dim];
-  }
+    for (int y = 0; y < dim; y++)
+    {
+      cells[x + y * dim] = curCells[y + (dim - x - 1) * dim];
+    }
 }
+
 
 void Figure::rotateLeft()
 {
@@ -122,6 +135,7 @@ void Figure::rotateLeft()
   }
 }
 
+
 void Figure::rotateRight()
 {
   if (haveSpecificRotation && !specificRotatedFlag)
@@ -138,6 +152,7 @@ void Figure::rotateRight()
   }
 }
 
+
 Figure & Figure::operator = (const Figure & figure)
 {
   haveSpecificRotation = figure.haveSpecificRotation;
@@ -147,13 +162,21 @@ Figure & Figure::operator = (const Figure & figure)
   dim = figure.dim;
   angle = figure.angle;
   color = figure.color;
-  cells = figure.cells;
+  memcpy(cells, figure.cells, sizeof(cells));
   return *this;
 }
 
+
 void Figure::swap(Figure & figure1, Figure & figure2)
 {
-  std::swap(figure1.cells, figure2.cells);
+  // TODO : replace by tmp = fig1; fig1 = fig2; fig2 = tmpl; 
+  //        or just std::swap(fig1, fig2);
+  for (int i = 0; i < dimMax * dimMax; i++)
+  {
+    Cell tmp = figure1.cells[i];
+    figure1.cells[i] = figure2.cells[i];
+    figure2.cells[i] = tmp;
+  }
 
   bool tmp_haveSpecificRotation = figure1.haveSpecificRotation;
   figure1.haveSpecificRotation = figure2.haveSpecificRotation;
@@ -184,6 +207,7 @@ void Figure::swap(Figure & figure1, Figure & figure2)
   figure2.color = tmp_color;
 }
 
+
 void Figure::clear()
 {
   haveSpecificRotation = false;
@@ -193,5 +217,4 @@ void Figure::clear()
   dim = 0;
   color = Cell::Color::clNone;
   angle = 0;
-  cells.clear();
 }

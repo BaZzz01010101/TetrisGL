@@ -12,8 +12,10 @@ Shader::Shader(GLenum type)
 
 Shader::~Shader()
 {
+  // TODO: move shader creation and deletion to init and quit functions
   glDeleteShader(id);
 }
+
 
 void Shader::compileFromString(const char * source)
 {

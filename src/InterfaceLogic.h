@@ -6,8 +6,27 @@
 class InterfaceLogic
 {
 public:
-  enum State { stHidden, stMainMenu, stInGameMenu, stSettings, stLeaderboard, stQuitConfirmation, stRestartConfirmation, stExitToMainConfirmation};
-  enum Result { resNone, resNewGame, resContinueGame, resStopGame, resCloseApp };
+  enum State 
+  { 
+    stHidden, 
+    stMainMenu, 
+    stInGameMenu, 
+    stSettings, 
+    stLeaderboard, 
+    stQuitConfirmation, 
+    stRestartConfirmation, 
+    stExitToMainConfirmation
+  };
+
+  enum Result 
+  { 
+    resNone, 
+    resNewGame, 
+    resContinueGame, 
+    resStopGame, 
+    resCloseApp 
+  };
+
   static MenuLogic mainMenu;
   static MenuLogic inGameMenu;
   static MenuLogic quitConfirmationMenu;

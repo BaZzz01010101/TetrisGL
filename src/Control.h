@@ -17,6 +17,7 @@ public:
   void mouseDown(Key key);
   void mouseUp(Key key);
   void mouseScroll(float dx, float dy);
+  void init();
   void update();
 
 private:
@@ -33,12 +34,11 @@ private:
     uint64_t keyNextRepeatCounter; 
     int pressCount;
     bool wasChanged;
+    KeyInternalState() : keyNextRepeatCounter(0), pressCount(0), wasChanged(0) {};
   };
 
-  const uint64_t freq;
-  const uint64_t repeatDelay;
-  const uint64_t repeatInterval;
-  uint64_t currentCounter;
+  uint64_t repeatDelay;
+  uint64_t repeatInterval;
   KeyInternalState internalKeyStates[KEY_COUNT];
   double lastLButtonClickTimer;
   glm::vec2 lastLButtonClickPos;
@@ -47,6 +47,7 @@ private:
   bool mouseMoved;
   bool mouseDoubleClicked;
   LayoutObjectId draggedProgressBarId;
+  bool fastDownBlocked;
 
   void updateGameControl();
   void updateMenuControl(MenuLogic & menu, LayoutObjectId layoutObjectId);

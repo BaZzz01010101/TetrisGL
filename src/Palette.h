@@ -4,19 +4,11 @@
 
 class Palette
 {
-private:
-
-  Palette();
-  ~Palette();
-
-  static void loadValue(rapidjson::Value & source, const char * name, float * result);
-  static void loadValue(rapidjson::Value & source, const char * name, glm::vec3 * result);
-
 public:
   static glm::vec3 gameBackgroundOuter;
   static glm::vec3 gameBackgroundInner;
-  static glm::vec3 glassBackgroundMin;
-  static glm::vec3 glassBackgroundMax;
+  static glm::vec3 fieldBackgroundMin;
+  static glm::vec3 fieldBackgroundMax;
   static glm::vec3 scoreBarBackground;
   static float scoreBarBackgroundAlpha;
   static glm::vec3 scoreBarMenuButtonBackground;
@@ -36,7 +28,7 @@ public:
   static glm::vec3 goalPanelText;
   static glm::vec3 figureShadow;
 
-  static glm::vec3 cellColorArray[Cell::Color::COLOR_COUNT];
+  static glm::vec3 cellColorArray[Cell::COLOR_COUNT];
 
   static glm::vec3 menuNormalRowBackgroundTop;
   static glm::vec3 menuNormalRowBackgroundBottom;
@@ -52,6 +44,7 @@ public:
   static glm::vec3 settingsGlow;
   static glm::vec3 settingsTitleText;
   static float settingsTitleShadowAlpha;
+  static float settingsTitleShadowBlur;
   static glm::vec3 settingsPanelBackgroundTop;
   static glm::vec3 settingsPanelBackgroundBottom;
   static glm::vec3 settingsPanelBorder;
@@ -75,6 +68,7 @@ public:
   static glm::vec3 leaderboardGlow;
   static glm::vec3 leaderboardTitleText;
   static float leaderboardTitleShadowAlpha;
+  static float leaderboardTitleShadowBlur;
   static glm::vec3 leaderboardPanelBackgroundTop;
   static glm::vec3 leaderboardPanelBackgroundBottom;
   static glm::vec3 leaderboardPanelBorder;
@@ -90,8 +84,16 @@ public:
   static float deletedRowFlashBright;
   static float deletedRowRaysBright;
   static float deletedRowShineBright;
-  static float glassBackgroundInnerBright;
+  static float fieldBackgroundInnerBright;
 
   static void load(const char * name);
+
+private:
+
+  Palette();
+  ~Palette();
+
+  static void loadValue(rapidjson::Value & source, const char * name, float * result);
+  static void loadValue(rapidjson::Value & source, const char * name, glm::vec3 * result);
 };
 

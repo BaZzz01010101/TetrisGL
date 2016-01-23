@@ -5,8 +5,8 @@
 
 glm::vec3 Palette::gameBackgroundOuter(0.05f, 0.1f, 0.2f);
 glm::vec3 Palette::gameBackgroundInner(0.3f, 0.6f, 1.0f);
-glm::vec3 Palette::glassBackgroundMin(0.1f, 0.1f, 0.2f);
-glm::vec3 Palette::glassBackgroundMax(0.3f, 0.3f, 0.5f);
+glm::vec3 Palette::fieldBackgroundMin(0.1f, 0.1f, 0.2f);
+glm::vec3 Palette::fieldBackgroundMax(0.3f, 0.3f, 0.5f);
 glm::vec3 Palette::scoreBarBackground(0.0f, 0.0f, 0.0f);
 float Palette::scoreBarBackgroundAlpha = 0.6f;
 glm::vec3 Palette::scoreBarMenuButtonBackground(0.3f, 0.6f, 0.9f);
@@ -51,6 +51,7 @@ glm::vec3 Palette::settingsBackgroundBottom(0.04f, 0.07f, 0.12f);
 glm::vec3 Palette::settingsGlow(0.4f, 0.7f, 1.2f);
 glm::vec3 Palette::settingsTitleText(1.0f, 0.9f, 0.4f);
 float Palette::settingsTitleShadowAlpha = 0.5f;
+float Palette::settingsTitleShadowBlur = 0.75f;
 glm::vec3 Palette::settingsPanelBackgroundTop(0.04f, 0.14f, 0.24f);
 glm::vec3 Palette::settingsPanelBackgroundBottom(0.01f, 0.035f, 0.0625f);
 glm::vec3 Palette::settingsPanelBorder(0.5f, 0.45f, 0.2f);
@@ -74,6 +75,7 @@ glm::vec3 Palette::leaderboardBackgroundBottom(0.04f, 0.07f, 0.12f);
 glm::vec3 Palette::leaderboardGlow(0.4f, 0.7f, 1.2f);
 glm::vec3 Palette::leaderboardTitleText(1.0f, 0.9f, 0.4f);
 float Palette::leaderboardTitleShadowAlpha = 0.5f;
+float Palette::leaderboardTitleShadowBlur = 0.5f;
 glm::vec3 Palette::leaderboardPanelBackgroundTop(0.04f, 0.14f, 0.24f);
 glm::vec3 Palette::leaderboardPanelBackgroundBottom(0.01f, 0.035f, 0.0625f);
 glm::vec3 Palette::leaderboardPanelBorder(0.5f, 0.45f, 0.2f);
@@ -89,7 +91,7 @@ float Palette::figureGlowInnerBright = 0.25f;
 float Palette::deletedRowFlashBright = 1.0f;
 float Palette::deletedRowRaysBright = 1.0f;
 float Palette::deletedRowShineBright = 1.0f;
-float Palette::glassBackgroundInnerBright = 0.25f;
+float Palette::fieldBackgroundInnerBright = 0.25f;
 
 void Palette::load(const char * name)
 {
@@ -97,15 +99,16 @@ void Palette::load(const char * name)
   std::string fileName = Crosy::getExePath() + "/palettes/" + name + ".json";
   FILE * file = fopen(fileName.c_str(), "rb");
   assert(file);
-  char buf[65536];
-  rapidjson::FileReadStream frstream(file, buf, 65536);
+  const int bufSize = 16384;
+  static char buf[bufSize];
+  rapidjson::FileReadStream frstream(file, buf, bufSize);
   doc.ParseStream<rapidjson::FileReadStream>(frstream);
   fclose(file);
 
   loadValue(doc, "GameBackgroundOuter", &gameBackgroundOuter);
   loadValue(doc, "GameBackgroundInner", &gameBackgroundInner);
-  loadValue(doc, "GlassBackgroundMin", &glassBackgroundMin);
-  loadValue(doc, "GlassBackgroundMax", &glassBackgroundMax);
+  loadValue(doc, "FieldBackgroundMin", &fieldBackgroundMin);
+  loadValue(doc, "FieldBackgroundMax", &fieldBackgroundMax);
   loadValue(doc, "ScoreBarBackground", &scoreBarBackground);
   loadValue(doc, "ScoreBarBackgroundAlpha", &scoreBarBackgroundAlpha);
   loadValue(doc, "ScoreBarMenuButtonBackground", &scoreBarMenuButtonBackground);
@@ -147,6 +150,7 @@ void Palette::load(const char * name)
   loadValue(doc, "SettingsGlow", &settingsGlow);
   loadValue(doc, "SettingsTitleText", &settingsTitleText);
   loadValue(doc, "SettingsTitleShadowAlpha", &settingsTitleShadowAlpha);
+  loadValue(doc, "SettingsTitleShadowBlur", &settingsTitleShadowBlur);
   loadValue(doc, "SettingsPanelBackgroundTop", &settingsPanelBackgroundTop);
   loadValue(doc, "SettingsPanelBackgroundBottom", &settingsPanelBackgroundBottom);
   loadValue(doc, "SettingsPanelBorder", &settingsPanelBorder);
@@ -170,6 +174,7 @@ void Palette::load(const char * name)
   loadValue(doc, "LeaderboardGlow", &leaderboardGlow);
   loadValue(doc, "LeaderboardTitleText", &leaderboardTitleText);
   loadValue(doc, "LeaderboardTitleShadowAlpha", &leaderboardTitleShadowAlpha);
+  loadValue(doc, "LeaderboardTitleShadowBlur", &leaderboardTitleShadowBlur);
   loadValue(doc, "LeaderboardPanelBackgroundTop", &leaderboardPanelBackgroundTop);
   loadValue(doc, "LeaderboardPanelBackgroundBottom", &leaderboardPanelBackgroundBottom);
   loadValue(doc, "LeaderboardPanelBorder", &leaderboardPanelBorder);
@@ -185,8 +190,9 @@ void Palette::load(const char * name)
   loadValue(doc, "DeletedRowFlashBright", &deletedRowFlashBright);
   loadValue(doc, "DeletedRowRaysBright", &deletedRowRaysBright);
   loadValue(doc, "DeletedRowShineBright", &deletedRowShineBright);
-  loadValue(doc, "GlassBackgroundInnerBright", &glassBackgroundInnerBright);
+  loadValue(doc, "FieldBackgroundInnerBright", &fieldBackgroundInnerBright);
 }
+
 
 void Palette::loadValue(rapidjson::Value & source, const char * name, float * result)
 {
@@ -194,6 +200,7 @@ void Palette::loadValue(rapidjson::Value & source, const char * name, float * re
   if (source.HasMember(name))
     *result = float(source[name].GetDouble());
 }
+
 
 void Palette::loadValue(rapidjson::Value & source, const char * name, glm::vec3 * result)
 {
@@ -205,4 +212,3 @@ void Palette::loadValue(rapidjson::Value & source, const char * name, glm::vec3 
     result->b = float(source[name][2].GetDouble());
   }
 }
-

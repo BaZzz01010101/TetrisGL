@@ -2,15 +2,30 @@
 class LeaderboardLogic
 {
 public:
-  enum State { stHidden, stShowing, stVisible, stHiding };
-  enum Result { resNone, resClose };
+  typedef uint32_t Checksum;
+
+  enum State 
+  { 
+    stHidden, 
+    stShowing, 
+    stVisible, 
+    stHiding 
+  };
+  
+  enum Result 
+  { 
+    resNone, 
+    resClose 
+  };
 
   State state;
+  const float showingTime;
+  const float hidingTime;
   float transitionProgress;
   int editRow;
   bool backButtonHighlighted;
-  static const int leadersMaxCount = 10;
-  static const int maxNameLength = 10;
+  static const int leadersCount = 10;
+  static const int maxNameLength = 15;
 
   struct LeaderData
   {
@@ -20,13 +35,12 @@ public:
   };
 
   LeaderboardLogic();
-  ~LeaderboardLogic();
 
+  void init();
   Result update();
   void escape();
-  void load();
+  bool load();
   void save();
-  int getLeadersCount();
   const LeaderData & getLeaderData(int place);
   bool addResult(int level, int score);
   void deleteChar();
@@ -34,7 +48,8 @@ public:
   void commit();
 
 private:
-  static const char * fileName;
-  std::vector<LeaderData> leaders;
+  std::string fileName;
+  static const LeaderData defaultLeaders[leadersCount];
+  LeaderData leaders[leadersCount];
 };
 

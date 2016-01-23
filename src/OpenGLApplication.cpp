@@ -8,16 +8,22 @@
 #include "Palette.h"
 #include "Sound.h"
 
-#pragma warning(disable : 4100)
-
 OpenGLApplication::OpenGLApplication()
 {
   initGlfwKeyMap();
 }
 
+
 OpenGLApplication::~OpenGLApplication()
 {
 }
+
+
+void error_callback(int error, const char* description)
+{
+  std::cout << "GLFW: " << description << "\n";
+}
+
 
 bool OpenGLApplication::init()
 {
@@ -25,23 +31,32 @@ bool OpenGLApplication::init()
     return false;
 
   vSync = true;
+  glfwSetErrorCallback(error_callback);
 
   if (!glfwInit())
+  {
+    std::cout << "init error\n";
     return false;
+  }
 
-  //glfwWindowHint(GLFW_DOUBLEBUFFER, GL_FALSE);
+  glfwWindowHint(GLFW_DOUBLEBUFFER, GL_TRUE);
   glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
   //glfwWindowHint(GLFW_SAMPLES, 16);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-  wndWidth = 640;
-  wndHeight = 480;
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 1);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+  GLFWmonitor * monitor = glfwGetPrimaryMonitor();
+  const GLFWvidmode * vidMode = glfwGetVideoMode(monitor);
+  const int preferredWindowHeight = vidMode->height * 70 / 100;
+  const int preferredMinWindowHeight = 720;
+  wndHeight = glm::min(glm::max(preferredWindowHeight, preferredMinWindowHeight), vidMode->height);
+  wndWidth = int(wndHeight * Layout::backgroundWidth / Layout::backgroundHeight);
   wnd = glfwCreateWindow(wndWidth, wndHeight, "glTetris", NULL, NULL);
 
   if (!wnd)
+  {
+    std::cout << "GLFW: Create window error\n";
     return false;
+  }
 
   glfwSetWindowUserPointer(wnd, this);
   glfwMakeContextCurrent(wnd);
@@ -50,26 +65,27 @@ bool OpenGLApplication::init()
   glfwSetMouseButtonCallback(wnd, OnMouseClick);
   glfwSetCursorPosCallback(wnd, OnMouseMove);
   glfwSetScrollCallback(wnd, OnMouseScroll);
-
-  glewExperimental = GL_TRUE;
-
+  glewExperimental = GL_FALSE;
   GLenum glewInitResult = glewInit();
   assert(glewInitResult == GLEW_OK);
+  glGetError(); // workaround GLEW issue with GL_INVALID_ENUM rising just after glewInit
 
-  // workaround GLEW issue with GL_INVALID_ENUM rising just after glewInit
-  glGetError();
-
-  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-  assert(!checkGlErrors());
+  if (!GLEW_VERSION_2_1)
+  {
+    std::cout << "Required OpenGL 2.1 or later\nTry to update your video driver\n";
+    return false;
+  }
 
   Layout::load("default");
   Palette::load("default");
   Sound::init();
+  control.init();
   render.init(wndWidth, wndHeight);
   fps.init();
 
   return true;
 }
+
 
 void OpenGLApplication::run()
 {
@@ -78,6 +94,9 @@ void OpenGLApplication::run()
   while (!exitFlag)
   {
     Time::update();
+    //TODO : move events processing just before updating control to reduce control lag
+    glfwPollEvents();
+
     control.update();
     Logic::update();
     Sound::update();
@@ -85,8 +104,6 @@ void OpenGLApplication::run()
 
     glfwSetWindowTitle(wnd, fps.count(0.5f));
     glfwSwapInterval((int)vSync);
-    glfwSwapBuffers(wnd);
-    glfwPollEvents();
 
     if (!glfwGetWindowAttrib(wnd, GLFW_FOCUSED) && GameLogic::state == GameLogic::stPlaying)
     {
@@ -96,13 +113,36 @@ void OpenGLApplication::run()
 
     if (glfwWindowShouldClose(wnd) || Logic::result == Logic::resExitApp)
       exitFlag = true;
+
+    if (vSync)
+    {
+      float maxSleepTime = 0.0f;
+      const float targetFps = 70.0f;
+      float currentTimerDelta;
+
+      do
+      {
+        float prevDelta = Time::getCurrentTimerDelta();
+        // TODO : optimize wait cycle to avoid sleeping 1ms in any case
+        Crosy::sleep(1);
+        currentTimerDelta = Time::getCurrentTimerDelta();
+        maxSleepTime = glm::max(currentTimerDelta - prevDelta, maxSleepTime);
+      } while (currentTimerDelta + maxSleepTime < 1.0f / targetFps);
+    }
+
+    glfwSwapBuffers(wnd);
+    // call glClear to ensue that waiting for vSync will be here
+    glClear(GL_COLOR_BUFFER_BIT);
+    assert(!checkGlErrors());
   }
 }
+
 
 void OpenGLApplication::quit()
 {
   glfwTerminate();
 }
+
 
 void OpenGLApplication::OnFramebufferSize(GLFWwindow * wnd, int width, int height)
 {
@@ -114,6 +154,7 @@ void OpenGLApplication::OnFramebufferSize(GLFWwindow * wnd, int width, int heigh
   app.render.resize(width, height);
 }
 
+
 void OpenGLApplication::OnKeyClick(GLFWwindow * wnd, int key, int scancode, int action, int mods)
 {
   if (key == GLFW_KEY_UNKNOWN)
@@ -124,19 +165,33 @@ void OpenGLApplication::OnKeyClick(GLFWwindow * wnd, int key, int scancode, int 
   if (action == GLFW_PRESS && key == GLFW_KEY_F11)
     app.vSync = !app.vSync;
 
+#ifdef _DEBUG
   if (action == GLFW_PRESS && key == GLFW_KEY_RIGHT_ALT)
     app.render.showWireframe = true;
 
   if (action == GLFW_RELEASE && key == GLFW_KEY_RIGHT_ALT)
     app.render.showWireframe = false;
 
+  if (action == GLFW_PRESS && key == GLFW_KEY_F5)
+  {
+    Layout::load("default");
+    Palette::load("default");
+  }
+#endif
+
   switch (action)
   {
-  case GLFW_PRESS:    app.control.keyDown(app.glfwKeyMap[key]);   break;
-  case GLFW_RELEASE:  app.control.keyUp(app.glfwKeyMap[key]);     break;
-  default: break;
+  case GLFW_PRESS:
+    app.control.keyDown(app.glfwKeyMap[key]);
+    break;
+  case GLFW_RELEASE:
+    app.control.keyUp(app.glfwKeyMap[key]);
+    break;
+  default:
+    break;
   }
 }
+
 
 void OpenGLApplication::OnMouseClick(GLFWwindow * wnd, int button, int action, int mods)
 {
@@ -158,6 +213,7 @@ void OpenGLApplication::OnMouseClick(GLFWwindow * wnd, int button, int action, i
   }
 
 }
+
 
 void OpenGLApplication::OnMouseMove(GLFWwindow* wnd, double xpos, double ypos)
 {
@@ -185,12 +241,14 @@ void OpenGLApplication::OnMouseMove(GLFWwindow* wnd, double xpos, double ypos)
   }
 }
 
+
 void OpenGLApplication::OnMouseScroll(GLFWwindow* wnd, double dx, double dy)
 {
   OpenGLApplication & app = *reinterpret_cast<OpenGLApplication *>(glfwGetWindowUserPointer(wnd));
 
   app.control.mouseScroll((float)dx, (float)dy);
 }
+
 
 void OpenGLApplication::initGlfwKeyMap()
 {

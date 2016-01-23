@@ -15,11 +15,11 @@
     "ScoreBarCaptionWidth" : 0.25,
     "ScoreBarMenuButtonWidth" : 0.125,
 
-    "GlassWidth" : 0.45,
-    "GlassHeight" : 0.9,
-    "GlassTop" : 0.075,
+    "FieldWidth" : 0.45,
+    "FieldHeight" : 0.9,
+    "FieldTop" : 0.075,
 
-    "InfoPanelsHorzGapFromGlass" : 0.02,
+    "InfoPanelsHorzGapFromField" : 0.02,
     "InfoPanelsWidth" : 0.1,
     "HoldNextCaptionsTop" : 0.075,
     "HoldNextPanelsTop" : 0.095,
@@ -57,7 +57,7 @@
 		"SettingsTitleTop" : 0.014,
 		"SettingsTitleHeight" : 0.055,
 		"SettingsTitleShadowDX" : 0.0035,
-		"SettingsTitleShadowDY" : 0.0035,
+		"SettingsTitleShadowDY" : 0.0045,
 
 		"SettingsPanelLeft" : 0.025,
 		"SettingsPanelTop" : 0.075,
@@ -98,7 +98,7 @@
 		"LeaderboardTitleTop" : 0.014,
 		"LeaderboardTitleHeight" : 0.055,
 		"LeaderboardTitleShadowDX" : 0.0035,
-		"LeaderboardTitleShadowDY" : 0.0035,
+		"LeaderboardTitleShadowDY" : 0.0045,
 		
 		"LeaderboardPanelLeft" : 0.025,
 		"LeaderboardPanelTop" : 0.075,

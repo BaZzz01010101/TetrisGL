@@ -44,35 +44,48 @@ void Sound::init()
 
           if (result == FMOD_OK)
           {
-            result = system->createSound((soundPath + "drop.wav").c_str(), FMOD_DEFAULT, 0, samples + smpDrop);
+            result = system->createSound((soundPath + "drop.wav").c_str(), FMOD_DEFAULT, 0, 
+                                         samples + smpDrop);
             assert(result == FMOD_OK);
-            result = system->createSound((soundPath + "left.wav").c_str(), FMOD_DEFAULT, 0, samples + smpLeft);
+            result = system->createSound((soundPath + "left.wav").c_str(), FMOD_DEFAULT, 0, 
+                                         samples + smpLeft);
             assert(result == FMOD_OK);
-            result = system->createSound((soundPath + "right.wav").c_str(), FMOD_DEFAULT, 0, samples + smpRight);
+            result = system->createSound((soundPath + "right.wav").c_str(), FMOD_DEFAULT, 0, 
+                                         samples + smpRight);
             assert(result == FMOD_OK);
-            result = system->createSound((soundPath + "hold.wav").c_str(), FMOD_DEFAULT, 0, samples + smpHold);
+            result = system->createSound((soundPath + "hold.wav").c_str(), FMOD_DEFAULT, 0, 
+                                         samples + smpHold);
             assert(result == FMOD_OK);
-            result = system->createSound((soundPath + "down.wav").c_str(), FMOD_DEFAULT, 0, samples + smpDown);
+            result = system->createSound((soundPath + "down.wav").c_str(), FMOD_DEFAULT, 0, 
+                                         samples + smpDown);
             assert(result == FMOD_OK);
-            result = system->createSound((soundPath + "wipe.wav").c_str(), FMOD_DEFAULT, 0, samples + smpWipe);
+            result = system->createSound((soundPath + "wipe.wav").c_str(), FMOD_DEFAULT, 0, 
+                                         samples + smpWipe);
             assert(result == FMOD_OK);
-            result = system->createSound((soundPath + "levelup.wav").c_str(), FMOD_DEFAULT, 0, samples + smpLevelUp);
+            result = system->createSound((soundPath + "levelup.wav").c_str(), FMOD_DEFAULT, 0, 
+                                         samples + smpLevelUp);
             assert(result == FMOD_OK);
-            result = system->createSound((soundPath + "countdown.wav").c_str(), FMOD_DEFAULT, 0, samples + smpCountdown);
+            result = system->createSound((soundPath + "countdown.wav").c_str(), FMOD_DEFAULT, 0, 
+                                         samples + smpCountdown);
             assert(result == FMOD_OK);
-            result = system->createSound((soundPath + "ui_move.wav").c_str(), FMOD_DEFAULT, 0, samples + smpUiClick);
+            result = system->createSound((soundPath + "ui_move.wav").c_str(), FMOD_DEFAULT, 0, 
+                                         samples + smpUiClick);
             assert(result == FMOD_OK);
-            result = system->createSound((soundPath + "ui_enter.wav").c_str(), FMOD_DEFAULT, 0, samples + smpUiAnimIn);
+            result = system->createSound((soundPath + "ui_enter.wav").c_str(), FMOD_DEFAULT, 0, 
+                                         samples + smpUiAnimIn);
             assert(result == FMOD_OK);
-            result = system->createSound((soundPath + "ui_move.wav").c_str(), FMOD_DEFAULT, 0, samples + smpUiAnimOut);
+            result = system->createSound((soundPath + "ui_move.wav").c_str(), FMOD_DEFAULT, 0, 
+                                         samples + smpUiAnimOut);
             assert(result == FMOD_OK);
-
-            result = system->createSound((soundPath + "music.mp3").c_str(), FMOD_DEFAULT | FMOD_CREATESTREAM | FMOD_LOOP_NORMAL, NULL, samples + smpMusic);
+            result = system->createSound((soundPath + "music.mp3").c_str(), 
+                                         FMOD_DEFAULT | FMOD_CREATESTREAM | FMOD_LOOP_NORMAL, 
+                                         NULL, samples + smpMusic);
             assert(result == FMOD_OK);
 
             if (result == FMOD_OK)
             {
-              result = samples[smpMusic]->setLoopPoints(Globals::beginMs, FMOD_TIMEUNIT_MS, Globals::endMs, FMOD_TIMEUNIT_MS);
+              result = samples[smpMusic]->setLoopPoints(musicLoopBeginMs , FMOD_TIMEUNIT_MS, 
+                                                        musicLoopEndMs, FMOD_TIMEUNIT_MS);
               assert(result == FMOD_OK);
               result = system->playSound(samples[smpMusic], NULL, false, &musicChannel);
               assert(result == FMOD_OK);
@@ -88,8 +101,10 @@ void Sound::init()
   }
 }
 
+
 void Sound::update()
 {
+  // TODO : move all static cur*** variables into class and make reset function
   if (!initialized)
     return;
 
@@ -140,12 +155,12 @@ void Sound::update()
     fastDownCounter = GameLogic::fastDownCounter;
   }
 
-  static int dropTrailsCount = GameLogic::getDropTrailsCount();
+  static unsigned int dropTrailCounter = GameLogic::dropTrailCounter;
 
-  if (GameLogic::getDropTrailsCount() > dropTrailsCount)
+  if (GameLogic::dropTrailCounter > dropTrailCounter)
     play(smpDrop);
 
-  dropTrailsCount = GameLogic::getDropTrailsCount();
+  dropTrailCounter = GameLogic::dropTrailCounter;
 
   static int deletedRowsCount = GameLogic::getDeletedRowsCount();
   static int curLevel = GameLogic::curLevel;
@@ -288,6 +303,7 @@ void Sound::update()
   assert(result == FMOD_OK);
 }
 
+
 void Sound::quit()
 {
   initialized = false;
@@ -302,6 +318,7 @@ void Sound::quit()
   result = system->release();       
   assert(result == FMOD_OK);
 }
+
 
 void Sound::play(Sample sample)
 {

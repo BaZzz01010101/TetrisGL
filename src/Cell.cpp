@@ -9,6 +9,7 @@ Cell::Cell() :
 
 }
 
+
 Cell::Cell(int figureId, Color color) :
   figureId(figureId),
   color(color)
@@ -16,11 +17,13 @@ Cell::Cell(int figureId, Color color) :
 
 }
 
+
 void Cell::clear()
 {
   figureId = 0;
   color = Color::clNone;
 }
+
 
 Cell & Cell::operator = (const Cell & cell)
 {

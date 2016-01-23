@@ -13,17 +13,19 @@ const char * const Binding::actionNames[Binding::ACTION_COUNT] =
   "Hold",
 };
 
+
 Key Binding::actionKeys[Action::ACTION_COUNT];
+
 
 Binding::Binding()
 {
-  init();
 }
 
 
 Binding::~Binding()
 {
 }
+
 
 void Binding::init()
 {
@@ -32,11 +34,12 @@ void Binding::init()
   actionKeys[moveLeft] = KB_LEFT;
   actionKeys[moveRight] = KB_RIGHT;
   actionKeys[rotateLeft] = KB_UP;
-  actionKeys[rotateRight] = KB_DOWN;
-  actionKeys[fastDown] = KB_ENTER;
+  actionKeys[rotateRight] = KB_END;
+  actionKeys[fastDown] = KB_DOWN;
   actionKeys[dropDown] = KB_SPACE;
   actionKeys[swapHold] = KB_RIGHT_CONTROL;
 }
+
 
 void Binding::setKeyBinding(Key key, Action action)
 {
@@ -47,7 +50,8 @@ void Binding::setKeyBinding(Key key, Action action)
   actionKeys[action] = key;
 }
 
-Binding::Action Binding::getKeyAction(Key key) 
+
+Binding::Action Binding::getKeyAction(Key key)
 {
   for (Action action = FIRST_ACTION; action < ACTION_COUNT; action++)
     if (actionKeys[action] == key)
@@ -56,15 +60,18 @@ Binding::Action Binding::getKeyAction(Key key)
   return doNothing;
 }
 
-Key Binding::getActionKey(Action action) 
+
+Key Binding::getActionKey(Action action)
 {
   return actionKeys[action];
 }
+
 
 const char * Binding::getActionName(Action action)
 {
   return actionNames[action];
 }
+
 
 Binding::Action operator++(Binding::Action & action)
 {
@@ -72,6 +79,7 @@ Binding::Action operator++(Binding::Action & action)
 
   return action;
 }
+
 
 Binding::Action operator++(Binding::Action & action, int)
 {
@@ -81,12 +89,14 @@ Binding::Action operator++(Binding::Action & action, int)
   return prevAction;
 }
 
+
 Binding::Action operator--(Binding::Action & action)
 {
   action = action - 1;
 
   return action;
 }
+
 
 Binding::Action operator--(Binding::Action & action, int)
 {
@@ -95,6 +105,7 @@ Binding::Action operator--(Binding::Action & action, int)
 
   return prevAction;
 }
+
 
 Binding::Action operator+(Binding::Action action, int value)
 {
@@ -106,12 +117,13 @@ Binding::Action operator+(Binding::Action action, int value)
   return action;
 }
 
+
 Binding::Action operator-(Binding::Action action, int value)
 {
   action = static_cast<Binding::Action>(static_cast<int>(action)-value);
 
-  if (action < Binding::doNothing)
-    action = Binding::doNothing;
+  if (action < Binding::FIRST_ACTION)
+    action = Binding::FIRST_ACTION;
 
   return action;
 }

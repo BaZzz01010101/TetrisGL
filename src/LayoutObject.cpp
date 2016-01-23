@@ -2,7 +2,8 @@
 
 #include "LayoutObject.h"
 
-LayoutObject::LayoutObject(LayoutObjectId id, LayoutObject * parent, float left, float top, float width, float height) :
+LayoutObject::LayoutObject(LayoutObjectId id, LayoutObject * parent, 
+                           float left, float top, float width, float height) :
   id(id),
   parent(parent),
   left(left),
@@ -12,9 +13,11 @@ LayoutObject::LayoutObject(LayoutObjectId id, LayoutObject * parent, float left,
 {
 }
 
+
 LayoutObject::~LayoutObject()
 {
 }
+
 
 void LayoutObject::clear()
 {
@@ -23,12 +26,14 @@ void LayoutObject::clear()
   columns.clear();
 }
 
+
 LayoutObject * LayoutObject::addChild(LayoutObjectId id, float left, float top, float width, float height)
 {
   assert(childList.find(id) == childList.end());
   ChildIterator childIt = childList.emplace(id, LayoutObject(id, this, left, top, width, height)).first;
   return &childIt->second;
 }
+
 
 LayoutObject * LayoutObject::getChild(LayoutObjectId id)
 {
@@ -40,6 +45,7 @@ LayoutObject * LayoutObject::getChild(LayoutObjectId id)
   
   return &childIt->second;
 }
+
 
 LayoutObject * LayoutObject::getChildRecursive(LayoutObjectId id)
 {
@@ -55,6 +61,7 @@ LayoutObject * LayoutObject::getChildRecursive(LayoutObjectId id)
   return NULL;
 }
 
+
 void LayoutObject::addRow(float topGap, float height)
 {
   const float top = rows.empty() ? 0.0f : rows.back().top + rows.back().height;
@@ -63,6 +70,7 @@ void LayoutObject::addRow(float topGap, float height)
   rows.back().height = height;
 }
 
+
 void LayoutObject::addColumn(float leftGap, float width)
 {
   const float left = columns.empty() ? 0.0f : columns.back().left + columns.back().width;
@@ -70,6 +78,7 @@ void LayoutObject::addColumn(float leftGap, float width)
   columns.back().left = left + leftGap;
   columns.back().width = width;
 }
+
 
 LayoutObject * LayoutObject::getObjectFromPoint(float x, float y)
 {
@@ -92,7 +101,8 @@ LayoutObject * LayoutObject::getObjectFromPoint(float x, float y)
   return NULL;
 }
 
-bool LayoutObject::getCellFromPoint(float x, float y, int * cellRow, int * cellColumn) const 
+
+bool LayoutObject::getCellFromPoint(float x, float y, int * cellRow, int * cellColumn) const
 {
   const float clientX = x - getGlobalLeft();
   const float clientY = y - getGlobalTop();
@@ -101,7 +111,7 @@ bool LayoutObject::getCellFromPoint(float x, float y, int * cellRow, int * cellC
     return false;
 
   int row = 0;
-  int rowCount = rows.size();
+  int rowCount = (int)rows.size();
 
   while(row < rowCount)
   {
@@ -117,7 +127,7 @@ bool LayoutObject::getCellFromPoint(float x, float y, int * cellRow, int * cellC
     return false;
 
   int column = 0;
-  int columnCount = columns.size();
+  int columnCount = (int)columns.size();
 
   while (column < columnCount)
   {
@@ -141,55 +151,66 @@ bool LayoutObject::getCellFromPoint(float x, float y, int * cellRow, int * cellC
   return true;
 }
 
+
 float LayoutObject::getGlobalLeft() const
 {
   return parent ? parent->getGlobalLeft() + left : left;
 }
+
 
 float LayoutObject::getGlobalTop() const
 {
   return parent ? parent->getGlobalTop() + top : top;
 }
 
+
 float LayoutObject::getColumnGlobalLeft(int column) const
 {
   return getGlobalLeft() + columns[column].left;
 }
+
 
 float LayoutObject::getRowGlobalTop(int row) const
 {
   return getGlobalTop() + rows[row].top;
 }
 
+
 float LayoutObject::getColumnWidth(int column) const
 {
   return columns[column].width;
 }
+
 
 float LayoutObject::getRowHeight(int row) const
 {
   return rows[row].height;
 }
 
+
 LayoutObject::Rect LayoutObject::getGlobalRect() const
 {
   return { getGlobalLeft(), getGlobalTop(), width, height };
 }
+
 
 LayoutObject::Rect LayoutObject::getCellGlobalRect(int row, int column) const
 {
   const ColumnData & columnData = columns[column];
   const RowData & rowData = rows[row];
 
-  return{ getGlobalLeft() + columnData.left, getGlobalTop() + rowData.top, columnData.width, rowData.height };
+  return { getGlobalLeft() + columnData.left, getGlobalTop() + rowData.top, 
+           columnData.width, rowData.height };
 }
+
 
 int LayoutObject::getRowCount() const
 {
-  return rows.size();
+  return (int)rows.size();
 }
+
 
 int LayoutObject::getColumnCount() const
 {
-  return columns.size();
+  return (int)columns.size();
 }

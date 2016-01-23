@@ -7,20 +7,46 @@
 #include "Binding.h"
 #include "MenuLogic.h"
 
-#pragma warning(disable : 4512)
-
 class GameLogic
 {
 public:
-  enum State { stInit, stCountdown, stPlaying, stPaused, stGameOver, stStopped };
-  enum Result { resNone, resGameOver };
+  enum State 
+  { 
+    stInit, 
+    stCountdown, 
+    stPlaying, 
+    stPaused, 
+    stGameOver, 
+    stStopped 
+  };
+
+  enum Result 
+  { 
+    resNone, 
+    resGameOver 
+  };
+
+  struct CellCoord
+  {
+    int x, y;
+    inline CellCoord(int x, int y) : x(x), y(y) {}
+
+    inline bool operator < (const CellCoord & left) const 
+    { 
+      return left.x < x || (left.x == x && left.y < y); 
+    }
+  };
+
+  typedef std::vector<int>::const_iterator DeletedRowsIterator;
+  typedef std::vector<CellCoord>::const_iterator DeletedRowGapsIterator;
+
   static State state;
-  static std::vector<Cell> glass;
+  static std::vector<Cell> field;
   static std::vector<Figure> nextFigures;
   static Figure holdFigure;
   static Figure curFigure;
-  static int glassWidth;
-  static int glassHeight;
+  static const int fieldWidth = 10;
+  static const int fieldHeight = 20;
   static int curFigureX;
   static int curFigureY;
   static int curScore;
@@ -31,38 +57,32 @@ public:
   static double rowsDeleteTimer;
   static bool menuButtonHighlighted;
   static unsigned int fastDownCounter;
+  static unsigned int dropTrailCounter;
   static const int countdownTime = 3;
   static float countdownTimeLeft;
-
-  struct CellCoord
-  {
-    int x, y;
-    inline CellCoord(int x, int y) : x(x), y(y) {}
-    inline bool operator < (const CellCoord & left) const { return left.x < x || (left.x == x && left.y < y); }
-  };
-
-  typedef std::vector<int>::const_iterator DeletedRowsIterator;
-  typedef std::list<DropTrail>::const_iterator DropTrailsIterator;
-  typedef std::set<CellCoord>::const_iterator DeletedRowGapsIterator;
+  static const int gameOverTime = 3;
+  static float gameOverTimeLeft;
+  static const int nextFiguresCount = 3;
+  static float rowsDeletionEffectTime;
+  static const int dropTrailsSize = fieldWidth * fieldHeight;
+  static DropTrail dropTrails[dropTrailsSize];
+  static int dropTrailsHead;
+  static int dropTrailsTail;
 
   static Result update();
-
   static void holdCurrentFigure();
-  static void fastDownCurrentFigure();
+  static bool fastDownCurrentFigure();
   static void dropCurrentFigure();
   static void rotateCurrentFigureLeft();
   static void rotateCurrentFigureRight();
   static void shiftCurrentFigureLeft();
   static void shiftCurrentFigureRight();
-  static void storeCurFigureIntoGlass();
+  static void storeCurFigureIntoField();
   static void newGame() { state = stInit; }
   static void pauseGame() { state = stPaused; }
   static void continueGame() { state = stPlaying; }
   static void stopGame() { state = stStopped; }
 
-  static DropTrailsIterator getDropTrailsBegin() { return dropTrails.begin(); }
-  static DropTrailsIterator getDropTrailsEnd() { return dropTrails.end(); }
-  static int getDropTrailsCount() { return (int)dropTrails.size(); }
   static DeletedRowsIterator getDeletedRowsBegin() { return deletedRows.begin(); }
   static DeletedRowsIterator getDeletedRowsEnd() { return deletedRows.end(); }
   static int getDeletedRowsCount() { return (int)deletedRows.size(); }
@@ -72,7 +92,7 @@ public:
   static void init();
   static int getRowElevation(int y);
   static float getRowCurrentElevation(int y);
-  static const Cell * getGlassCell(int x, int y);
+  static const Cell * getFieldCell(int x, int y);
   static const Cell * getFigureCell(Figure & figure, int x, int y);
 
 private:
@@ -81,9 +101,8 @@ private:
   static bool justHolded;
   static std::vector<int> rowElevation;
   static std::vector<float> rowCurrentElevation;
-  static std::list<DropTrail> dropTrails;
-  static std::vector<int> deletedRows;
-  static std::set<CellCoord> deletedRowGaps;
+  static std::vector<int> deletedRows; 
+  static std::vector<CellCoord> deletedRowGaps;
 
   GameLogic();
   ~GameLogic();
@@ -94,8 +113,9 @@ private:
   static void shiftFigureConveyor();
   static bool checkCurrentFigurePos(int dx, int dy);
   static bool tryToPlaceCurrentFigure();
-  static void checkGlassRows();
+  static void checkFieldRows();
   static void proceedFallingRows();
-  static void createDropTrail(int x, int y, int height, Cell::Color color);
-  static void deleteObsoleteEffects();
+  static void addDropTrail(int x, int y, int height, Cell::Color color);
+  static void addRowGaps(int y);
+  static void updateEffects();
 };

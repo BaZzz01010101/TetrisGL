@@ -5,12 +5,12 @@
 #include "Time.h"
 #include "Crosy.h"
 
-const char * SettingsLogic::fileName = "settings.dat";
-
 SettingsLogic::SettingsLogic() :
   saveConfirmationMenu(MenuLogic::resBack),
   changed(false),
   state(stHidden),
+  showingTime(0.3f),
+  hidingTime(0.2f),
   transitionProgress(0.0f),
   soundVolume(0.5f),
   musicVolume(0.5f),
@@ -20,10 +20,6 @@ SettingsLogic::SettingsLogic() :
   highlightedAction(Binding::doNothing),
   backButtonHighlighted(false)
 {
-  saveConfirmationMenu.add("SAVE", MenuLogic::resSave);
-  saveConfirmationMenu.add("DON'T SAVE", MenuLogic::resDontSave);
-  saveConfirmationMenu.add("BACK", MenuLogic::resBack, true);
-  load();
 }
 
 
@@ -31,63 +27,82 @@ SettingsLogic::~SettingsLogic()
 {
 }
 
+
+void SettingsLogic::init()
+{
+  fileName = Crosy::getExePath() + "settings.dat";
+  saveConfirmationMenu.add("SAVE", MenuLogic::resSave);
+  saveConfirmationMenu.add("DON'T SAVE", MenuLogic::resDontSave);
+  saveConfirmationMenu.add("BACK", MenuLogic::resBack, true);
+  load();
+}
+
+
 SettingsLogic::Result SettingsLogic::update()
 {
   Result retResult = resNone;
 
   switch (state)
   {
-  case stHidden:
-    state = stShowing;
-    break;
+    case stShowing:
 
-  case stShowing:
-    if ((transitionProgress += Time::timerDelta / Globals::settingsShowingTime) >= 1.0f)
-    {
-      transitionProgress = 1.0f;
-      state = stVisible;
-    }
+      if ((transitionProgress += Time::timerDelta / showingTime) >= 1.0f)
+      {
+        transitionProgress = 1.0f;
+        state = stVisible;
+      }
 
-    break;
+      break;
 
-  case stVisible:
-    break;
+    case stHiding:
 
-  case stHiding:
-    if ((transitionProgress -= Time::timerDelta / Globals::settingsHidingTime) <= 0.0f)
-    {
-      transitionProgress = 0.0f;
-      state = stHidden;
-      retResult = resClose;
-    }
+      if ((transitionProgress -= Time::timerDelta / hidingTime) <= 0.0f)
+      {
+        transitionProgress = 0.0f;
+        state = stHidden;
+        retResult = resClose;
+      }
 
-    break;
+      break;
 
-  case stSaveConfirmation:
-    saveConfirmationUpdate();
-    break;
-
-  case stKeyWaiting:
-    break;
-
-  default:
-    assert(0);
-    break;
+    case stVisible:
+      break;
+    case stHidden:
+      state = stShowing;
+      break;
+    case stSaveConfirmation:
+      saveConfirmationUpdate();
+      break;
+    case stKeyWaiting:
+      break;
+    default:
+      assert(0);
+      break;
   }
 
   return retResult;
 }
 
+
 void SettingsLogic::saveConfirmationUpdate()
 {
   switch (saveConfirmationMenu.update())
   {
-  case MenuLogic::resSave:        saveAndExit();     break;
-  case MenuLogic::resDontSave:    cancelAndExit();   break;
-  case MenuLogic::resBack:        state = stVisible; break;
-  default: break;
+    // TODO : process all states and add assert(0) on default
+    case MenuLogic::resSave:
+      saveAndExit();
+      break;
+    case MenuLogic::resDontSave:
+      cancelAndExit();
+      break;
+    case MenuLogic::resBack:
+      state = stVisible;
+      break;
+    default:
+      break;
   }
 }
+
 
 void SettingsLogic::escape()
 {
@@ -99,24 +114,24 @@ void SettingsLogic::escape()
     state = stHiding;
 }
 
+
 void SettingsLogic::load()
 {
-  std::string fileName = Crosy::getExePath() + SettingsLogic::fileName;
   FILE * file = fopen(fileName.c_str(), "rb+");
 
   if (file)
   {
-    int success = fread(&saveData, sizeof(saveData), 1, file);
+    int success = (int)fread(&saveData, sizeof(saveData), 1, file);
     fclose(file);
 
     if (success)
     {
-      uint32_t * plainData = (uint32_t *)&saveData;
-      int chunkCount = (sizeof(saveData)-sizeof(saveData.checksum)) / sizeof(uint32_t);
-      uint32_t checksum = 0;
+      Checksum * plainData = (Checksum *)&saveData;
+      int checksumCount = sizeof(saveData) / sizeof(Checksum) - 1;
+      Checksum checksum = 0;
 
-      for (int i = 0; i < chunkCount; i++)
-        checksum ^= plainData[i];
+      for (int i = 0; i < checksumCount; i++)
+        checksum ^= plainData[i] * i;
 
       if (checksum == saveData.checksum)
       {
@@ -135,9 +150,9 @@ void SettingsLogic::load()
   changed = false;
 }
 
+
 void SettingsLogic::save()
 {
-  std::string fileName = Crosy::getExePath() + SettingsLogic::fileName;
   FILE * file = fopen(fileName.c_str(), "wb+");
   assert(file);
 
@@ -151,19 +166,20 @@ void SettingsLogic::save()
     for (Binding::Action action = Binding::FIRST_ACTION; action < Binding::ACTION_COUNT; action++)
       saveData.actionKeys[action] = Binding::getActionKey(action);
 
-    uint32_t * plainData = (uint32_t *)&saveData;
-    int chunkCount = (sizeof(saveData)-sizeof(saveData.checksum)) / sizeof(uint32_t);
+    Checksum * plainData = (Checksum *)&saveData;
+    int checksumCount = sizeof(saveData) / sizeof(Checksum) - 1;
 
-    for (int i = 0; i < chunkCount; i++)
-      saveData.checksum ^= plainData[i];
+    for (int i = 0; i < checksumCount; i++)
+      saveData.checksum ^= plainData[i] * i;
 
-    int success = fwrite(&saveData, sizeof(saveData), 1, file);
-    assert(success);
+    int success = (int)fwrite(&saveData, sizeof(saveData), 1, file);
     fclose(file);
+    assert(success);
   }
 
   changed = false;
 }
+
 
 void SettingsLogic::setSoundVolume(float volume)
 {
@@ -171,11 +187,13 @@ void SettingsLogic::setSoundVolume(float volume)
   changed = true;
 }
 
+
 void SettingsLogic::setMusicVolume(float volume)
 {
   musicVolume = volume;
   changed = true;
 }
+
 
 void SettingsLogic::setCurrentActionKey(Key key)
 {
@@ -186,15 +204,18 @@ void SettingsLogic::setCurrentActionKey(Key key)
   changed = true;
 }
 
+
 float SettingsLogic::getSoundVolume()
 {
   return soundVolume;
 }
 
+
 float SettingsLogic::getMusicVolume()
 {
   return musicVolume;
 }
+
 
 Key getKeyBind(Binding::Action action)
 {
@@ -202,11 +223,13 @@ Key getKeyBind(Binding::Action action)
   return Binding::getActionKey(action);
 }
 
+
 void SettingsLogic::saveAndExit()
 {
   save();
   state = stHiding;
 }
+
 
 void SettingsLogic::cancelAndExit()
 {
@@ -214,24 +237,32 @@ void SettingsLogic::cancelAndExit()
   state = stHiding;
 }
 
+
 void SettingsLogic::selectNext()
 {
   switch (selectedControl)
   {
-  case ctrlSoundVolume:
-    selectedControl = ctrlMusicVolume;
-    break;
-  case ctrlMusicVolume:
-    selectedControl = ctrlKeyBindTable;
-    selectedAction = Binding::FIRST_ACTION;
-    break;
-  case ctrlKeyBindTable:
-    if (++selectedAction == Binding::ACTION_COUNT)
-      selectedControl = ctrlSoundVolume;
-    break;
-  default: assert(0);
+    case ctrlSoundVolume:
+      selectedControl = ctrlMusicVolume;
+      break;
+    case ctrlMusicVolume:
+      selectedControl = ctrlKeyBindTable;
+      selectedAction = Binding::FIRST_ACTION;
+      break;
+
+    case ctrlKeyBindTable:
+
+      if (++selectedAction == Binding::ACTION_COUNT)
+        selectedControl = ctrlSoundVolume;
+
+      break;
+
+    default:
+      assert(0);
+      break;
   }
 }
+
 
 void SettingsLogic::selectPrevious()
 {
@@ -241,14 +272,20 @@ void SettingsLogic::selectPrevious()
     selectedControl = ctrlKeyBindTable;
     selectedAction = Binding::ACTION_COUNT - 1;
     break;
+
   case ctrlMusicVolume:
     selectedControl = ctrlSoundVolume;
     break;
   case ctrlKeyBindTable:
+
     if (--selectedAction == Binding::doNothing)
       selectedControl = ctrlMusicVolume;
+
     break;
-  default: assert(0);
+
+  default:
+    assert(0);
+    break;
   }
 }
 

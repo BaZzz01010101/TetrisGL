@@ -1,24 +1,31 @@
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "static_headers.h"
 
 #include "Crosy.h"
 #include "Logic.h"
 #include "OpenGlApplication.h"
 
-#pragma warning(disable : 4100)
-
 int main()
 {
   srand((unsigned int)Crosy::getPerformanceCounter());
-
-  Logic::init();
   Binding::init();
-  std::unique_ptr<Application> application = std::make_unique<OpenGLApplication>();
+  Logic::init();
+  Application * application = new OpenGLApplication();
 
-  if(!application->init())
+  if (!application->init())
+  {
+#ifdef _DEBUG
+    std::cout << "Press 'Enter'\n";
+    getchar();
+#endif // DEBUG
     return 1;
+  }
 
   application->run();
   application->quit();
+
+  delete application;
 
   return 0;
 }

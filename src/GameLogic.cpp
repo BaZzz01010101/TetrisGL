@@ -5,8 +5,6 @@
 #include "Time.h"
 
 GameLogic::State GameLogic::state = stStopped;
-int GameLogic::glassWidth = 10;
-int GameLogic::glassHeight = 20;
 int GameLogic::curFigureX = 0;
 int GameLogic::curFigureY = 0;
 int GameLogic::curScore = 0;
@@ -17,28 +15,37 @@ bool GameLogic::haveFallingRows = false;
 double GameLogic::rowsDeleteTimer = -1.0;
 bool GameLogic::menuButtonHighlighted = false;
 unsigned int GameLogic::fastDownCounter = 0;
+unsigned int GameLogic::dropTrailCounter = 0;
 float GameLogic::countdownTimeLeft = 0.0f;
+float GameLogic::gameOverTimeLeft = 0.0f;
+float GameLogic::rowsDeletionEffectTime = 0.8f;
 
 Figure GameLogic::holdFigure;
 Figure GameLogic::curFigure;
 const int GameLogic::maxLevel = 20;
 double GameLogic::lastStepTimer = -1.0f;
 bool  GameLogic::justHolded = false;
-std::vector<Cell> GameLogic::glass;
+std::vector<Cell> GameLogic::field;
 std::vector<Figure> GameLogic::nextFigures;
 std::vector<int> GameLogic::rowElevation;
 std::vector<float> GameLogic::rowCurrentElevation;
-std::list<DropTrail> GameLogic::dropTrails;
 std::vector<int> GameLogic::deletedRows;
-std::set<GameLogic::CellCoord> GameLogic::deletedRowGaps;
+std::vector<GameLogic::CellCoord> GameLogic::deletedRowGaps;
+DropTrail GameLogic::dropTrails[dropTrailsSize];
+int GameLogic::dropTrailsHead = 0;
+int GameLogic::dropTrailsTail = 0;
 
 void GameLogic::init()
 {
-  glassWidth = 10;
-  glassHeight = 20;
-
+  field.reserve(fieldWidth * fieldHeight);
+  nextFigures.reserve(nextFiguresCount);
+  rowElevation.reserve(fieldHeight);
+  rowCurrentElevation.reserve(fieldHeight);
+  deletedRows.reserve(fieldHeight);
+  deletedRowGaps.reserve((fieldWidth + 1) * Figure::dimMax);
   resetGame();
 }
+
 
 void GameLogic::resetGame()
 {
@@ -47,17 +54,18 @@ void GameLogic::resetGame()
   curGoal = 5;
   haveHold = false;
   holdFigure.clear();
-  rowElevation.assign(glassHeight, 0);
-  rowCurrentElevation.assign(glassHeight, 0.0f);
-  nextFigures.resize(Globals::nextFiguresCount);
-  glass.assign(glassWidth * glassHeight, Cell(0, Cell::Color::clNone));
+  rowElevation.assign(fieldHeight, 0);
+  rowCurrentElevation.assign(fieldHeight, 0.0f);
+  nextFigures.resize(GameLogic::nextFiguresCount);
+  field.assign(fieldWidth * fieldHeight, Cell(0, Cell::Color::clNone));
   lastStepTimer = Time::timer;
   
-  for (int i = 0; i < Globals::nextFiguresCount; i++)
+  for (int i = 0; i < GameLogic::nextFiguresCount; i++)
     nextFigures[i].buildRandomFigure();
 
   shiftFigureConveyor();
 }
+
 
 GameLogic::Result GameLogic::update()
 {
@@ -65,39 +73,47 @@ GameLogic::Result GameLogic::update()
 
   switch (state)
   {
-  case stInit:
-    resetGame();
-    state = stCountdown;
-    countdownTimeLeft = countdownTime + 0.99f;
-    break;
+    case stInit:
+      resetGame();
+      state = stCountdown;
+      countdownTimeLeft = countdownTime + 0.99f;
+      break;
 
-  case stCountdown:
-    countdownTimeLeft -= Time::timerDelta;
-    if (countdownTimeLeft < 0.0f)
-      state = stPlaying;
-    break;
+    case stCountdown:
+      countdownTimeLeft -= Time::timerDelta;
 
-  case stPlaying:
-    gameUpdate();
-    break;
+      if (countdownTimeLeft < 0.0f)
+        state = stPlaying;
 
-  case stPaused:
-    break;
+      break;
 
-  case stGameOver:
-    state = stStopped;
-    result = resGameOver;
-    break;
+    case stPlaying:
+      gameUpdate();
+      break;
+    case stPaused:
+      break;
 
-  case stStopped:
-    break;
+    case stGameOver:
+      gameOverTimeLeft -= Time::timerDelta;
 
-  default:
-    assert(0);
+      if (gameOverTimeLeft < 0.0f)
+      {
+        state = stStopped;
+        result = resGameOver;
+      }
+
+      break;
+
+    case stStopped:
+      break;
+    default:
+      assert(0);
+      break;
   }
 
   return result;
 }
+
 
 void GameLogic::gameUpdate()
 {
@@ -107,11 +123,14 @@ void GameLogic::gameUpdate()
     lastStepTimer = Time::timer;
   else if (Time::timer > lastStepTimer + stepTime)
   {
+    // TODO : fix posible wrong behavior on extremely low FPS
+    //        (falling speed will be limited by fps)
     if (checkCurrentFigurePos(0, 1))
       curFigureY++;
     else
     {
-      storeCurFigureIntoGlass();
+      storeCurFigureIntoField();
+      checkFieldRows();
       shiftFigureConveyor();
     }
 
@@ -119,9 +138,9 @@ void GameLogic::gameUpdate()
   }
 
   proceedFallingRows();
-
-  deleteObsoleteEffects();
+  updateEffects();
 }
+
 
 float GameLogic::getStepTime()
 {
@@ -133,17 +152,17 @@ float GameLogic::getStepTime()
   return maxStepTime - (maxStepTime - minStepTime) * k;
 }
 
-void GameLogic::storeCurFigureIntoGlass()
+
+void GameLogic::storeCurFigureIntoField()
 {
   int dim = curFigure.dim;
 
   for (int x = 0; x < dim; x++)
-  for (int y = 0; y < dim; y++)
-  if (!curFigure.cells[x + y * dim].isEmpty())
-    glass[curFigureX + x + (curFigureY + y) * glassWidth] = curFigure.cells[x + y * dim];
-
-  checkGlassRows();
+    for (int y = 0; y < dim; y++)
+      if (!curFigure.cells[x + y * dim].isEmpty())
+        field[curFigureX + x + (curFigureY + y) * fieldWidth] = curFigure.cells[x + y * dim];
 }
+
 
 void GameLogic::shiftFigureConveyor()
 {
@@ -151,38 +170,43 @@ void GameLogic::shiftFigureConveyor()
 
   Figure::swap(curFigure, nextFigures[0]);
 
-  for (int i = 1; i < Globals::nextFiguresCount; i++)
+  for (int i = 1; i < GameLogic::nextFiguresCount; i++)
     Figure::swap(nextFigures[i - 1], nextFigures[i]);
 
-  nextFigures[Globals::nextFiguresCount - 1].buildRandomFigure();
+  nextFigures[GameLogic::nextFiguresCount - 1].buildRandomFigure();
 
-  curFigureX = (glassWidth - curFigure.dim) / 2;
+  curFigureX = (fieldWidth - curFigure.dim) / 2;
+  // TODO : fix L - figure appearance vertical coordinate
   curFigureY = 0;
 
   if (!checkCurrentFigurePos(0, 0))
   {
     curFigure.clear();
     state = stGameOver;
+    gameOverTimeLeft = gameOverTime;
   }
 }
+
 
 bool GameLogic::checkCurrentFigurePos(int dx, int dy)
 {
   for (int curx = 0; curx < curFigure.dim; curx++)
-  for (int cury = 0; cury < curFigure.dim; cury++)
-  {
-    if (!curFigure.cells[curx + cury * curFigure.dim].isEmpty() && curFigureY + cury + dy >= 0)
-    {
-      if (curFigureX + curx + dx < 0 ||
-      curFigureX + curx + dx >= glassWidth ||
-      curFigureY + cury + dy >= glassHeight ||
-      !glass[curFigureX + curx + dx + (curFigureY + cury + dy) * glassWidth].isEmpty()) 
-        return false;
-    }
-  }
+    for (int cury = 0; cury < curFigure.dim; cury++)
+      if (!curFigure.cells[curx + cury * curFigure.dim].isEmpty() && 
+          curFigureY + cury + dy >= 0)
+      {
+        if (curFigureX + curx + dx < 0 ||
+            curFigureX + curx + dx >= fieldWidth ||
+            curFigureY + cury + dy >= fieldHeight ||
+            !field[curFigureX + curx + dx + (curFigureY + cury + dy) * fieldWidth].isEmpty())
+        {
+          return false;
+        }
+      }
 
   return true;
 }
+
 
 bool GameLogic::tryToPlaceCurrentFigure()
 {
@@ -209,6 +233,7 @@ bool GameLogic::tryToPlaceCurrentFigure()
   return false;
 }
 
+
 void GameLogic::holdCurrentFigure()
 {
   if (!justHolded)
@@ -220,7 +245,7 @@ void GameLogic::holdCurrentFigure()
     if (haveHold)
     {
       Figure::swap(holdFigure, curFigure);
-      curFigureX = (glassWidth - curFigure.dim) / 2;
+      curFigureX = (fieldWidth - curFigure.dim) / 2;
       curFigureY = 0;
 
       if (tryToPlaceCurrentFigure())
@@ -239,7 +264,7 @@ void GameLogic::holdCurrentFigure()
     {
       holdFigure = curFigure;
       curFigure = nextFigures[0];
-      curFigureX = (glassWidth - curFigure.dim) / 2;
+      curFigureX = (fieldWidth - curFigure.dim) / 2;
       curFigureY = 0;
 
       if (tryToPlaceCurrentFigure())
@@ -260,19 +285,27 @@ void GameLogic::holdCurrentFigure()
   }
 }
 
-void GameLogic::fastDownCurrentFigure()
+
+bool GameLogic::fastDownCurrentFigure()
 {
+  bool result = false;
+
   if (checkCurrentFigurePos(0, 1))
     curFigureY++;
   else
   {
-    storeCurFigureIntoGlass();
+    storeCurFigureIntoField();
+    checkFieldRows();
     shiftFigureConveyor();
+    result = true;
   }
 
   lastStepTimer = Time::timer;
   fastDownCounter++;
+
+  return result;
 }
+
 
 void GameLogic::dropCurrentFigure()
 {
@@ -289,20 +322,20 @@ void GameLogic::dropCurrentFigure()
     curScore += (y1 - y0) / 2;
 
     for (int x = 0; x < dim; x++)
-    for (int y = 0; y < dim; y++)
-    {
-      if (!curFigure.cells[x + y * dim].isEmpty())
-      {
-        createDropTrail(curFigureX + x, curFigureY + y, y1 - y0, curFigure.color);
-        break;
-      }
-    }
+      for (int y = 0; y < dim; y++)
+        if (!curFigure.cells[x + y * dim].isEmpty())
+        {
+          addDropTrail(curFigureX + x, curFigureY + y, y1 - y0, curFigure.color);
+          break;
+        }
   }
 
   lastStepTimer = Time::timer;
-  storeCurFigureIntoGlass();
+  storeCurFigureIntoField();
+  checkFieldRows();
   shiftFigureConveyor();
 }
+
 
 void GameLogic::rotateCurrentFigureLeft()
 {
@@ -313,6 +346,7 @@ void GameLogic::rotateCurrentFigureLeft()
     curFigure = savedFigure;
 }
 
+
 void GameLogic::rotateCurrentFigureRight()
 {
   Figure savedFigure = curFigure;
@@ -322,11 +356,13 @@ void GameLogic::rotateCurrentFigureRight()
     curFigure = savedFigure;
 }
 
+
 void GameLogic::shiftCurrentFigureLeft()
 {
   if (checkCurrentFigurePos(-1, 0))
     curFigureX--;
 }
+
 
 void GameLogic::shiftCurrentFigureRight()
 {
@@ -334,42 +370,38 @@ void GameLogic::shiftCurrentFigureRight()
     curFigureX++;
 }
 
-void GameLogic::checkGlassRows()
+
+void GameLogic::checkFieldRows()
 {
   int elevation = 0;
 
-  for (int y = glassHeight - 1; y >= 0; y--)
+  for (int y = fieldHeight - 1; y >= 0; y--)
   {
     bool fullRow = true;
 
-    for (int x = 0; x < glassWidth; x++)
-      if (glass[x + y * glassWidth].isEmpty())
+    for (int x = 0; x < fieldWidth; x++)
+      if (field[x + y * fieldWidth].isEmpty())
         fullRow = false;
 
     if (fullRow)
     {
       elevation++;
       deletedRows.push_back(y);
-
-      for (int x = 0; x <= glassWidth; x++)
-      {
-        if (!x || x == glassWidth || glass[x + y * glassWidth].figureId != glass[x - 1 + y * glassWidth].figureId)
-          deletedRowGaps.insert(CellCoord(x, y));
-      }
+      addRowGaps(y);
     }
     else if (elevation)
     {
-      for (int x = 0; x < glassWidth; x++)
+      for (int x = 0; x < fieldWidth; x++)
       {
-        glass[x + (y + elevation) * glassWidth] = glass[x + y * glassWidth];
+        field[x + (y + elevation) * fieldWidth] = field[x + y * fieldWidth];
         rowElevation[y + elevation] = elevation;
         rowCurrentElevation[y + elevation] = (float)elevation;
       }
     }
   }
 
-  for (int i = 0; i < elevation * glassWidth; i++)
-    glass[i].clear();
+  for (int i = 0; i < elevation * fieldWidth; i++)
+    field[i].clear();
 
   if (elevation)
   {
@@ -386,6 +418,7 @@ void GameLogic::checkGlassRows()
   }
 }
 
+
 void GameLogic::proceedFallingRows()
 {
   if (haveFallingRows)
@@ -393,73 +426,88 @@ void GameLogic::proceedFallingRows()
     haveFallingRows = false;
     float timePassed = float(Time::timer - rowsDeleteTimer);
 
-    for (int y = 0; y < glassHeight; y++)
-    for (int x = 0; x < glassWidth; x++)
-    if (rowElevation[y] > 0)
-    {
-      rowCurrentElevation[y] = glm::max(float(rowElevation[y]) - 25.0f * timePassed * timePassed * timePassed, 0.0f);
+    for (int y = 0; y < fieldHeight; y++)
+      for (int x = 0; x < fieldWidth; x++)
+        if (rowElevation[y] > 0)
+        {
+          rowCurrentElevation[y] = glm::max(float(rowElevation[y]) - 
+                                            25.0f * timePassed * timePassed * timePassed, 0.0f);
 
-      if (rowCurrentElevation[y] > 0.0f)
-        haveFallingRows = true;
-      else
-        rowElevation[y] = 0;
-    }
+          if (rowCurrentElevation[y] > 0.0f)
+            haveFallingRows = true;
+          else
+            rowElevation[y] = 0;
+        }
   }
 }
 
-void GameLogic::createDropTrail(int x, int y, int height, Cell::Color color)
-{
-  dropTrails.emplace_back();
-  DropTrail & dropTrail = dropTrails.back();
-  dropTrail.x = x;
-  dropTrail.y = y;
-  dropTrail.color = color;
-  dropTrail.height = height;
-}
 
-void GameLogic::deleteObsoleteEffects()
+void GameLogic::addDropTrail(int x, int y, int height, Cell::Color color)
 {
-  std::list<DropTrail>::iterator dropTrail = dropTrails.begin();
+  int newHead = (dropTrailsHead + 1) % dropTrailsSize;
 
-  while (dropTrail != dropTrails.end())
+  if (newHead != dropTrailsTail)
   {
-    if (dropTrail->getTrailProgress() > 0.999f)
-    {
-      std::list<DropTrail>::iterator delIt = dropTrail++;
-      dropTrails.erase(delIt);
-    }
-    else ++dropTrail;
+    DropTrail & dropTrail = dropTrails[dropTrailsHead];
+    dropTrail.set(x, y, height, color);
+    dropTrailCounter++;
+    dropTrailsHead = newHead;
   }
+}
 
-  if (!deletedRows.empty() && Time::timer - rowsDeleteTimer > Globals::rowsDeletionEffectTime)
+
+void GameLogic::addRowGaps(int y)
+{
+  // TODO : move first and last gap addition out of cycle
+  for (int x = 0; x <= fieldWidth; x++)
+    if (!x || x == fieldWidth ||
+        field[x + y * fieldWidth].figureId != field[x - 1 + y * fieldWidth].figureId)
+    {
+      deletedRowGaps.push_back(CellCoord(x, y));
+    }
+}
+
+
+void GameLogic::updateEffects()
+{
+  for (int i = dropTrailsTail; i != dropTrailsHead; i = (i + 1) % dropTrailsSize)
+    if (!dropTrails[i].update(Time::timerDelta))
+      dropTrailsTail = (i + 1) % dropTrailsSize;
+
+  if (!deletedRows.empty() && Time::timer - rowsDeleteTimer > GameLogic::rowsDeletionEffectTime)
   {
     deletedRows.clear();
     deletedRowGaps.clear();
   }
 }
 
+
 int GameLogic::getRowElevation(int y)
 {
   assert(y >= 0);
-  assert(y < glassHeight);
+  assert(y < fieldHeight);
 
-  return (y >= 0 && y < glassHeight) ? rowElevation[y] : 0;
+  return (y >= 0 && y < fieldHeight) ? rowElevation[y] : 0;
 }
+
 
 float GameLogic::getRowCurrentElevation(int y) 
 {
   assert(y >= 0);
-  assert(y < glassHeight);
+  assert(y < fieldHeight);
 
-  return (y >= 0 && y < glassHeight) ? rowCurrentElevation[y] : 0.0f;
+  return (y >= 0 && y < fieldHeight) ? rowCurrentElevation[y] : 0.0f;
 }
 
-const Cell * GameLogic::getGlassCell(int x, int y) 
+
+// cell of the game field considering current figure
+// returns NULL if out of field bounds
+const Cell * GameLogic::getFieldCell(int x, int y) 
 {
-  if (x < 0 || y < 0 || x >= glassWidth || y >= glassHeight)
+  if (x < 0 || y < 0 || x >= fieldWidth || y >= fieldHeight)
     return NULL;
 
-  const Cell * cell = glass.data() + x + y * glassWidth;
+  const Cell * cell = &field[x + y * fieldWidth];
 
   if (!cell->figureId && !haveFallingRows)
   {
@@ -470,18 +518,21 @@ const Cell * GameLogic::getGlassCell(int x, int y)
       y < curFigureY + curFigure.dim;
 
     if (isInCurFigure)
-      cell = curFigure.cells.data() + x - curFigureX + (y - curFigureY) * curFigure.dim;
+      cell = &curFigure.cells[x - curFigureX + (y - curFigureY) * curFigure.dim];
   }
 
   return cell;
 }
 
-const Cell * GameLogic::getFigureCell(Figure & figure, int x, int y) 
+
+// TODO : move function to the Figure class
+const Cell * GameLogic::getFigureCell(Figure & figure, int x, int y)
 {
   if (x < 0 || y < 0 || x >= figure.dim || y >= figure.dim)
     return NULL;
 
-  Cell * cell = figure.cells.data() + x + y * figure.dim;
+  Cell * cell = &figure.cells[x + y * figure.dim];
+
   return cell;
 }
 
