@@ -27,6 +27,7 @@ SettingsLogic::~SettingsLogic()
 {
 }
 
+
 void SettingsLogic::init()
 {
   fileName = Crosy::getExePath() + "settings.dat";
@@ -36,63 +37,72 @@ void SettingsLogic::init()
   load();
 }
 
+
 SettingsLogic::Result SettingsLogic::update()
 {
   Result retResult = resNone;
 
   switch (state)
   {
-  case stHidden:
-    state = stShowing;
-    break;
+    case stShowing:
 
-  case stShowing:
-    if ((transitionProgress += Time::timerDelta / showingTime) >= 1.0f)
-    {
-      transitionProgress = 1.0f;
-      state = stVisible;
-    }
+      if ((transitionProgress += Time::timerDelta / showingTime) >= 1.0f)
+      {
+        transitionProgress = 1.0f;
+        state = stVisible;
+      }
 
-    break;
+      break;
 
-  case stVisible:
-    break;
+    case stHiding:
 
-  case stHiding:
-    if ((transitionProgress -= Time::timerDelta / hidingTime) <= 0.0f)
-    {
-      transitionProgress = 0.0f;
-      state = stHidden;
-      retResult = resClose;
-    }
+      if ((transitionProgress -= Time::timerDelta / hidingTime) <= 0.0f)
+      {
+        transitionProgress = 0.0f;
+        state = stHidden;
+        retResult = resClose;
+      }
 
-    break;
+      break;
 
-  case stSaveConfirmation:
-    saveConfirmationUpdate();
-    break;
-
-  case stKeyWaiting:
-    break;
-
-  default:
-    assert(0);
-    break;
+    case stVisible:
+      break;
+    case stHidden:
+      state = stShowing;
+      break;
+    case stSaveConfirmation:
+      saveConfirmationUpdate();
+      break;
+    case stKeyWaiting:
+      break;
+    default:
+      assert(0);
+      break;
   }
 
   return retResult;
 }
 
+
 void SettingsLogic::saveConfirmationUpdate()
 {
   switch (saveConfirmationMenu.update())
   {
-  case MenuLogic::resSave:        saveAndExit();     break;
-  case MenuLogic::resDontSave:    cancelAndExit();   break;
-  case MenuLogic::resBack:        state = stVisible; break;
-  default: break;
+    // TODO : process all states and add assert(0) on default
+    case MenuLogic::resSave:
+      saveAndExit();
+      break;
+    case MenuLogic::resDontSave:
+      cancelAndExit();
+      break;
+    case MenuLogic::resBack:
+      state = stVisible;
+      break;
+    default:
+      break;
   }
 }
+
 
 void SettingsLogic::escape()
 {
@@ -103,6 +113,7 @@ void SettingsLogic::escape()
   else
     state = stHiding;
 }
+
 
 void SettingsLogic::load()
 {
@@ -139,6 +150,7 @@ void SettingsLogic::load()
   changed = false;
 }
 
+
 void SettingsLogic::save()
 {
   FILE * file = fopen(fileName.c_str(), "wb+");
@@ -168,17 +180,20 @@ void SettingsLogic::save()
   changed = false;
 }
 
+
 void SettingsLogic::setSoundVolume(float volume)
 {
   soundVolume = volume;
   changed = true;
 }
 
+
 void SettingsLogic::setMusicVolume(float volume)
 {
   musicVolume = volume;
   changed = true;
 }
+
 
 void SettingsLogic::setCurrentActionKey(Key key)
 {
@@ -189,15 +204,18 @@ void SettingsLogic::setCurrentActionKey(Key key)
   changed = true;
 }
 
+
 float SettingsLogic::getSoundVolume()
 {
   return soundVolume;
 }
 
+
 float SettingsLogic::getMusicVolume()
 {
   return musicVolume;
 }
+
 
 Key getKeyBind(Binding::Action action)
 {
@@ -205,11 +223,13 @@ Key getKeyBind(Binding::Action action)
   return Binding::getActionKey(action);
 }
 
+
 void SettingsLogic::saveAndExit()
 {
   save();
   state = stHiding;
 }
+
 
 void SettingsLogic::cancelAndExit()
 {
@@ -217,24 +237,32 @@ void SettingsLogic::cancelAndExit()
   state = stHiding;
 }
 
+
 void SettingsLogic::selectNext()
 {
   switch (selectedControl)
   {
-  case ctrlSoundVolume:
-    selectedControl = ctrlMusicVolume;
-    break;
-  case ctrlMusicVolume:
-    selectedControl = ctrlKeyBindTable;
-    selectedAction = Binding::FIRST_ACTION;
-    break;
-  case ctrlKeyBindTable:
-    if (++selectedAction == Binding::ACTION_COUNT)
-      selectedControl = ctrlSoundVolume;
-    break;
-  default: assert(0);
+    case ctrlSoundVolume:
+      selectedControl = ctrlMusicVolume;
+      break;
+    case ctrlMusicVolume:
+      selectedControl = ctrlKeyBindTable;
+      selectedAction = Binding::FIRST_ACTION;
+      break;
+
+    case ctrlKeyBindTable:
+
+      if (++selectedAction == Binding::ACTION_COUNT)
+        selectedControl = ctrlSoundVolume;
+
+      break;
+
+    default:
+      assert(0);
+      break;
   }
 }
+
 
 void SettingsLogic::selectPrevious()
 {
@@ -244,14 +272,20 @@ void SettingsLogic::selectPrevious()
     selectedControl = ctrlKeyBindTable;
     selectedAction = Binding::ACTION_COUNT - 1;
     break;
+
   case ctrlMusicVolume:
     selectedControl = ctrlSoundVolume;
     break;
   case ctrlKeyBindTable:
+
     if (--selectedAction == Binding::doNothing)
       selectedControl = ctrlMusicVolume;
+
     break;
-  default: assert(0);
+
+  default:
+    assert(0);
+    break;
   }
 }
 

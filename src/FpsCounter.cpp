@@ -3,7 +3,6 @@
 #include "FpsCounter.h"
 #include "Crosy.h"
 
-
 FpsCounter::FpsCounter()
 {
 }
@@ -13,6 +12,7 @@ FpsCounter::~FpsCounter()
 {
 }
 
+
 void FpsCounter::init()
 {
   cnt = 0;
@@ -21,6 +21,7 @@ void FpsCounter::init()
   lastIntervalCounter = Crosy::getPerformanceCounter();
   maxFrameTime = 0.0f;
 }
+
 
 char * FpsCounter::count(float interval)
 {

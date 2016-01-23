@@ -10,8 +10,6 @@ public:
   static std::string glErrorMessage;
 };
 
-extern bool checkGlErrors();
-
 static const int FAST_RAND_MAX = 0x7FFF;
 
 inline int fastrand()
@@ -21,3 +19,4 @@ inline int fastrand()
   return (g_seed >> 16) & FAST_RAND_MAX;
 }
 
+extern bool checkGlErrors();

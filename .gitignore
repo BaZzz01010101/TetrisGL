@@ -165,3 +165,5 @@ cmakeit.bat
 *.opendb
 *.iobj
 *.ipdb
+bin/leaderboard.dat
+bin/settings.dat

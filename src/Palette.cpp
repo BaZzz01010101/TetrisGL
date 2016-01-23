@@ -99,8 +99,9 @@ void Palette::load(const char * name)
   std::string fileName = Crosy::getExePath() + "/palettes/" + name + ".json";
   FILE * file = fopen(fileName.c_str(), "rb");
   assert(file);
-  char buf[65536];
-  rapidjson::FileReadStream frstream(file, buf, 65536);
+  const int bufSize = 16384;
+  static char buf[bufSize];
+  rapidjson::FileReadStream frstream(file, buf, bufSize);
   doc.ParseStream<rapidjson::FileReadStream>(frstream);
   fclose(file);
 
@@ -192,12 +193,14 @@ void Palette::load(const char * name)
   loadValue(doc, "FieldBackgroundInnerBright", &fieldBackgroundInnerBright);
 }
 
+
 void Palette::loadValue(rapidjson::Value & source, const char * name, float * result)
 {
   assert(source.HasMember(name));
   if (source.HasMember(name))
     *result = float(source[name].GetDouble());
 }
+
 
 void Palette::loadValue(rapidjson::Value & source, const char * name, glm::vec3 * result)
 {
@@ -209,4 +212,3 @@ void Palette::loadValue(rapidjson::Value & source, const char * name, glm::vec3 
     result->b = float(source[name][2].GetDouble());
   }
 }
-

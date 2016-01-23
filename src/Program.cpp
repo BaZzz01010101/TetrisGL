@@ -9,13 +9,12 @@ Program::Program() :
   id = 0;
 }
 
+
 Program::~Program()
 {
-  // TODO: add checking opengl errors
+  // TODO: move program creation and deletion to init and quit functions
   if (id)
   {
-    glDeleteProgram(id);
-    //assert(!checkGlErrors());
     GLint curId = 0;
     glGetIntegerv(GL_CURRENT_PROGRAM, &curId);
     //assert(!checkGlErrors());
@@ -25,8 +24,12 @@ Program::~Program()
       glUseProgram(0);
       //assert(!checkGlErrors());
     }
+
+    glDeleteProgram(id);
+    //assert(!checkGlErrors());
   }
 }
+
 
 void Program::attachShader(const Shader & shader)
 {
@@ -40,13 +43,12 @@ void Program::attachShader(const Shader & shader)
   assert(!checkGlErrors());
 }
 
+
 void Program::link()
 {
   assert(id);
-
   glLinkProgram(id);
   assert(!checkGlErrors());
-
   GLint Result = GL_FALSE;
   glGetProgramiv(id, GL_LINK_STATUS, &Result);
   assert(!checkGlErrors());
@@ -56,22 +58,22 @@ void Program::link()
     int length = 0;
     glGetProgramiv(id, GL_INFO_LOG_LENGTH, &length);
     assert(!checkGlErrors());
-
     errMsg.resize(length);
     glGetProgramInfoLog(id, length, NULL, &errMsg.front());
     assert(!checkGlErrors());
-
     Globals::glErrorMessage = &errMsg.front();
     std::cout << Globals::glErrorMessage << "\n";
     assert(0);
   }
 }
 
+
 void Program::use() const
 {
   glUseProgram(id);
   assert(!checkGlErrors());
 }
+
 
 void Program::setUniform(const char * name, GLint value)
 {
@@ -86,6 +88,7 @@ void Program::setUniform(const char * name, GLint value)
   }
 }
 
+
 void Program::setUniform(const char * name, GLfloat value)
 {
   GLint uid = glGetUniformLocation(id, name);
@@ -98,6 +101,7 @@ void Program::setUniform(const char * name, GLfloat value)
     assert(!checkGlErrors());
   }
 }
+
 
 void Program::setUniform(const char * name, GLfloat value1, GLfloat value2)
 {
@@ -112,6 +116,7 @@ void Program::setUniform(const char * name, GLfloat value1, GLfloat value2)
   }
 }
 
+
 void Program::setUniform(const char * name, const glm::vec2 & value)
 {
   GLint uid = glGetUniformLocation(id, name);
@@ -125,6 +130,7 @@ void Program::setUniform(const char * name, const glm::vec2 & value)
   }
 }
 
+
 void Program::setUniform(const char * name, const glm::mat3 & value)
 {
   GLint uid = glGetUniformLocation(id, name);
@@ -137,6 +143,7 @@ void Program::setUniform(const char * name, const glm::mat3 & value)
     assert(!checkGlErrors());
   }
 }
+
 
 void Program::bindAttribLocation(GLuint pos, const char * name)
 {

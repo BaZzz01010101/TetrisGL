@@ -12,6 +12,7 @@ DropTrail::DropTrail()
   sparklesTimeLeft = -1.0;
 }
 
+
 void DropTrail::set(int x, int y, int height, Cell::Color color)
 {
   trailTimeLeft = trailEffectTime;
@@ -21,6 +22,7 @@ void DropTrail::set(int x, int y, int height, Cell::Color color)
   this->height = height;
   this->color = color;
 }
+
 
 bool DropTrail::update(float timeDelta)
 {
@@ -33,10 +35,12 @@ bool DropTrail::update(float timeDelta)
   return trailTimeLeft > 0.0f || sparklesTimeLeft > 0.0f;
 }
 
+
 float DropTrail::getTrailProgress() const
 {
   return glm::clamp(1.0f - trailTimeLeft / trailEffectTime, 0.0f, 1.0f);
 }
+
 
 float DropTrail::getSparklesProgress() const
 {

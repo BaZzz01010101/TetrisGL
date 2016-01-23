@@ -12,6 +12,7 @@ private:
   uint64_t frameTimeCounter;
   enum { bufSize = 256 };
   char buf[bufSize];
+
 public:
   FpsCounter();
   ~FpsCounter();

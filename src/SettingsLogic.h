@@ -6,10 +6,32 @@
 class SettingsLogic
 {
 public:
+  enum State 
+  { 
+    stHidden, 
+    stShowing, 
+    stVisible, 
+    stSaveConfirmation, 
+    stKeyWaiting, 
+    stHiding 
+  };
+
+  enum Result 
+  { 
+    resNone, 
+    resClose 
+  };
+
+  enum Control 
+  { 
+    ctrlNone, 
+    ctrlSoundVolume, 
+    ctrlMusicVolume, 
+    ctrlKeyBindTable, 
+    ctrlBackButton 
+  };
+
   typedef uint32_t Checksum;
-  enum State { stHidden, stShowing, stVisible, stSaveConfirmation, stKeyWaiting, stHiding };
-  enum Result { resNone, resClose };
-  enum Control { ctrlNone, ctrlSoundVolume, ctrlMusicVolume, ctrlKeyBindTable, ctrlBackButton };
 
 #pragma pack(push, 1)
 

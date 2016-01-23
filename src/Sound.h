@@ -1,10 +1,27 @@
 #pragma once
+
 class Sound
 {
 public:
+  enum Sample 
+  { 
+    smpDrop, 
+    smpLeft, 
+    smpRight, 
+    smpHold, 
+    smpDown, 
+    smpWipe, 
+    smpCountdown, 
+    smpLevelUp, 
+    smpUiClick, 
+    smpUiAnimIn, 
+    smpUiAnimOut, 
+    smpMusic, 
+    SAMPLE_COUNT 
+  };
+
   static const int musicLoopBeginMs  = 51;
   static const int musicLoopEndMs = 112992;
-  enum Sample { smpDrop, smpLeft, smpRight, smpHold, smpDown, smpWipe, smpCountdown, smpLevelUp, smpUiClick, smpUiAnimIn, smpUiAnimOut, smpMusic, SAMPLE_COUNT };
   static void init();
   static void update();
   static void quit();

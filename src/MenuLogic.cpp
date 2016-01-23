@@ -23,47 +23,49 @@ MenuLogic::~MenuLogic()
 {
 }
 
+
 MenuLogic::Result MenuLogic::update()
 {
   Result retResult = resNone;
 
   switch (state)
   {
-  case stHidden:
-    result = resNone;
-    state = stShowing;
-    selectedRow = defaultRow;
-    break;
+    case stHidden:
+      result = resNone;
+      state = stShowing;
+      selectedRow = defaultRow;
+      break;
 
-  case stShowing:
-    if ((transitionProgress += Time::timerDelta / showingTime) >= 1.0f)
-    {
-      transitionProgress = 1.0f;
-      state = stVisible;
-    }
+    case stShowing:
+      if ((transitionProgress += Time::timerDelta / showingTime) >= 1.0f)
+      {
+        transitionProgress = 1.0f;
+        state = stVisible;
+      }
 
-    break;
+      break;
 
-  case stVisible:
-    break;
+    case stVisible:
+      break;
 
-  case stHiding:
-    if ((transitionProgress -= Time::timerDelta / hidingTime) <= 0.0f)
-    {
-      transitionProgress = 0.0f;
-      state = stHidden;
-      retResult = result;
-    }
+    case stHiding:
+      if ((transitionProgress -= Time::timerDelta / hidingTime) <= 0.0f)
+      {
+        transitionProgress = 0.0f;
+        state = stHidden;
+        retResult = result;
+      }
 
-    break;
+      break;
 
-  default:
-    assert(0);
-    break;
+    default:
+      assert(0);
+      break;
   }
 
   return retResult;
 }
+
 
 void MenuLogic::add(char * caption, MenuLogic::Result result, bool isDefault)
 {
@@ -75,6 +77,7 @@ void MenuLogic::add(char * caption, MenuLogic::Result result, bool isDefault)
   ++rowCount;
 }
 
+
 const char * MenuLogic::getText(int row) const
 {
   assert(row >= 0);
@@ -82,6 +85,7 @@ const char * MenuLogic::getText(int row) const
 
   return itemList[glm::clamp<int>(row, 0, rowCount - 1)].caption;
 }
+
 
 void MenuLogic::next()
 {
@@ -93,6 +97,7 @@ void MenuLogic::next()
     selectedRow = 0;
 }
 
+
 void MenuLogic::prior()
 {
   assert(state == stVisible);
@@ -103,6 +108,7 @@ void MenuLogic::prior()
     selectedRow = rowCount - 1;
 }
 
+
 void MenuLogic::select(int row)
 {
   assert(state == stVisible);
@@ -111,6 +117,7 @@ void MenuLogic::select(int row)
 
   selectedRow = glm::clamp<int>(row, 0, rowCount - 1);
 }
+
 
 void MenuLogic::enter()
 {
@@ -121,6 +128,7 @@ void MenuLogic::enter()
   state = stHiding;
 }
 
+
 void MenuLogic::enter(int row)
 {
   assert(state == stVisible);
@@ -130,6 +138,7 @@ void MenuLogic::enter(int row)
   select(row);
   enter();
 }
+
 
 void MenuLogic::escape()
 {

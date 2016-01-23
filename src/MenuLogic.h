@@ -3,8 +3,31 @@
 class MenuLogic
 {
 public:
-  enum State { stHidden, stShowing, stVisible, stHiding };
-  enum Result { resNone, resNewGame, resSettings, resLeaderboard, resQuitConfirmation, resQuit, resContinue, resRestartConfirmation, resRestart, resExitToMainConfirmation, resExitToMain, resSave, resDontSave, resBack };
+  enum State 
+  { 
+    stHidden, 
+    stShowing, 
+    stVisible, 
+    stHiding 
+  };
+  
+  enum Result 
+  { 
+    resNone, 
+    resNewGame, 
+    resSettings, 
+    resLeaderboard, 
+    resQuitConfirmation, 
+    resQuit, 
+    resContinue, 
+    resRestartConfirmation, 
+    resRestart, 
+    resExitToMainConfirmation, 
+    resExitToMain, 
+    resSave, 
+    resDontSave, 
+    resBack 
+  };
 
   State state;
   Result result;
@@ -34,10 +57,12 @@ private:
   Result escapeResult;
 };
 
+
 class MenuLogic::Item
 {
 public:
   const char * caption;
   Result result;
-  Item(const char * caption, Result result) : caption(caption), result(result) {};
+
+  Item(const char * caption, Result result) : caption(caption), result(result) {}
 };

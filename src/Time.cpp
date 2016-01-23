@@ -20,6 +20,7 @@ void Time::update()
   timer = newTime;
 }
 
+
 float Time::getCurrentTimerDelta()
 {
   assert(freq > 0);

@@ -42,25 +42,44 @@ void InterfaceLogic::init()
   leaderboardLogic.init();
 }
 
+
 InterfaceLogic::Result InterfaceLogic::update()
 {
   result = resNone;
 
   switch (state)
   {
-  case stMainMenu:                mainMenuUpdate();               break;
-  case stInGameMenu:              inGameMenuUpdate();             break;
-  case stSettings:                settingsUpdate();               break;
-  case stLeaderboard:             leaderboardUpdate();            break;
-  case stQuitConfirmation:        quitConfirmationUpdate();       break;
-  case stRestartConfirmation:     restartConfirmationUpdate();    break;
-  case stExitToMainConfirmation:  exitToMainConfirmationUpdate(); break;
-  case stHidden:                  break;
-  default: assert(0);             break;
+    case stMainMenu:
+      mainMenuUpdate();
+      break;
+    case stInGameMenu:
+      inGameMenuUpdate();
+      break;
+    case stSettings:
+      settingsUpdate();
+      break;
+    case stLeaderboard:
+      leaderboardUpdate();
+      break;
+    case stQuitConfirmation:
+      quitConfirmationUpdate();
+      break;
+    case stRestartConfirmation:
+      restartConfirmationUpdate();
+      break;
+    case stExitToMainConfirmation:
+      exitToMainConfirmationUpdate();
+      break;
+    case stHidden:
+      break;
+    default:
+      assert(0);
+      break;
   }
 
   return result;
 }
+
 
 void InterfaceLogic::showMainMenu()
 {
@@ -69,12 +88,14 @@ void InterfaceLogic::showMainMenu()
   state = stMainMenu;
 }
 
+
 void InterfaceLogic::showInGameMenu()
 {
   statesStack.clear();
   prevState = state;
   state = stInGameMenu;
 }
+
 
 void InterfaceLogic::showLeaderboard()
 {
@@ -83,15 +104,26 @@ void InterfaceLogic::showLeaderboard()
   state = stLeaderboard;
 }
 
+
 void InterfaceLogic::mainMenuUpdate()
 {
   switch (mainMenu.update())
   {
-  case MenuLogic::resNewGame:           closeInterface(resNewGame);       break;
-  case MenuLogic::resSettings:          goNextState(stSettings);          break;
-  case MenuLogic::resLeaderboard:       goNextState(stLeaderboard);       break;
-  case MenuLogic::resQuitConfirmation:  goNextState(stQuitConfirmation);  break;
-  default: break;
+    // TODO : add resNone state processing and assert(0) into default:
+    case MenuLogic::resNewGame:
+      closeInterface(resNewGame);
+      break;
+    case MenuLogic::resSettings:
+      goNextState(stSettings);
+      break;
+    case MenuLogic::resLeaderboard:
+      goNextState(stLeaderboard);
+      break;
+    case MenuLogic::resQuitConfirmation:
+      goNextState(stQuitConfirmation);
+      break;
+    default:
+      break;
   }
 
   if (mainMenu.state == MenuLogic::stHiding && mainMenu.result == MenuLogic::resNewGame)
@@ -100,30 +132,45 @@ void InterfaceLogic::mainMenuUpdate()
     menuShadeProgress = 1.0f;
 }
 
+
 void InterfaceLogic::inGameMenuUpdate()
 {
   switch (inGameMenu.update())
   {
-  case MenuLogic::resBack:
-  case MenuLogic::resContinue:                closeInterface(resContinueGame);        break;
-  case MenuLogic::resRestartConfirmation:     goNextState(stRestartConfirmation);     break;
-  case MenuLogic::resSettings:                goNextState(stSettings);                break;
-  case MenuLogic::resExitToMainConfirmation:  goNextState(stExitToMainConfirmation);  break;
-  default: break;
+    // TODO : add resNone state processing and assert(0) into default:
+    case MenuLogic::resBack:
+    case MenuLogic::resContinue:
+      closeInterface(resContinueGame);
+      break;
+    case MenuLogic::resRestartConfirmation:
+      goNextState(stRestartConfirmation);
+      break;
+    case MenuLogic::resSettings:
+      goNextState(stSettings);
+      break;
+    case MenuLogic::resExitToMainConfirmation:
+      goNextState(stExitToMainConfirmation);
+      break;
+    default: 
+      break;
   }
 
   if ((inGameMenu.state == MenuLogic::stShowing && prevState == stHidden) ||
-  (inGameMenu.state == MenuLogic::stHiding && inGameMenu.result == MenuLogic::resContinue))
+      (inGameMenu.state == MenuLogic::stHiding && inGameMenu.result == MenuLogic::resContinue))
+  {
     menuShadeProgress = inGameMenu.transitionProgress;
+  }
   else
     menuShadeProgress = 1.0f;
 }
+
 
 void InterfaceLogic::settingsUpdate()
 {
   if (settingsLogic.update() == SettingsLogic::resClose)
     goPreviousState();
 }
+
 
 void InterfaceLogic::leaderboardUpdate()
 {
@@ -136,43 +183,67 @@ void InterfaceLogic::leaderboardUpdate()
   }
 }
 
+
 void InterfaceLogic::quitConfirmationUpdate()
 {
   switch (quitConfirmationMenu.update())
   {
-  case MenuLogic::resBack: goPreviousState();           break;
-  case MenuLogic::resQuit: closeInterface(resCloseApp); break;
-  default: break;
+    // TODO : add resNone state processing and assert(0) into default:
+    case MenuLogic::resBack:
+      goPreviousState();
+      break;
+    case MenuLogic::resQuit:
+      closeInterface(resCloseApp);
+      break;
+    default:
+      break;
   }
 }
+
 
 void InterfaceLogic::restartConfirmationUpdate()
 {
   switch (restartConfirmationMenu.update())
   {
-  case MenuLogic::resBack:    goPreviousState();          break;
-  case MenuLogic::resRestart: closeInterface(resNewGame); break;
-  default: break;
+    // TODO : add resNone state processing and assert(0) into default:
+    case MenuLogic::resBack:
+      goPreviousState();
+      break;
+    case MenuLogic::resRestart:
+      closeInterface(resNewGame);
+      break;
+    default:
+      break;
   }
 
-  if (restartConfirmationMenu.state == MenuLogic::stHiding && 
-  restartConfirmationMenu.result == MenuLogic::resRestart)
+  if (restartConfirmationMenu.state == MenuLogic::stHiding &&
+      restartConfirmationMenu.result == MenuLogic::resRestart)
+  {
     menuShadeProgress = restartConfirmationMenu.transitionProgress;
+  }
   else
     menuShadeProgress = 1.0f;
 }
+
 
 void InterfaceLogic::exitToMainConfirmationUpdate()
 {
   switch (exitToMainConfirmationMenu.update())
   {
-  case MenuLogic::resBack:        goPreviousState();  break;
-  case MenuLogic::resExitToMain:  exitToMainMenu();   break;
-  default: break;
+    // TODO : add resNone state processing and assert(0) into default:
+    case MenuLogic::resBack:
+      goPreviousState();
+      break;
+    case MenuLogic::resExitToMain:
+      exitToMainMenu();
+      break;
+    default:
+      break;
   }
 }
 
-InterfaceLogic::State InterfaceLogic::goNextState(InterfaceLogic::State nextState)
+
+InterfaceLogic::State InterfaceLogic::goNextState(State nextState)
 {
   statesStack.push_back(state);
   prevState = state;
@@ -180,6 +251,7 @@ InterfaceLogic::State InterfaceLogic::goNextState(InterfaceLogic::State nextStat
 
   return statesStack.back();
 }
+
 
 InterfaceLogic::State InterfaceLogic::goPreviousState()
 {
@@ -195,6 +267,7 @@ InterfaceLogic::State InterfaceLogic::goPreviousState()
   return state;
 }
 
+
 void InterfaceLogic::closeInterface(Result result)
 {
   statesStack.clear();
@@ -202,6 +275,7 @@ void InterfaceLogic::closeInterface(Result result)
   state = stHidden;
   InterfaceLogic::result = result;
 }
+
 
 void InterfaceLogic::exitToMainMenu()
 {

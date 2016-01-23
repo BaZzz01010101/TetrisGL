@@ -40,7 +40,8 @@ public:
   float width;
   float height;
 
-  LayoutObject(LayoutObjectId id, LayoutObject * parent, float left, float top, float width, float height);
+  LayoutObject(LayoutObjectId id, LayoutObject * parent, 
+               float left, float top, float width, float height);
   ~LayoutObject();
 
   void clear();

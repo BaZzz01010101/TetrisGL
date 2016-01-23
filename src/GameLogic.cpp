@@ -18,7 +18,6 @@ unsigned int GameLogic::fastDownCounter = 0;
 unsigned int GameLogic::dropTrailCounter = 0;
 float GameLogic::countdownTimeLeft = 0.0f;
 float GameLogic::gameOverTimeLeft = 0.0f;
-int GameLogic::nextFiguresCount = 3;
 float GameLogic::rowsDeletionEffectTime = 0.8f;
 
 Figure GameLogic::holdFigure;
@@ -38,16 +37,15 @@ int GameLogic::dropTrailsTail = 0;
 
 void GameLogic::init()
 {
-  nextFiguresCount = 3;
   field.reserve(fieldWidth * fieldHeight);
   nextFigures.reserve(nextFiguresCount);
   rowElevation.reserve(fieldHeight);
   rowCurrentElevation.reserve(fieldHeight);
   deletedRows.reserve(fieldHeight);
   deletedRowGaps.reserve((fieldWidth + 1) * Figure::dimMax);
-
   resetGame();
 }
+
 
 void GameLogic::resetGame()
 {
@@ -68,53 +66,54 @@ void GameLogic::resetGame()
   shiftFigureConveyor();
 }
 
+
 GameLogic::Result GameLogic::update()
 {
   Result result = resNone;
 
   switch (state)
   {
-  case stInit:
-    resetGame();
-    state = stCountdown;
-    countdownTimeLeft = countdownTime + 0.99f;
-    break;
+    case stInit:
+      resetGame();
+      state = stCountdown;
+      countdownTimeLeft = countdownTime + 0.99f;
+      break;
 
-  case stCountdown:
-    countdownTimeLeft -= Time::timerDelta;
+    case stCountdown:
+      countdownTimeLeft -= Time::timerDelta;
 
-    if (countdownTimeLeft < 0.0f)
-      state = stPlaying;
+      if (countdownTimeLeft < 0.0f)
+        state = stPlaying;
 
-    break;
+      break;
 
-  case stPlaying:
-    gameUpdate();
-    break;
+    case stPlaying:
+      gameUpdate();
+      break;
+    case stPaused:
+      break;
 
-  case stPaused:
-    break;
+    case stGameOver:
+      gameOverTimeLeft -= Time::timerDelta;
 
-  case stGameOver:
-    gameOverTimeLeft -= Time::timerDelta;
-     
-    if (gameOverTimeLeft < 0.0f)
-    {
-      state = stStopped;
-      result = resGameOver;
-    }
+      if (gameOverTimeLeft < 0.0f)
+      {
+        state = stStopped;
+        result = resGameOver;
+      }
 
-    break;
+      break;
 
-  case stStopped:
-    break;
-
-  default:
-    assert(0);
+    case stStopped:
+      break;
+    default:
+      assert(0);
+      break;
   }
 
   return result;
 }
+
 
 void GameLogic::gameUpdate()
 {
@@ -124,11 +123,14 @@ void GameLogic::gameUpdate()
     lastStepTimer = Time::timer;
   else if (Time::timer > lastStepTimer + stepTime)
   {
+    // TODO : fix posible wrong behavior on extremely low FPS
+    //        (falling speed will be limited by fps)
     if (checkCurrentFigurePos(0, 1))
       curFigureY++;
     else
     {
       storeCurFigureIntoField();
+      checkFieldRows();
       shiftFigureConveyor();
     }
 
@@ -136,9 +138,9 @@ void GameLogic::gameUpdate()
   }
 
   proceedFallingRows();
-
   updateEffects();
 }
+
 
 float GameLogic::getStepTime()
 {
@@ -150,17 +152,17 @@ float GameLogic::getStepTime()
   return maxStepTime - (maxStepTime - minStepTime) * k;
 }
 
+
 void GameLogic::storeCurFigureIntoField()
 {
   int dim = curFigure.dim;
 
   for (int x = 0; x < dim; x++)
-  for (int y = 0; y < dim; y++)
-  if (!curFigure.cells[x + y * dim].isEmpty())
-    field[curFigureX + x + (curFigureY + y) * fieldWidth] = curFigure.cells[x + y * dim];
-
-  checkFieldRows();
+    for (int y = 0; y < dim; y++)
+      if (!curFigure.cells[x + y * dim].isEmpty())
+        field[curFigureX + x + (curFigureY + y) * fieldWidth] = curFigure.cells[x + y * dim];
 }
+
 
 void GameLogic::shiftFigureConveyor()
 {
@@ -174,7 +176,7 @@ void GameLogic::shiftFigureConveyor()
   nextFigures[GameLogic::nextFiguresCount - 1].buildRandomFigure();
 
   curFigureX = (fieldWidth - curFigure.dim) / 2;
-  // TODO : fix L - figure start vertical coordinate
+  // TODO : fix L - figure appearance vertical coordinate
   curFigureY = 0;
 
   if (!checkCurrentFigurePos(0, 0))
@@ -185,23 +187,26 @@ void GameLogic::shiftFigureConveyor()
   }
 }
 
+
 bool GameLogic::checkCurrentFigurePos(int dx, int dy)
 {
   for (int curx = 0; curx < curFigure.dim; curx++)
-  for (int cury = 0; cury < curFigure.dim; cury++)
-  {
-    if (!curFigure.cells[curx + cury * curFigure.dim].isEmpty() && curFigureY + cury + dy >= 0)
-    {
-      if (curFigureX + curx + dx < 0 ||
-      curFigureX + curx + dx >= fieldWidth ||
-      curFigureY + cury + dy >= fieldHeight ||
-      !field[curFigureX + curx + dx + (curFigureY + cury + dy) * fieldWidth].isEmpty()) 
-        return false;
-    }
-  }
+    for (int cury = 0; cury < curFigure.dim; cury++)
+      if (!curFigure.cells[curx + cury * curFigure.dim].isEmpty() && 
+          curFigureY + cury + dy >= 0)
+      {
+        if (curFigureX + curx + dx < 0 ||
+            curFigureX + curx + dx >= fieldWidth ||
+            curFigureY + cury + dy >= fieldHeight ||
+            !field[curFigureX + curx + dx + (curFigureY + cury + dy) * fieldWidth].isEmpty())
+        {
+          return false;
+        }
+      }
 
   return true;
 }
+
 
 bool GameLogic::tryToPlaceCurrentFigure()
 {
@@ -227,6 +232,7 @@ bool GameLogic::tryToPlaceCurrentFigure()
 
   return false;
 }
+
 
 void GameLogic::holdCurrentFigure()
 {
@@ -279,6 +285,7 @@ void GameLogic::holdCurrentFigure()
   }
 }
 
+
 bool GameLogic::fastDownCurrentFigure()
 {
   bool result = false;
@@ -288,6 +295,7 @@ bool GameLogic::fastDownCurrentFigure()
   else
   {
     storeCurFigureIntoField();
+    checkFieldRows();
     shiftFigureConveyor();
     result = true;
   }
@@ -297,6 +305,7 @@ bool GameLogic::fastDownCurrentFigure()
 
   return result;
 }
+
 
 void GameLogic::dropCurrentFigure()
 {
@@ -313,20 +322,20 @@ void GameLogic::dropCurrentFigure()
     curScore += (y1 - y0) / 2;
 
     for (int x = 0; x < dim; x++)
-    for (int y = 0; y < dim; y++)
-    {
-      if (!curFigure.cells[x + y * dim].isEmpty())
-      {
-        addDropTrail(curFigureX + x, curFigureY + y, y1 - y0, curFigure.color);
-        break;
-      }
-    }
+      for (int y = 0; y < dim; y++)
+        if (!curFigure.cells[x + y * dim].isEmpty())
+        {
+          addDropTrail(curFigureX + x, curFigureY + y, y1 - y0, curFigure.color);
+          break;
+        }
   }
 
   lastStepTimer = Time::timer;
   storeCurFigureIntoField();
+  checkFieldRows();
   shiftFigureConveyor();
 }
+
 
 void GameLogic::rotateCurrentFigureLeft()
 {
@@ -337,6 +346,7 @@ void GameLogic::rotateCurrentFigureLeft()
     curFigure = savedFigure;
 }
 
+
 void GameLogic::rotateCurrentFigureRight()
 {
   Figure savedFigure = curFigure;
@@ -346,17 +356,20 @@ void GameLogic::rotateCurrentFigureRight()
     curFigure = savedFigure;
 }
 
+
 void GameLogic::shiftCurrentFigureLeft()
 {
   if (checkCurrentFigurePos(-1, 0))
     curFigureX--;
 }
 
+
 void GameLogic::shiftCurrentFigureRight()
 {
   if (checkCurrentFigurePos(1, 0))
     curFigureX++;
 }
+
 
 void GameLogic::checkFieldRows()
 {
@@ -405,6 +418,7 @@ void GameLogic::checkFieldRows()
   }
 }
 
+
 void GameLogic::proceedFallingRows()
 {
   if (haveFallingRows)
@@ -413,18 +427,20 @@ void GameLogic::proceedFallingRows()
     float timePassed = float(Time::timer - rowsDeleteTimer);
 
     for (int y = 0; y < fieldHeight; y++)
-    for (int x = 0; x < fieldWidth; x++)
-    if (rowElevation[y] > 0)
-    {
-      rowCurrentElevation[y] = glm::max(float(rowElevation[y]) - 25.0f * timePassed * timePassed * timePassed, 0.0f);
+      for (int x = 0; x < fieldWidth; x++)
+        if (rowElevation[y] > 0)
+        {
+          rowCurrentElevation[y] = glm::max(float(rowElevation[y]) - 
+                                            25.0f * timePassed * timePassed * timePassed, 0.0f);
 
-      if (rowCurrentElevation[y] > 0.0f)
-        haveFallingRows = true;
-      else
-        rowElevation[y] = 0;
-    }
+          if (rowCurrentElevation[y] > 0.0f)
+            haveFallingRows = true;
+          else
+            rowElevation[y] = 0;
+        }
   }
 }
+
 
 void GameLogic::addDropTrail(int x, int y, int height, Cell::Color color)
 {
@@ -439,12 +455,18 @@ void GameLogic::addDropTrail(int x, int y, int height, Cell::Color color)
   }
 }
 
+
 void GameLogic::addRowGaps(int y)
 {
+  // TODO : move first and last gap addition out of cycle
   for (int x = 0; x <= fieldWidth; x++)
-    if (!x || x == fieldWidth || field[x + y * fieldWidth].figureId != field[x - 1 + y * fieldWidth].figureId)
+    if (!x || x == fieldWidth ||
+        field[x + y * fieldWidth].figureId != field[x - 1 + y * fieldWidth].figureId)
+    {
       deletedRowGaps.push_back(CellCoord(x, y));
+    }
 }
+
 
 void GameLogic::updateEffects()
 {
@@ -459,6 +481,7 @@ void GameLogic::updateEffects()
   }
 }
 
+
 int GameLogic::getRowElevation(int y)
 {
   assert(y >= 0);
@@ -466,6 +489,7 @@ int GameLogic::getRowElevation(int y)
 
   return (y >= 0 && y < fieldHeight) ? rowElevation[y] : 0;
 }
+
 
 float GameLogic::getRowCurrentElevation(int y) 
 {
@@ -475,12 +499,15 @@ float GameLogic::getRowCurrentElevation(int y)
   return (y >= 0 && y < fieldHeight) ? rowCurrentElevation[y] : 0.0f;
 }
 
+
+// cell of the game field considering current figure
+// returns NULL if out of field bounds
 const Cell * GameLogic::getFieldCell(int x, int y) 
 {
   if (x < 0 || y < 0 || x >= fieldWidth || y >= fieldHeight)
     return NULL;
 
-  const Cell * cell = field.data() + x + y * fieldWidth;
+  const Cell * cell = &field[x + y * fieldWidth];
 
   if (!cell->figureId && !haveFallingRows)
   {
@@ -497,12 +524,15 @@ const Cell * GameLogic::getFieldCell(int x, int y)
   return cell;
 }
 
-const Cell * GameLogic::getFigureCell(Figure & figure, int x, int y) 
+
+// TODO : move function to the Figure class
+const Cell * GameLogic::getFigureCell(Figure & figure, int x, int y)
 {
   if (x < 0 || y < 0 || x >= figure.dim || y >= figure.dim)
     return NULL;
 
   Cell * cell = &figure.cells[x + y * figure.dim];
+
   return cell;
 }
 

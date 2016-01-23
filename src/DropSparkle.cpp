@@ -15,5 +15,3 @@ DropSparkle::DropSparkle()
   alpha = minAlpha + (maxAlpha - minAlpha) * float(fastrand()) / FAST_RAND_MAX;
   speed = minSpeed + (maxSpeed - minSpeed) * float(fastrand()) / FAST_RAND_MAX;
 }
-
-

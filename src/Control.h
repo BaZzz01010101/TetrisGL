@@ -34,6 +34,7 @@ private:
     uint64_t keyNextRepeatCounter; 
     int pressCount;
     bool wasChanged;
+    KeyInternalState() : keyNextRepeatCounter(0), pressCount(0), wasChanged(0) {};
   };
 
   uint64_t repeatDelay;

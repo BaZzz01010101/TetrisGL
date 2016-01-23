@@ -3,7 +3,6 @@
 class Time
 {
 private:
-
   Time();
   ~Time();
 

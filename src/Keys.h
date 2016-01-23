@@ -138,6 +138,7 @@ enum Key
   KEY_COUNT
 };
 
+
 inline Key operator++(Key & key)
 {
   key = static_cast <Key>(key + 1);
@@ -147,6 +148,7 @@ inline Key operator++(Key & key)
 
   return key;
 }
+
 
 inline Key operator++(Key & key, int)
 {
@@ -158,6 +160,7 @@ inline Key operator++(Key & key, int)
 
   return k;
 }
+
 
 class Keys
 {

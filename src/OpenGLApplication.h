@@ -14,6 +14,7 @@ private:
   bool vSync;
   int wndWidth;
   int wndHeight;
+  // TODO : replace by fixed size array
   std::map<int, Key> glfwKeyMap;
 
   void initGlfwKeyMap();

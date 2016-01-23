@@ -19,6 +19,7 @@ const LeaderboardLogic::LeaderData LeaderboardLogic::defaultLeaders[LeaderboardL
   { "HELEN", 1, 300 },
 };
 
+
 LeaderboardLogic::LeaderboardLogic() :
   state(stHidden),
   showingTime(0.3f),
@@ -30,10 +31,6 @@ LeaderboardLogic::LeaderboardLogic() :
 }
 
 
-LeaderboardLogic::~LeaderboardLogic()
-{
-}
-
 void LeaderboardLogic::init()
 {
   fileName = Crosy::getExePath() + "leaderboard.dat";
@@ -41,6 +38,7 @@ void LeaderboardLogic::init()
   if (!load())
     memcpy(leaders, defaultLeaders, sizeof(leaders));
 }
+
 
 LeaderboardLogic::Result LeaderboardLogic::update()
 {
@@ -51,8 +49,11 @@ LeaderboardLogic::Result LeaderboardLogic::update()
   case stHidden:
     state = stShowing;
     break;
+  case stVisible:
+    break;
 
   case stShowing:
+
     if ((transitionProgress += Time::timerDelta / showingTime) >= 1.0f)
     {
       transitionProgress = 1.0f;
@@ -61,10 +62,8 @@ LeaderboardLogic::Result LeaderboardLogic::update()
 
     break;
 
-  case stVisible:
-    break;
-
   case stHiding:
+
     if ((transitionProgress -= Time::timerDelta / hidingTime) <= 0.0f)
     {
       transitionProgress = 0.0f;
@@ -82,12 +81,14 @@ LeaderboardLogic::Result LeaderboardLogic::update()
   return retResult;
 }
 
+
 void LeaderboardLogic::escape()
 {
   assert(state == stVisible);
 
   state = stHiding;
 }
+
 
 bool LeaderboardLogic::load()
 {
@@ -124,6 +125,7 @@ bool LeaderboardLogic::load()
   return success;
 }
 
+
 void LeaderboardLogic::save()
 {
   assert(leadersCount > 0);
@@ -151,6 +153,7 @@ void LeaderboardLogic::save()
   }
 }
 
+
 const LeaderboardLogic::LeaderData & LeaderboardLogic::getLeaderData(int place)
 {
   if (place >= leadersCount)
@@ -162,6 +165,7 @@ const LeaderboardLogic::LeaderData & LeaderboardLogic::getLeaderData(int place)
 
   return leaders[place];
 }
+
 
 bool LeaderboardLogic::addResult(int level, int score)
 {
@@ -185,6 +189,7 @@ bool LeaderboardLogic::addResult(int level, int score)
   return false;
 }
 
+
 void LeaderboardLogic::deleteChar()
 {
   assert(editRow >= 0);
@@ -198,6 +203,7 @@ void LeaderboardLogic::deleteChar()
       name[nameLen - 1] = '\0';
   }
 }
+
 
 void LeaderboardLogic::addChar(char ch)
 {
@@ -215,6 +221,7 @@ void LeaderboardLogic::addChar(char ch)
     }
   }
 }
+
 
 void LeaderboardLogic::commit()
 {

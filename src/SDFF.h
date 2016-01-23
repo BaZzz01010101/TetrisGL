@@ -1,6 +1,6 @@
 #pragma once
 
-//-------------------------------------------------------------------------------------------------
+typedef unsigned int SDFF_Char;
 
 enum SDFF_Error 
 { 
@@ -15,9 +15,6 @@ enum SDFF_Error
   SDFF_NOT_INITIALIZED 
 };
 
-//-------------------------------------------------------------------------------------------------
-
-typedef unsigned int SDFF_Char;
 
 class SDFF_Bitmap
 {
@@ -29,12 +26,12 @@ public:
   unsigned char * data() { return pixels.data(); }
   const unsigned char & operator[](int ind) const { return pixels[ind]; }
   unsigned char & operator[](int ind) { return pixels[ind]; }
+
 private:
   typedef std::vector<unsigned char> SDFF_PixelVector;
   SDFF_PixelVector pixels;
 };
 
-//-------------------------------------------------------------------------------------------------
 
 class SDFF_Glyph
 {
@@ -50,7 +47,6 @@ public:
   float height;
 };
 
-//-------------------------------------------------------------------------------------------------
 
 class SDFF_Font
 {
@@ -72,7 +68,11 @@ private:
   {
     SDFF_Char left;
     SDFF_Char right;
-    bool operator <(const CharPair & val) const { return val.left < left || (val.left == left && val.right < right); }
+
+    bool operator <(const CharPair & val) const 
+    { 
+      return val.left < left || (val.left == left && val.right < right); 
+    }
   };
 
   typedef std::map<SDFF_Char, SDFF_Glyph> GlyphMap;
@@ -85,7 +85,6 @@ private:
   void getValue(const rapidjson::Value & source, const char * name, int * value) const;
 };
 
-//-------------------------------------------------------------------------------------------------
 
 class SDFF_Builder
 {
@@ -101,7 +100,24 @@ public:
   SDFF_Error composeTexture(SDFF_Bitmap & bitmap, bool powerOfTwo);
 
 private:
+  struct Rect
+  {
+    int left;
+    int top;
+    int width;
+    int height;
+    SDFF_Font * font;
+    SDFF_Char charCode;
 
+    int bottom() const { return top + height - 1; }
+    int right() const { return left + width - 1; }
+    bool intersect(const Rect & rect) const;
+    bool contain(int x, int y) const;
+    bool fitIn(const Rect & rect) const;
+    bool operator ==(const Rect & rect) const;
+  };
+
+  friend struct std::hash<Rect>;
   typedef std::map<SDFF_Char, SDFF_Bitmap> CharMap;
   
   struct FontData
@@ -123,4 +139,18 @@ private:
   float createSdf(const FT_Bitmap & ftBitmap, int falloff, DistanceFieldVector & result) const;
   float createDf(const FT_Bitmap & ftBitmap, int falloff, bool invert, DistanceFieldVector & result) const;
   void copyBitmap(const SDFF_Bitmap & srcBitmap, SDFF_Bitmap & destBitmap, int posX, int posY) const;
+};
+
+
+template<>
+struct std::hash<SDFF_Builder::Rect>
+{
+  std::size_t operator()(const SDFF_Builder::Rect & rect) const
+  {
+    return hash<uint64_t>()(
+      (uint64_t(rect.left & 0xFFFF)) << 48 |
+      (uint64_t(rect.top & 0xFFFF)) << 32 |
+      (uint64_t(rect.width & 0xFFFF)) << 16 |
+      (uint64_t(rect.height & 0xFFFF)) << 0);
+  }
 };

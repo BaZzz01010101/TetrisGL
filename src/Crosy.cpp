@@ -46,6 +46,7 @@ std::string Crosy::getExePath()
 #endif
 }
 
+
 uint64_t Crosy::getPerformanceCounter()
 {
 #ifdef _WIN32
@@ -67,6 +68,7 @@ uint64_t Crosy::getPerformanceCounter()
 #endif
 }
 
+
 uint64_t Crosy::getPerformanceFrequency()
 {
 #ifdef _WIN32
@@ -84,6 +86,7 @@ uint64_t Crosy::getPerformanceFrequency()
 #error unknown platform
 #endif
 }
+
 
 uint64_t Crosy::getSystemTime()
 {
@@ -107,6 +110,7 @@ uint64_t Crosy::getSystemTime()
 #endif
 }
 
+
 void Crosy::sleep(unsigned int ms)
 {
 #ifdef _WIN32
@@ -121,6 +125,7 @@ void Crosy::sleep(unsigned int ms)
 #error unknown platform
 #endif
 }
+
 
 void Crosy::snprintf(char * buf, size_t size, const char * format, ...)
 {

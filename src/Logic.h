@@ -5,7 +5,13 @@
 class Logic
 {
 public:
-  enum Result { resNone, resExitApp };
+
+  enum Result 
+  { 
+    resNone, 
+    resExitApp 
+  };
+
   static Result result;
 
   static void init();

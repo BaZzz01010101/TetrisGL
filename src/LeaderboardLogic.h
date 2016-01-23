@@ -4,8 +4,19 @@ class LeaderboardLogic
 public:
   typedef uint32_t Checksum;
 
-  enum State { stHidden, stShowing, stVisible, stHiding };
-  enum Result { resNone, resClose };
+  enum State 
+  { 
+    stHidden, 
+    stShowing, 
+    stVisible, 
+    stHiding 
+  };
+  
+  enum Result 
+  { 
+    resNone, 
+    resClose 
+  };
 
   State state;
   const float showingTime;
@@ -24,7 +35,6 @@ public:
   };
 
   LeaderboardLogic();
-  ~LeaderboardLogic();
 
   void init();
   Result update();

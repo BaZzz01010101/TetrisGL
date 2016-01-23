@@ -1,7 +1,8 @@
 #pragma once
 
 #pragma warning(push, 3)
-#pragma warning (disable : 4005)
+#pragma warning (disable : 4005) // 'APIENTRY': macro redefinition.
+#pragma warning(disable : 4996)  // 'fopen': This function or variable may be unsafe.
 
 #include <iostream>
 #include <string>

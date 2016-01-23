@@ -4,14 +4,6 @@
 
 class Palette
 {
-private:
-
-  Palette();
-  ~Palette();
-
-  static void loadValue(rapidjson::Value & source, const char * name, float * result);
-  static void loadValue(rapidjson::Value & source, const char * name, glm::vec3 * result);
-
 public:
   static glm::vec3 gameBackgroundOuter;
   static glm::vec3 gameBackgroundInner;
@@ -36,7 +28,7 @@ public:
   static glm::vec3 goalPanelText;
   static glm::vec3 figureShadow;
 
-  static glm::vec3 cellColorArray[Cell::Color::COLOR_COUNT];
+  static glm::vec3 cellColorArray[Cell::COLOR_COUNT];
 
   static glm::vec3 menuNormalRowBackgroundTop;
   static glm::vec3 menuNormalRowBackgroundBottom;
@@ -95,5 +87,13 @@ public:
   static float fieldBackgroundInnerBright;
 
   static void load(const char * name);
+
+private:
+
+  Palette();
+  ~Palette();
+
+  static void loadValue(rapidjson::Value & source, const char * name, float * result);
+  static void loadValue(rapidjson::Value & source, const char * name, glm::vec3 * result);
 };
 
