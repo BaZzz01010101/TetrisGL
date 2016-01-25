@@ -157,38 +157,38 @@ void OpenGLApplication::OnFramebufferSize(GLFWwindow * wnd, int width, int heigh
 
 void OpenGLApplication::OnKeyClick(GLFWwindow * wnd, int key, int scancode, int action, int mods)
 {
-  if (key == GLFW_KEY_UNKNOWN)
-    return;
+  if (key >= 0 && key <= GLFW_KEY_LAST && key != GLFW_KEY_UNKNOWN)
+  {
+    OpenGLApplication & app = *reinterpret_cast<OpenGLApplication *>(glfwGetWindowUserPointer(wnd));
 
-  OpenGLApplication & app = *reinterpret_cast<OpenGLApplication *>(glfwGetWindowUserPointer(wnd));
-
-  if (action == GLFW_PRESS && key == GLFW_KEY_F11)
-    app.vSync = !app.vSync;
+    if (action == GLFW_PRESS && key == GLFW_KEY_F11)
+      app.vSync = !app.vSync;
 
 #ifdef _DEBUG
-  if (action == GLFW_PRESS && key == GLFW_KEY_RIGHT_ALT)
-    app.render.showWireframe = true;
+    if (action == GLFW_PRESS && key == GLFW_KEY_RIGHT_ALT)
+      app.render.showWireframe = true;
 
-  if (action == GLFW_RELEASE && key == GLFW_KEY_RIGHT_ALT)
-    app.render.showWireframe = false;
+    if (action == GLFW_RELEASE && key == GLFW_KEY_RIGHT_ALT)
+      app.render.showWireframe = false;
 
-  if (action == GLFW_PRESS && key == GLFW_KEY_F5)
-  {
-    Layout::load("default");
-    Palette::load("default");
-  }
+    if (action == GLFW_PRESS && key == GLFW_KEY_F5)
+    {
+      Layout::load("default");
+      Palette::load("default");
+    }
 #endif
 
-  switch (action)
-  {
-  case GLFW_PRESS:
-    app.control.keyDown(app.glfwKeyMap[key]);
-    break;
-  case GLFW_RELEASE:
-    app.control.keyUp(app.glfwKeyMap[key]);
-    break;
-  default:
-    break;
+    switch (action)
+    {
+      case GLFW_PRESS:
+        app.control.keyDown(app.glfwKeyMap[key]);
+        break;
+      case GLFW_RELEASE:
+        app.control.keyUp(app.glfwKeyMap[key]);
+        break;
+      default:
+        break;
+    }
   }
 }
 
@@ -252,7 +252,7 @@ void OpenGLApplication::OnMouseScroll(GLFWwindow* wnd, double dx, double dy)
 
 void OpenGLApplication::initGlfwKeyMap()
 {
-  glfwKeyMap[GLFW_KEY_UNKNOWN] = KB_NONE;
+  memset(glfwKeyMap, 0, sizeof(glfwKeyMap));
   glfwKeyMap[GLFW_KEY_SPACE] = KB_SPACE;
   glfwKeyMap[GLFW_KEY_APOSTROPHE] = KB_APOSTROPHE;
   glfwKeyMap[GLFW_KEY_COMMA] = KB_COMMA;
