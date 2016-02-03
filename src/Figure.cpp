@@ -11,20 +11,21 @@ Figure::Figure() :
   dim(0),
   angle(0),
   id(0),
+  // TODO : change all occurrences of the Cell::Color::clSomeColor to Cell::clSomeColor
   color(Cell::Color::clNone)
 {
 }
 
 
-void Figure::buildRandomFigure()
+void Figure::buildRandom()
 {
   assert(TYPE_COUNT > 0);
   Type type = Type(rand() % TYPE_COUNT);
-  buildFigure(type);
+  build(type);
 }
 
 
-void Figure::buildFigure(Type type)
+void Figure::build(Type type)
 {
   char * cdata = NULL;
   id = Figure::nextId++;
@@ -153,20 +154,6 @@ void Figure::rotateRight()
 }
 
 
-Figure & Figure::operator = (const Figure & figure)
-{
-  haveSpecificRotation = figure.haveSpecificRotation;
-  specificRotatedFlag = figure.specificRotatedFlag;
-  id = figure.id;
-  type = figure.type;
-  dim = figure.dim;
-  angle = figure.angle;
-  color = figure.color;
-  memcpy(cells, figure.cells, sizeof(cells));
-  return *this;
-}
-
-
 void Figure::swap(Figure & figure1, Figure & figure2)
 {
   // TODO : replace by tmp = fig1; fig1 = fig2; fig2 = tmpl; 
@@ -217,4 +204,15 @@ void Figure::clear()
   dim = 0;
   color = Cell::Color::clNone;
   angle = 0;
+}
+
+
+const Cell * Figure::getCell(int x, int y) const
+{
+  if (x < 0 || y < 0 || x >= dim || y >= dim)
+    return NULL;
+
+  // TODO : non continuous figure storing in the cell buffer could be more optimal
+  // so we could use dimMax == 4 instead of dim to multiply
+  return &cells[x + y * dim];
 }

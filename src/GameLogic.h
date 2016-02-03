@@ -93,7 +93,6 @@ public:
   static int getRowElevation(int y);
   static float getRowCurrentElevation(int y);
   static const Cell * getFieldCell(int x, int y);
-  static const Cell * getFigureCell(Figure & figure, int x, int y);
 
 private:
   static const int maxLevel;

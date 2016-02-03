@@ -61,7 +61,7 @@ void GameLogic::resetGame()
   lastStepTimer = Time::timer;
   
   for (int i = 0; i < GameLogic::nextFiguresCount; i++)
-    nextFigures[i].buildRandomFigure();
+    nextFigures[i].buildRandom();
 
   shiftFigureConveyor();
 }
@@ -159,8 +159,8 @@ void GameLogic::storeCurFigureIntoField()
 
   for (int x = 0; x < dim; x++)
     for (int y = 0; y < dim; y++)
-      if (!curFigure.cells[x + y * dim].isEmpty())
-        field[curFigureX + x + (curFigureY + y) * fieldWidth] = curFigure.cells[x + y * dim];
+      if (!curFigure.getCell(x, y)->isEmpty())
+        field[curFigureX + x + (curFigureY + y) * fieldWidth] = *curFigure.getCell(x, y);
 }
 
 
@@ -173,7 +173,7 @@ void GameLogic::shiftFigureConveyor()
   for (int i = 1; i < GameLogic::nextFiguresCount; i++)
     Figure::swap(nextFigures[i - 1], nextFigures[i]);
 
-  nextFigures[GameLogic::nextFiguresCount - 1].buildRandomFigure();
+  nextFigures[GameLogic::nextFiguresCount - 1].buildRandom();
 
   curFigureX = (fieldWidth - curFigure.dim) / 2;
   // TODO : fix L - figure appearance vertical coordinate
@@ -190,15 +190,15 @@ void GameLogic::shiftFigureConveyor()
 
 bool GameLogic::checkCurrentFigurePos(int dx, int dy)
 {
-  for (int curx = 0; curx < curFigure.dim; curx++)
-    for (int cury = 0; cury < curFigure.dim; cury++)
-      if (!curFigure.cells[curx + cury * curFigure.dim].isEmpty() && 
-          curFigureY + cury + dy >= 0)
+  for (int x = 0; x < curFigure.dim; x++)
+    for (int y = 0; y < curFigure.dim; y++)
+      if (!curFigure.getCell(x, y)->isEmpty() &&
+          curFigureY + y + dy >= 0)
       {
-        if (curFigureX + curx + dx < 0 ||
-            curFigureX + curx + dx >= fieldWidth ||
-            curFigureY + cury + dy >= fieldHeight ||
-            !field[curFigureX + curx + dx + (curFigureY + cury + dy) * fieldWidth].isEmpty())
+        if (curFigureX + x + dx < 0 ||
+            curFigureX + x + dx >= fieldWidth ||
+            curFigureY + y + dy >= fieldHeight ||
+            !field[curFigureX + x + dx + (curFigureY + y + dy) * fieldWidth].isEmpty())
         {
           return false;
         }
@@ -323,7 +323,7 @@ void GameLogic::dropCurrentFigure()
 
     for (int x = 0; x < dim; x++)
       for (int y = 0; y < dim; y++)
-        if (!curFigure.cells[x + y * dim].isEmpty())
+        if (!curFigure.getCell(x, y)->isEmpty())
         {
           addDropTrail(curFigureX + x, curFigureY + y, y1 - y0, curFigure.color);
           break;
@@ -500,39 +500,24 @@ float GameLogic::getRowCurrentElevation(int y)
 }
 
 
-// cell of the game field considering current figure
+// Gets cell of the game field considering current figure
 // returns NULL if out of field bounds
 const Cell * GameLogic::getFieldCell(int x, int y) 
 {
-  if (x < 0 || y < 0 || x >= fieldWidth || y >= fieldHeight)
-    return NULL;
+  const Cell * fieldCell = NULL;
 
-  const Cell * cell = &field[x + y * fieldWidth];
-
-  if (!cell->figureId && !haveFallingRows)
+  if (x >= 0 && y >= 0 && x < fieldWidth && y < fieldHeight)
   {
-    bool isInCurFigure =
-      x >= curFigureX &&
-      x < curFigureX + curFigure.dim &&
-      y >= curFigureY &&
-      y < curFigureY + curFigure.dim;
+    fieldCell = &field[x + y * fieldWidth];
 
-    if (isInCurFigure)
-      cell = &curFigure.cells[x - curFigureX + (y - curFigureY) * curFigure.dim];
+    if (!fieldCell->figureId && !haveFallingRows)
+    {
+      const Cell * figureCell = curFigure.getCell(x - curFigureX, y - curFigureY);
+
+      if (figureCell)
+        return figureCell;
+    }
   }
 
-  return cell;
+  return fieldCell;
 }
-
-
-// TODO : move function to the Figure class
-const Cell * GameLogic::getFigureCell(Figure & figure, int x, int y)
-{
-  if (x < 0 || y < 0 || x >= figure.dim || y >= figure.dim)
-    return NULL;
-
-  Cell * cell = &figure.cells[x + y * figure.dim];
-
-  return cell;
-}
-

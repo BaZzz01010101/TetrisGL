@@ -1390,10 +1390,10 @@ void OpenGLRender::buildFigureBlocks()
 
         for (int y = 0; y < figure->dim; y++)
         {
-          if (!figure->cells[y + x * figure->dim].isEmpty())
+          if (!figure->getCell(x, y)->isEmpty())
             horzEmpty = false;
 
-          if (!figure->cells[x + y * figure->dim].isEmpty())
+          if (!figure->getCell(x, y)->isEmpty())
             vertEmpty = false;
         }
 
@@ -1436,7 +1436,7 @@ void OpenGLRender::buildFigureBlocks()
       {
         for (int x = 0; x < figure->dim; x++)
         {
-          const Cell * cell = GameLogic::getFigureCell(*figure, x, y);
+          const Cell * cell = figure->getCell(x, y);
 
           if (cell && !cell->isEmpty())
           {
@@ -1445,9 +1445,9 @@ void OpenGLRender::buildFigureBlocks()
               int cornerDX = (i & 1) * 2 - 1;
               int cornerDY = (i & 2) - 1;
 
-              const Cell * horzAdjCell = GameLogic::getFigureCell(*figure, x + cornerDX, y);
-              const Cell * vertAdjCell = GameLogic::getFigureCell(*figure, x, y + cornerDY);
-              const Cell * cornerAdjCell = GameLogic::getFigureCell(*figure, x + cornerDX, y + cornerDY);
+              const Cell * horzAdjCell = figure->getCell(x + cornerDX, y);
+              const Cell * vertAdjCell = figure->getCell(x, y + cornerDY);
+              const Cell * cornerAdjCell = figure->getCell(x + cornerDX, y + cornerDY);
 
               bool haveHorzAdjCell = (horzAdjCell && !horzAdjCell->isEmpty());
               bool haveVertAdjCell = (vertAdjCell && !vertAdjCell->isEmpty());
@@ -1569,10 +1569,10 @@ void OpenGLRender::buildFigureGlow()
 
         for (int y = 0; y < figure->dim; y++)
         {
-          if (!figure->cells[y + x * figure->dim].isEmpty())
+          if (!figure->getCell(x, y)->isEmpty())
             horzEmpty = false;
 
-          if (!figure->cells[x + y * figure->dim].isEmpty())
+          if (!figure->getCell(x, y)->isEmpty())
             vertEmpty = false;
         }
 
@@ -1614,18 +1614,18 @@ void OpenGLRender::buildFigureGlow()
       {
         for (int x = 0; x < figure->dim; x++)
         {
-          const Cell * cell = GameLogic::getFigureCell(*figure, x, y);
+          const Cell * cell = figure->getCell(x, y);
 
           if (cell && !cell->isEmpty())
           {
-            const Cell * leftCell = GameLogic::getFigureCell(*figure, x - 1, y);
-            const Cell * leftTopCell = GameLogic::getFigureCell(*figure, x - 1, y - 1);
-            const Cell * topCell = GameLogic::getFigureCell(*figure, x, y - 1);
-            const Cell * topRightCell = GameLogic::getFigureCell(*figure, x + 1, y - 1);
-            const Cell * rightCell = GameLogic::getFigureCell(*figure, x + 1, y);
-            const Cell * rightBottomCell = GameLogic::getFigureCell(*figure, x + 1, y + 1);
-            const Cell * bottomCell = GameLogic::getFigureCell(*figure, x, y + 1);
-            const Cell * bottomLeftCell = GameLogic::getFigureCell(*figure, x - 1, y + 1);
+            const Cell * leftCell = figure->getCell(x - 1, y);
+            const Cell * leftTopCell = figure->getCell(x - 1, y - 1);
+            const Cell * topCell = figure->getCell(x, y - 1);
+            const Cell * topRightCell = figure->getCell(x + 1, y - 1);
+            const Cell * rightCell = figure->getCell(x + 1, y);
+            const Cell * rightBottomCell = figure->getCell(x + 1, y + 1);
+            const Cell * bottomCell = figure->getCell(x, y + 1);
+            const Cell * bottomLeftCell = figure->getCell(x - 1, y + 1);
 
             bool haveLeftCell = leftCell && !leftCell->isEmpty();
             bool haveLeftTopCell = leftTopCell && !leftTopCell->isEmpty();
@@ -2817,9 +2817,7 @@ void OpenGLRender::buildDropPredictor()
 
       for (int y = dim - 1; y >= 0; y--)
       {
-        int index = x + y * dim;
-
-        if (!GameLogic::curFigure.cells[index].isEmpty())
+        if (!GameLogic::curFigure.getCell(x, y)->isEmpty())
         {
           int fieldX = GameLogic::curFigureX + x;
           int fieldY = GameLogic::curFigureY + y + 1;

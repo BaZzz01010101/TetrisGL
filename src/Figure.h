@@ -17,28 +17,29 @@ public:
     TYPE_COUNT 
   };
 
+  static const int dimMax = 4;
   int id;
   Type type;
   int dim;
   int angle;
   Cell::Color color;
-  static const int dimMax = 4;
-  Cell cells[dimMax * dimMax];
 
   Figure();
 
-  void buildFigure(Type type);
-  void buildRandomFigure();
+  void build(Type type);
+  void buildRandom();
   void rotateLeft();
   void rotateRight();
-  Figure & operator = (const Figure & figure);
   static void swap(Figure & figure1, Figure & figure2);
   void clear();
+  const Cell * getCell(int x, int y) const;
 
 private:
   static int nextId;
   bool haveSpecificRotation;
   bool specificRotatedFlag;
+  Cell cells[dimMax * dimMax];
+
   void internalRotateLeft();
   void internalRotateRight();
 };
