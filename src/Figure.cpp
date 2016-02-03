@@ -86,6 +86,7 @@ void Figure::build(Type type)
       assert(0);
   }
 
+  assert(dim <= dimMax);
   assert((int)strlen(cdata) == dim * dim);
 
   for (int i = 0, cnt = dim * dim; i < cnt; i++)
@@ -155,42 +156,9 @@ void Figure::rotateRight()
 
 void Figure::swap(Figure & figure1, Figure & figure2)
 {
-  // TODO : replace by tmp = fig1; fig1 = fig2; fig2 = tmpl; 
-  //        or just std::swap(fig1, fig2);
-  for (int i = 0; i < dimMax * dimMax; i++)
-  {
-    Cell tmp = figure1.cells[i];
-    figure1.cells[i] = figure2.cells[i];
-    figure2.cells[i] = tmp;
-  }
-
-  bool tmp_haveSpecificRotation = figure1.haveSpecificRotation;
-  figure1.haveSpecificRotation = figure2.haveSpecificRotation;
-  figure2.haveSpecificRotation = tmp_haveSpecificRotation;
-  
-  bool tmp_specificRotatedFlag = figure1.specificRotatedFlag;
-  figure1.specificRotatedFlag = figure2.specificRotatedFlag;
-  figure2.specificRotatedFlag = tmp_specificRotatedFlag;
-
-  int tmp_id = figure1.id;
-  figure1.id = figure2.id;
-  figure2.id = tmp_id;
-
-  Type tmp_type = figure1.type;
-  figure1.type = figure2.type;
-  figure2.type = tmp_type;
-
-  int tmp_dim = figure1.dim;
-  figure1.dim = figure2.dim;
-  figure2.dim = tmp_dim;
-
-  int tmp_angle = figure1.angle;
-  figure1.angle = figure2.angle;
-  figure2.angle = tmp_angle;
-
-  Cell::Color tmp_color = figure1.color;
-  figure1.color = figure2.color;
-  figure2.color = tmp_color;
+  Figure temp = figure1;
+  figure1 = figure2;
+  figure2 = temp;
 }
 
 
