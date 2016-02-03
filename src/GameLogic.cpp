@@ -57,7 +57,7 @@ void GameLogic::resetGame()
   rowElevation.assign(fieldHeight, 0);
   rowCurrentElevation.assign(fieldHeight, 0.0f);
   nextFigures.resize(GameLogic::nextFiguresCount);
-  field.assign(fieldWidth * fieldHeight, Cell(0, Cell::Color::clNone));
+  field.assign(fieldWidth * fieldHeight, Cell(0, Cell::clNone));
   lastStepTimer = Time::timer;
   
   for (int i = 0; i < GameLogic::nextFiguresCount; i++)

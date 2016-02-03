@@ -11,8 +11,7 @@ Figure::Figure() :
   dim(0),
   angle(0),
   id(0),
-  // TODO : change all occurrences of the Cell::Color::clSomeColor to Cell::clSomeColor
-  color(Cell::Color::clNone)
+  color(Cell::clNone)
 {
 }
 
@@ -29,7 +28,7 @@ void Figure::build(Type type)
 {
   char * cdata = NULL;
   id = Figure::nextId++;
-  color = Cell::Color::clNone;
+  color = Cell::clNone;
   this->type = type;
 
   switch (type)
@@ -37,49 +36,49 @@ void Figure::build(Type type)
     case typeI:
       haveSpecificRotation = true;
       dim = 4;
-      color = Cell::Color::clCyan;
+      color = Cell::clCyan;
       cdata = "0000111100000000";
       break;
 
     case typeJ:
       haveSpecificRotation = false;
       dim = 3;
-      color = Cell::Color::clBlue;
+      color = Cell::clBlue;
       cdata = "100111000";
       break;
 
     case typeL:
       haveSpecificRotation = false;
       dim = 3;
-      color = Cell::Color::clOrange;
+      color = Cell::clOrange;
       cdata = "001111000";
       break;
 
     case typeO:
       haveSpecificRotation = false;
       dim = 2;
-      color = Cell::Color::clYellow;
+      color = Cell::clYellow;
       cdata = "1111";
       break;
 
     case typeS:
       haveSpecificRotation = true;
       dim = 3;
-      color = Cell::Color::clGreen;
+      color = Cell::clGreen;
       cdata = "011110000";
       break;
 
     case typeT:
       haveSpecificRotation = false;
       dim = 3;
-      color = Cell::Color::clPurple;
+      color = Cell::clPurple;
       cdata = "010111000";
       break;
 
     case typeZ:
       haveSpecificRotation = true;
       dim = 3;
-      color = Cell::Color::clRed;
+      color = Cell::clRed;
       cdata = "110011000";
       break;
 
@@ -202,7 +201,7 @@ void Figure::clear()
   id = 0;
   type = typeNone;
   dim = 0;
-  color = Cell::Color::clNone;
+  color = Cell::clNone;
   angle = 0;
 }
 

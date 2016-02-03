@@ -835,7 +835,7 @@ void OpenGLRender::buildBackground()
     const float width = holdPanelLayout->width;
     const float height = holdPanelLayout->height;
     const glm::vec3 & color = (GameLogic::state != GameLogic::stStopped && 
-                               GameLogic::holdFigure.color != Cell::Color::clNone) ?
+                               GameLogic::holdFigure.color != Cell::clNone) ?
                               Palette::cellColorArray[GameLogic::holdFigure.color] : 
                               Palette::holdEmptyPanel;
     buildTexturedRect(left, top, width, height, tiHoldBackground, color, 1.0f);
@@ -859,7 +859,7 @@ void OpenGLRender::buildBackground()
     const float width = nextPanelLayout->width;
     const float height = nextPanelLayout->height;
     const glm::vec3 & color = (GameLogic::state != GameLogic::stStopped && 
-                               GameLogic::nextFigures[0].color != Cell::Color::clNone) ?
+                               GameLogic::nextFigures[0].color != Cell::clNone) ?
                               Palette::cellColorArray[GameLogic::nextFigures[0].color] : 
                               Palette::nextEmptyPanel;
     buildTexturedRect(left, top, width, height, tiNextBackground, color, 1.0f);

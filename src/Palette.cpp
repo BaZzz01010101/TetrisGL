@@ -128,13 +128,13 @@ void Palette::load(const char * name)
   loadValue(doc, "GoalPanelText", &goalPanelText);
   loadValue(doc, "FigureShadow", &figureShadow);
 
-  loadValue(doc, "CellRed", &cellColorArray[Cell::Color::clRed]);
-  loadValue(doc, "CellOrange", &cellColorArray[Cell::Color::clOrange]);
-  loadValue(doc, "CellYellow", &cellColorArray[Cell::Color::clYellow]);
-  loadValue(doc, "CellGreen", &cellColorArray[Cell::Color::clGreen]);
-  loadValue(doc, "CellCyan", &cellColorArray[Cell::Color::clCyan]);
-  loadValue(doc, "CellBlue", &cellColorArray[Cell::Color::clBlue]);
-  loadValue(doc, "CellPurple", &cellColorArray[Cell::Color::clPurple]);
+  loadValue(doc, "CellRed", &cellColorArray[Cell::clRed]);
+  loadValue(doc, "CellOrange", &cellColorArray[Cell::clOrange]);
+  loadValue(doc, "CellYellow", &cellColorArray[Cell::clYellow]);
+  loadValue(doc, "CellGreen", &cellColorArray[Cell::clGreen]);
+  loadValue(doc, "CellCyan", &cellColorArray[Cell::clCyan]);
+  loadValue(doc, "CellBlue", &cellColorArray[Cell::clBlue]);
+  loadValue(doc, "CellPurple", &cellColorArray[Cell::clPurple]);
 
   loadValue(doc, "MenuNormalRowBackgroundTop", &menuNormalRowBackgroundTop);
   loadValue(doc, "MenuNormalRowBackgroundBottom", &menuNormalRowBackgroundBottom);
