@@ -3,6 +3,7 @@
 class Shader
 {
 private:
+  // TODO : forbid copy constructor and operator
   GLenum type;
   GLuint id;
   std::vector<char> errMsg;

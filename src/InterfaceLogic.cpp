@@ -109,7 +109,6 @@ void InterfaceLogic::mainMenuUpdate()
 {
   switch (mainMenu.update())
   {
-    // TODO : add resNone state processing and assert(0) into default:
     case MenuLogic::resNewGame:
       closeInterface(resNewGame);
       break;
@@ -122,7 +121,10 @@ void InterfaceLogic::mainMenuUpdate()
     case MenuLogic::resQuitConfirmation:
       goNextState(stQuitConfirmation);
       break;
+    case MenuLogic::resNone:
+      break;
     default:
+      assert(0);
       break;
   }
 
@@ -137,7 +139,6 @@ void InterfaceLogic::inGameMenuUpdate()
 {
   switch (inGameMenu.update())
   {
-    // TODO : add resNone state processing and assert(0) into default:
     case MenuLogic::resBack:
     case MenuLogic::resContinue:
       closeInterface(resContinueGame);
@@ -151,7 +152,10 @@ void InterfaceLogic::inGameMenuUpdate()
     case MenuLogic::resExitToMainConfirmation:
       goNextState(stExitToMainConfirmation);
       break;
-    default: 
+    case resNone:
+      break;
+    default:
+      assert(0);
       break;
   }
 
@@ -188,14 +192,16 @@ void InterfaceLogic::quitConfirmationUpdate()
 {
   switch (quitConfirmationMenu.update())
   {
-    // TODO : add resNone state processing and assert(0) into default:
     case MenuLogic::resBack:
       goPreviousState();
       break;
     case MenuLogic::resQuit:
       closeInterface(resCloseApp);
       break;
+    case resNone:
+      break;
     default:
+      assert(0);
       break;
   }
 }
@@ -205,14 +211,16 @@ void InterfaceLogic::restartConfirmationUpdate()
 {
   switch (restartConfirmationMenu.update())
   {
-    // TODO : add resNone state processing and assert(0) into default:
     case MenuLogic::resBack:
       goPreviousState();
       break;
     case MenuLogic::resRestart:
       closeInterface(resNewGame);
       break;
+    case resNone:
+      break;
     default:
+      assert(0);
       break;
   }
 
@@ -230,14 +238,16 @@ void InterfaceLogic::exitToMainConfirmationUpdate()
 {
   switch (exitToMainConfirmationMenu.update())
   {
-    // TODO : add resNone state processing and assert(0) into default:
     case MenuLogic::resBack:
       goPreviousState();
       break;
     case MenuLogic::resExitToMain:
       exitToMainMenu();
       break;
+    case resNone:
+      break;
     default:
+      assert(0);
       break;
   }
 }

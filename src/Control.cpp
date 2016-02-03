@@ -117,7 +117,6 @@ void Control::update()
     case InterfaceLogic::stSettings:
       switch (InterfaceLogic::settingsLogic.state)
       {
-        // TODO : add all states processing and assert(0) on default
         case SettingsLogic::stSaveConfirmation:
           updateMenuControl(InterfaceLogic::settingsLogic.saveConfirmationMenu, loSaveSettingsMenu);
           break;
@@ -127,7 +126,12 @@ void Control::update()
         case SettingsLogic::stKeyWaiting:
           updateSettingsKeyBindControl();
           break;
+        case SettingsLogic::stHidden:
+        case SettingsLogic::stShowing:
+        case SettingsLogic::stHiding:
+          break;
         default:
+          assert(0);
           break;
       }
       break;

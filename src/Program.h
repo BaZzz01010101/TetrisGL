@@ -4,6 +4,7 @@
 class Program
 {
 private:
+  // TODO : forbid copy constructor and operator
   GLint id;
   mutable std::vector<char> errMsg;
 

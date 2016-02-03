@@ -88,7 +88,6 @@ void SettingsLogic::saveConfirmationUpdate()
 {
   switch (saveConfirmationMenu.update())
   {
-    // TODO : process all states and add assert(0) on default
     case MenuLogic::resSave:
       saveAndExit();
       break;
@@ -98,7 +97,10 @@ void SettingsLogic::saveConfirmationUpdate()
     case MenuLogic::resBack:
       state = stVisible;
       break;
+    case MenuLogic::resNone:
+      break;
     default:
+      assert(0);
       break;
   }
 }
@@ -219,7 +221,6 @@ float SettingsLogic::getMusicVolume()
 
 Key getKeyBind(Binding::Action action)
 {
-
   return Binding::getActionKey(action);
 }
 
