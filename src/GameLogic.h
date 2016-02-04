@@ -107,11 +107,14 @@ private:
   ~GameLogic();
 
   static void resetGame();
-  static void gameUpdate();
+  static Result initUpdate();
+  static Result playingUpdate();
+  static Result countdownUpdate();
+  static Result gameOverUpdate();
   static float getStepTime();
   static void shiftFigureConveyor();
-  static bool checkCurrentFigurePos(int dx, int dy);
-  static bool tryToPlaceCurrentFigure();
+  static bool check(const Figure & figure, int figureX, int figureY);
+  static bool fit(const Figure & figure, int figureX, int figureY, int * newX);
   static void checkFieldRows();
   static void proceedFallingRows();
   static void addDropTrail(int x, int y, int height, Cell::Color color);

@@ -58,8 +58,9 @@ void GameLogic::resetGame()
   rowCurrentElevation.assign(fieldHeight, 0.0f);
   nextFigures.resize(GameLogic::nextFiguresCount);
   field.assign(fieldWidth * fieldHeight, Cell(0, Cell::clNone));
-  lastStepTimer = Time::timer;
-  
+  dropTrailsHead = 0;
+  dropTrailsTail = 0;
+
   for (int i = 0; i < GameLogic::nextFiguresCount; i++)
     nextFigures[i].buildRandom();
 
@@ -69,53 +70,37 @@ void GameLogic::resetGame()
 
 GameLogic::Result GameLogic::update()
 {
-  Result result = resNone;
-
   switch (state)
   {
     case stInit:
-      resetGame();
-      state = stCountdown;
-      countdownTimeLeft = countdownTime + 0.99f;
-      break;
-
+      return initUpdate();
     case stCountdown:
-      countdownTimeLeft -= Time::timerDelta;
-
-      if (countdownTimeLeft < 0.0f)
-        state = stPlaying;
-
-      break;
-
+      return countdownUpdate();
     case stPlaying:
-      gameUpdate();
-      break;
-    case stPaused:
-      break;
-
+      return playingUpdate();
     case stGameOver:
-      gameOverTimeLeft -= Time::timerDelta;
-
-      if (gameOverTimeLeft < 0.0f)
-      {
-        state = stStopped;
-        result = resGameOver;
-      }
-
-      break;
-
+      return gameOverUpdate();
+    case stPaused:
     case stStopped:
-      break;
+      return resNone;
     default:
       assert(0);
-      break;
+      return resNone;
   }
-
-  return result;
 }
 
 
-void GameLogic::gameUpdate()
+GameLogic::Result GameLogic::initUpdate()
+{
+  resetGame();
+  state = stCountdown;
+  countdownTimeLeft = countdownTime + 0.99f;
+
+  return resNone;
+}
+
+
+GameLogic::Result GameLogic::playingUpdate()
 {
   const float stepTime = getStepTime();
 
@@ -125,7 +110,7 @@ void GameLogic::gameUpdate()
   {
     // TODO : fix posible wrong behavior on extremely low FPS
     //        (falling speed will be limited by fps)
-    if (checkCurrentFigurePos(0, 1))
+    if (check(curFigure, curFigureX, curFigureY + 1))
       curFigureY++;
     else
     {
@@ -139,6 +124,37 @@ void GameLogic::gameUpdate()
 
   proceedFallingRows();
   updateEffects();
+
+  return resNone;
+}
+
+
+GameLogic::Result GameLogic::countdownUpdate()
+{
+  countdownTimeLeft -= Time::timerDelta;
+
+  if (countdownTimeLeft < 0.0f)
+  {
+    lastStepTimer = Time::timer;
+    state = stPlaying;
+  }
+
+  return resNone;
+}
+
+
+GameLogic::Result GameLogic::gameOverUpdate()
+{
+  gameOverTimeLeft -= Time::timerDelta;
+
+  if (gameOverTimeLeft < 0.0f)
+  {
+    resetGame();
+    state = stStopped;
+    return resGameOver;
+  }
+
+  return resNone;
 }
 
 
@@ -179,7 +195,7 @@ void GameLogic::shiftFigureConveyor()
   // TODO : fix L - figure appearance vertical coordinate
   curFigureY = 0;
 
-  if (!checkCurrentFigurePos(0, 0))
+  if (!check(curFigure, curFigureX, curFigureY))
   {
     curFigure.clear();
     state = stGameOver;
@@ -188,17 +204,19 @@ void GameLogic::shiftFigureConveyor()
 }
 
 
-bool GameLogic::checkCurrentFigurePos(int dx, int dy)
+bool GameLogic::check(const Figure & figure, int figureX, int figureY)
 {
-  for (int x = 0; x < curFigure.dim; x++)
-    for (int y = 0; y < curFigure.dim; y++)
-      if (!curFigure.getCell(x, y)->isEmpty() &&
-          curFigureY + y + dy >= 0)
+  for (int cellX = 0; cellX < figure.dim; cellX++)
+    for (int cellY = 0; cellY < figure.dim; cellY++)
+      if (!figure.getCell(cellX, cellY)->isEmpty())
       {
-        if (curFigureX + x + dx < 0 ||
-            curFigureX + x + dx >= fieldWidth ||
-            curFigureY + y + dy >= fieldHeight ||
-            !field[curFigureX + x + dx + (curFigureY + y + dy) * fieldWidth].isEmpty())
+        int x = figureX + cellX;
+        int y = figureY + cellY;
+
+        if (x < 0 ||
+            x >= fieldWidth ||
+            y >= fieldHeight ||
+            (y >= 0 && !field[x + y * fieldWidth].isEmpty()))
         {
           return false;
         }
@@ -208,24 +226,21 @@ bool GameLogic::checkCurrentFigurePos(int dx, int dy)
 }
 
 
-bool GameLogic::tryToPlaceCurrentFigure()
+bool GameLogic::fit(const Figure & figure, int figureX, int figureY, int * newX)
 {
-  if (checkCurrentFigurePos(0, 0))
-    return true;
+  assert(newX);
 
   const int shift = curFigure.dim / 2 + (curFigure.dim & 1);
 
-  for (int dx = 1; dx <= shift; dx++)
+  for (int i = 1; i < curFigure.dim + 2; ++i)
   {
-    if (checkCurrentFigurePos(dx, 0))
-    {
-      curFigureX += dx;
-      return true;
-    }
+    int dx = (i & 1) ? i / 2 : -i / 2;
 
-    if (checkCurrentFigurePos(-dx, 0))
+    if (check(figure, figureX + dx, figureY))
     {
-      curFigureX -= dx;
+      if(newX)
+        *newX = figureX + dx;
+
       return true;
     }
   }
@@ -238,48 +253,30 @@ void GameLogic::holdCurrentFigure()
 {
   if (!justHolded)
   {
-    Figure savedCurFigure = curFigure;
-    int saveCurFigureX = curFigureX;
-    int saveCurFigureY = curFigureY;
+    const int defaultX = (fieldWidth - curFigure.dim) / 2;
+    const int defaultY = 0;
 
     if (haveHold)
     {
-      Figure::swap(holdFigure, curFigure);
-      curFigureX = (fieldWidth - curFigure.dim) / 2;
-      curFigureY = 0;
-
-      if (tryToPlaceCurrentFigure())
+      if (fit(holdFigure, defaultX, defaultY, &curFigureX))
       {
+        curFigureY = 0;
+        Figure::Type curFigureType = curFigure.type;
+        curFigure = holdFigure;
+        holdFigure.build(curFigureType);
         lastStepTimer = Time::timer;
         justHolded = true;
-      }
-      else
-      {
-        Figure::swap(holdFigure, curFigure);
-        curFigureX = saveCurFigureX;
-        curFigureY = saveCurFigureY;
       }
     }
     else
     {
-      holdFigure = curFigure;
-      curFigure = nextFigures[0];
-      curFigureX = (fieldWidth - curFigure.dim) / 2;
-      curFigureY = 0;
-
-      if (tryToPlaceCurrentFigure())
+      if (fit(nextFigures[0], defaultX, defaultY, &curFigureX))
       {
+        holdFigure.build(curFigure.type);
         shiftFigureConveyor();
         haveHold = true;
         lastStepTimer = Time::timer;
         justHolded = true;
-      }
-      else
-      {
-        holdFigure.clear();
-        curFigure = savedCurFigure;
-        curFigureX = saveCurFigureX;
-        curFigureY = saveCurFigureY;
       }
     }
   }
@@ -290,7 +287,7 @@ bool GameLogic::fastDownCurrentFigure()
 {
   bool result = false;
 
-  if (checkCurrentFigurePos(0, 1))
+  if (check(curFigure, curFigureX, curFigureY + 1))
     curFigureY++;
   else
   {
@@ -311,7 +308,7 @@ void GameLogic::dropCurrentFigure()
 {
   int y0 = curFigureY;
 
-  while (checkCurrentFigurePos(0, 1))
+  while (check(curFigure, curFigureX, curFigureY + 1))
     curFigureY++;
 
   int y1 = curFigureY;
@@ -342,7 +339,7 @@ void GameLogic::rotateCurrentFigureLeft()
   Figure savedFigure = curFigure;
   curFigure.rotateLeft();
 
-  if (!checkCurrentFigurePos(0, 0) && !tryToPlaceCurrentFigure())
+  if (!fit(curFigure, curFigureX, curFigureY, &curFigureX))
     curFigure = savedFigure;
 }
 
@@ -352,21 +349,21 @@ void GameLogic::rotateCurrentFigureRight()
   Figure savedFigure = curFigure;
   curFigure.rotateRight();
 
-  if (!checkCurrentFigurePos(0, 0) && !tryToPlaceCurrentFigure())
+  if (!fit(curFigure, curFigureX, curFigureY, &curFigureX))
     curFigure = savedFigure;
 }
 
 
 void GameLogic::shiftCurrentFigureLeft()
 {
-  if (checkCurrentFigurePos(-1, 0))
+  if (check(curFigure, curFigureX - 1, curFigureY))
     curFigureX--;
 }
 
 
 void GameLogic::shiftCurrentFigureRight()
 {
-  if (checkCurrentFigurePos(1, 0))
+  if (check(curFigure, curFigureX + 1, curFigureY))
     curFigureX++;
 }
 
@@ -458,13 +455,12 @@ void GameLogic::addDropTrail(int x, int y, int height, Cell::Color color)
 
 void GameLogic::addRowGaps(int y)
 {
-  // TODO : move first and last gap addition out of cycle
-  for (int x = 0; x <= fieldWidth; x++)
-    if (!x || x == fieldWidth ||
-        field[x + y * fieldWidth].figureId != field[x - 1 + y * fieldWidth].figureId)
-    {
+  deletedRowGaps.push_back(CellCoord(0, y));
+  deletedRowGaps.push_back(CellCoord(fieldWidth, y));
+
+  for (int x = 1; x < fieldWidth; x++)
+    if (field[x + y * fieldWidth].figureId != field[x - 1 + y * fieldWidth].figureId)
       deletedRowGaps.push_back(CellCoord(x, y));
-    }
 }
 
 

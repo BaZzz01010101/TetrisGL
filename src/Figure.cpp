@@ -30,6 +30,8 @@ void Figure::build(Type type)
   id = Figure::nextId++;
   color = Cell::clNone;
   this->type = type;
+  specificRotatedFlag = false;
+  angle = 0;
 
   switch (type)
   {
