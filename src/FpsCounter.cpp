@@ -2,6 +2,7 @@
 
 #include "FpsCounter.h"
 #include "Crosy.h"
+#include "Time.h"
 
 FpsCounter::FpsCounter()
 {
@@ -32,7 +33,7 @@ char * FpsCounter::count(float interval)
     bool redraw = false;
     uint64_t counter = Crosy::getPerformanceCounter();
     float intervalTime = float(double(counter - lastIntervalCounter) / double(freq));
-    float frameTime = float(double(counter - lastFrameCounter) / double(freq));
+    float frameTime = Time::getCurrentTimerDelta();// float(double(counter - lastFrameCounter) / double(freq));
     lastFrameCounter = counter;
 
     if (intervalTime > interval)
@@ -56,7 +57,7 @@ char * FpsCounter::count(float interval)
     }
 
     if (redraw)
-      Crosy::snprintf(buf, bufSize, "Fps: %.3f MaxFrameTime: %.3f", fps, maxFrameTime);
+      Crosy::snprintf(buf, bufSize, "Fps: %.3f MaxFrameTime: %.3fms", fps, maxFrameTime * 1000);
   }
 
   return buf;

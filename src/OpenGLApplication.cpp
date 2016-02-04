@@ -94,7 +94,6 @@ void OpenGLApplication::run()
   while (!exitFlag)
   {
     Time::update();
-    //TODO : move events processing just before updating control to reduce control lag
     glfwPollEvents();
 
     control.update();
@@ -116,22 +115,22 @@ void OpenGLApplication::run()
 
     if (vSync)
     {
-      float maxSleepTime = 0.0f;
+      float maxSleepTime = 0.001f;
       const float targetFps = 70.0f;
-      float currentTimerDelta;
+      float currentTimerDelta = Time::getCurrentTimerDelta();
 
-      do
+      while (currentTimerDelta + 2.0f * maxSleepTime < 1.0f / targetFps)
       {
-        float prevDelta = Time::getCurrentTimerDelta();
-        // TODO : optimize wait cycle to avoid sleeping 1ms in any case
+        float prevDelta = currentTimerDelta;
         Crosy::sleep(1);
         currentTimerDelta = Time::getCurrentTimerDelta();
         maxSleepTime = glm::max(currentTimerDelta - prevDelta, maxSleepTime);
-      } while (currentTimerDelta + maxSleepTime < 1.0f / targetFps);
+      } 
     }
 
     glfwSwapBuffers(wnd);
-    // call glClear to ensue that waiting for vSync will be here
+    // opengl may delay vSync waiting until next gl command
+    // so call glClear to ensue that vSync waiting will be performed before Time::update
     glClear(GL_COLOR_BUFFER_BIT);
     assert(!checkGlErrors());
   }
