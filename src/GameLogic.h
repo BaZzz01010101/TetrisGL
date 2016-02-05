@@ -82,6 +82,7 @@ public:
   static void pauseGame() { state = stPaused; }
   static void continueGame() { state = stPlaying; }
   static void stopGame() { state = stStopped; }
+  static void resetGame();
 
   static DeletedRowsIterator getDeletedRowsBegin() { return deletedRows.begin(); }
   static DeletedRowsIterator getDeletedRowsEnd() { return deletedRows.end(); }
@@ -105,7 +106,6 @@ private:
   GameLogic();
   ~GameLogic();
 
-  static void resetGame();
   static Result initUpdate();
   static Result playingUpdate();
   static Result countdownUpdate();

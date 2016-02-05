@@ -148,7 +148,6 @@ GameLogic::Result GameLogic::gameOverUpdate()
 
   if (gameOverTimeLeft < 0.0f)
   {
-    resetGame();
     state = stStopped;
     return resGameOver;
   }

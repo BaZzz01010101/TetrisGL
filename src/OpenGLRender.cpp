@@ -2301,15 +2301,16 @@ void OpenGLRender::buildLeaderboardWindow()
           buildTextMesh(placeColLeft, rowTop, placeColWidth, rowHeight, strbuf, 
                         Layout::leaderboardPanelRowTextHeight, textColor, 1.0f, 0.0f, haCenter, vaCenter);
           float nameWidth = buildTextMesh(nameColLeft + Layout::leaderboardPanelNameLeftIndent, rowTop, 
-                                          nameColWidth, rowHeight, leader.name, Layout::leaderboardPanelRowTextHeight, 
+                                          nameColWidth, rowHeight, leader.name, 
+                                          Layout::leaderboardPanelRowTextHeight,
                                           textColor, 1.0f, 0.0f, haLeft, vaCenter);
 
           if (i == editRow && (Time::counter % Time::freq > Time::freq / 2))
           {
             const float cursorHeight = 0.9f * Layout::leaderboardPanelRowTextHeight;
             const float cursorWidth = 0.5f * cursorHeight;
-            // TODO : subtract font falloff size from cursor left position
-            const float cursorLeft = nameColLeft + Layout::leaderboardPanelNameLeftIndent + nameWidth;
+            const float cursorLeft = nameColLeft + Layout::leaderboardPanelNameLeftIndent + nameWidth - 
+                                     rowHeight * font.falloff;
             const float cursorTop = rowTop + 0.5f * (rowHeight - cursorHeight);
             buildSmoothRect(cursorLeft, cursorTop, cursorWidth, cursorHeight, 0.1f * cursorWidth, 
                             textColor, 1.0f);
