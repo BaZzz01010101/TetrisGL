@@ -107,8 +107,7 @@ GameLogic::Result GameLogic::playingUpdate()
     lastStepTimer = Time::timer;
   else if (Time::timer > lastStepTimer + stepTime)
   {
-    // TODO : fix posible wrong behavior on extremely low FPS
-    //        (falling speed will be limited by fps)
+    // falling speed may be limited on extremely low FPS
     if (check(curFigure, curFigureX, curFigureY + 1))
       curFigureY++;
     else

@@ -96,7 +96,6 @@ public:
   SDFF_Error addFont(const char * fileName, int faceIndex, SDFF_Font * out_font);
   SDFF_Error addChar(SDFF_Font & font, SDFF_Char charCode);
   SDFF_Error addChars(SDFF_Font & font, SDFF_Char firstCharCode, SDFF_Char lastCharCode);
-  SDFF_Error addChars(SDFF_Font & font, const char * charString);
   SDFF_Error composeTexture(SDFF_Bitmap & bitmap, bool powerOfTwo);
 
 private:

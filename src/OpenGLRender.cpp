@@ -41,7 +41,7 @@ void OpenGLRender::init(int width, int height)
   assert(!checkGlErrors());
   glGenBuffers(1, &textVertexBufferId);
   assert(!checkGlErrors());
-  // TODO : replace multiline strings by C++11 raw strings
+
   commonVert.init();
   commonVert.compileFromString(
     "#version 120\n"
@@ -1482,7 +1482,6 @@ void OpenGLRender::buildRowFlashes()
     float dy = 0.25f - 0.75f * mul;
     glm::vec3 flashColor(Palette::deletedRowFlashBright * (1.0f - overallProgress * overallProgress));
 
-    //TODO move unchanged variables out from cycle
     for (GameLogic::DeletedRowsIterator delRowIt = GameLogic::getDeletedRowsBegin(), 
          end = GameLogic::getDeletedRowsEnd(); delRowIt != end; ++delRowIt)
     {

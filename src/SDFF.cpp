@@ -462,13 +462,6 @@ SDFF_Error SDFF_Builder::addChars(SDFF_Font & font, SDFF_Char firstCharCode, SDF
 }
 
 
-SDFF_Error SDFF_Builder::addChars(SDFF_Font & font, const char * charString)
-{
-  // TODO : implement addChars function
-  return SDFF_OK;
-}
-
-
 SDFF_Error SDFF_Builder::composeTexture(SDFF_Bitmap & bitmap, bool powerOfTwo)
 {
   assert(initialized);
