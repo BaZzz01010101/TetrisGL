@@ -3,15 +3,17 @@
 class Shader
 {
 private:
-  // TODO : forbid copy constructor and operator
   GLenum type;
   GLuint id;
   std::vector<char> errMsg;
+  Shader & operator=(const Shader &);
+  Shader(const Shader &);
 
 public:
   Shader(GLenum type);
-  virtual ~Shader();
 
+  void init();
+  void quit();
   inline GLuint getId() const { return id; }
   void compileFromString(const char * source);
 };

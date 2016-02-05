@@ -10,23 +10,33 @@ Shader::Shader(GLenum type)
 }
 
 
-Shader::~Shader()
+void Shader::init()
 {
-  // TODO: move shader creation and deletion to init and quit functions
-  glDeleteShader(id);
+  assert(!id);
+
+  if (!id)
+  {
+    id = glCreateShader(type);
+    assert(!checkGlErrors());
+  }
+}
+
+
+void Shader::quit()
+{
+  assert(id);
+
+  if (id)
+  {
+    glDeleteShader(id);
+    assert(!checkGlErrors());
+  }
 }
 
 
 void Shader::compileFromString(const char * source)
 {
-  GLint Result = GL_FALSE;
-
-  if (!id)
-  {
-    checkGlErrors();
-    id = glCreateShader(type);
-    assert(!checkGlErrors());
-  }
+  assert(id);
 
   glShaderSource(id, 1, &source, NULL);
   assert(!checkGlErrors());
@@ -34,6 +44,7 @@ void Shader::compileFromString(const char * source)
   glCompileShader(id);
   assert(!checkGlErrors());
 
+  GLint Result = GL_FALSE;
   glGetShaderiv(id, GL_COMPILE_STATUS, &Result);
   assert(!checkGlErrors());
 

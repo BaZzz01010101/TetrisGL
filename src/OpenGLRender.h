@@ -14,9 +14,9 @@ public:
   bool showWireframe;
 
   OpenGLRender();
-  ~OpenGLRender();
 
   void init(int width, int height);
+  void quit();
   void resize(int width, int height);
   void update();
 

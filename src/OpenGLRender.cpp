@@ -29,11 +29,6 @@ OpenGLRender::OpenGLRender() :
 }
 
 
-OpenGLRender::~OpenGLRender()
-{
-}
-
-
 void OpenGLRender::init(int width, int height)
 {
   glGenVertexArrays(1, &vaoId);
@@ -47,6 +42,7 @@ void OpenGLRender::init(int width, int height)
   glGenBuffers(1, &textVertexBufferId);
   assert(!checkGlErrors());
   // TODO : replace multiline strings by C++11 raw strings
+  commonVert.init();
   commonVert.compileFromString(
     "#version 120\n"
     "attribute vec2 vertexPos;"
@@ -64,6 +60,7 @@ void OpenGLRender::init(int width, int height)
     "  pixPos = vertexPos;"
     "}");
 
+  commonFrag.init();
   commonFrag.compileFromString(
     "#version 120\n"
     "uniform sampler2D tex;"
@@ -83,6 +80,7 @@ void OpenGLRender::init(int width, int height)
     "  gl_FragColor = vec4(rgb * (1.0 + (rand(pixPos) - 0.5) / 30.0 * alpha), alpha);"
     "}");
 
+  commonProg.init();
   commonProg.attachShader(commonVert);
   commonProg.attachShader(commonFrag);
   commonProg.bindAttribLocation(0, "vertexPos");
@@ -92,6 +90,7 @@ void OpenGLRender::init(int width, int height)
   commonProg.use();
   commonProg.setUniform("tex", 0);
 
+  fontVert.init();
   fontVert.compileFromString(
     "#version 120\n"
     "attribute vec2 vertexPos;"
@@ -110,6 +109,7 @@ void OpenGLRender::init(int width, int height)
     "  color = vertexRGBA;"
     "}");
 
+  fontFrag.init();
   fontFrag.compileFromString(
     "#version 120\n"
     "uniform sampler2D tex;"
@@ -123,6 +123,7 @@ void OpenGLRender::init(int width, int height)
     "  gl_FragColor = color * alpha;"
     "}");
 
+  fontProg.init();
   fontProg.attachShader(fontVert);
   fontProg.attachShader(fontFrag);
   fontProg.bindAttribLocation(0, "vertexPos");
@@ -136,14 +137,14 @@ void OpenGLRender::init(int width, int height)
   int imageWidth, imageHeight, channels;
   std::string bkTextureFileName = Crosy::getExePath() + "\\textures\\BackgroundTile.png";
 
-  if (unsigned char * bkTextureImage = stbi_load(bkTextureFileName.c_str(), 
+  if (unsigned char * bkTextureImage = stbi_load(bkTextureFileName.c_str(),
       &imageWidth, &imageHeight, &channels, 4))
   {
     glGenTextures(1, &bkTextureId);
     assert(!checkGlErrors());
     glBindTexture(GL_TEXTURE_2D, bkTextureId);
     assert(!checkGlErrors());
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, 
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                  bkTextureImage);
     assert(!checkGlErrors());
     free(bkTextureImage);
@@ -156,19 +157,19 @@ void OpenGLRender::init(int width, int height)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -1);
     assert(!checkGlErrors());
   }
-  else 
+  else
     assert(0);
 
   std::string mainAtlasFileName = Crosy::getExePath() + "\\textures\\MainAtlas.png";
 
-  if (unsigned char * mainAtlasImage = stbi_load(mainAtlasFileName.c_str(), 
+  if (unsigned char * mainAtlasImage = stbi_load(mainAtlasFileName.c_str(),
       &imageWidth, &imageHeight, &channels, 4))
   {
     glGenTextures(1, &atlasTextureId);
     assert(!checkGlErrors());
     glBindTexture(GL_TEXTURE_2D, atlasTextureId);
     assert(!checkGlErrors());
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, 
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                  mainAtlasImage);
     assert(!checkGlErrors());
     free(mainAtlasImage);
@@ -181,21 +182,21 @@ void OpenGLRender::init(int width, int height)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -1);
     assert(!checkGlErrors());
   }
-  else 
+  else
     assert(0);
 
   std::string fontTextureFileName = Crosy::getExePath() + "\\fonts\\MontserratTexture.png";
   std::string fontMetricsFileName = Crosy::getExePath() + "\\fonts\\MontserratMetrics.json";
   font.load(fontMetricsFileName.c_str());
 
-  if (unsigned char * fontTextureImage = stbi_load(fontTextureFileName.c_str(), 
+  if (unsigned char * fontTextureImage = stbi_load(fontTextureFileName.c_str(),
       &imageWidth, &imageHeight, &channels, 1))
   {
     glGenTextures(1, &fontTextureId);
     assert(!checkGlErrors());
     glBindTexture(GL_TEXTURE_2D, fontTextureId);
     assert(!checkGlErrors());
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, imageWidth, imageHeight, 0, GL_ALPHA, GL_UNSIGNED_BYTE, 
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, imageWidth, imageHeight, 0, GL_ALPHA, GL_UNSIGNED_BYTE,
                  fontTextureImage);
     assert(!checkGlErrors());
     free(fontTextureImage);
@@ -208,7 +209,7 @@ void OpenGLRender::init(int width, int height)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -1);
     assert(!checkGlErrors());
   }
-  else 
+  else
     assert(0);
 
   glDisable(GL_CULL_FACE);
@@ -221,6 +222,17 @@ void OpenGLRender::init(int width, int height)
   assert(!checkGlErrors());
 
   resize(width, height);
+}
+
+
+void OpenGLRender::quit()
+{
+  commonProg.quit();
+  commonVert.quit();
+  commonFrag.quit();
+  fontProg.quit();
+  fontVert.quit();
+  fontFrag.quit();
 }
 
 

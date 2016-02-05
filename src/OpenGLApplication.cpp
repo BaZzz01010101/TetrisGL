@@ -139,6 +139,7 @@ void OpenGLApplication::run()
 
 void OpenGLApplication::quit()
 {
+  render.quit();
   glfwTerminate();
 }
 

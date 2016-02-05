@@ -10,35 +10,32 @@ Program::Program() :
 }
 
 
-Program::~Program()
+void Program::init()
 {
-  // TODO: move program creation and deletion to init and quit functions
+  assert(!id);
+
+  if (!id)
+  {
+    id = glCreateProgram();
+    assert(!checkGlErrors());
+  }
+}
+
+
+void Program::quit()
+{
+  assert(id);
+
   if (id)
   {
-    GLint curId = 0;
-    glGetIntegerv(GL_CURRENT_PROGRAM, &curId);
-    //assert(!checkGlErrors());
-
-    if (curId && curId == id)
-    {
-      glUseProgram(0);
-      //assert(!checkGlErrors());
-    }
-
     glDeleteProgram(id);
-    //assert(!checkGlErrors());
+    assert(!checkGlErrors());
   }
 }
 
 
 void Program::attachShader(const Shader & shader)
 {
-  if (!id)
-  {
-    id = glCreateProgram();
-    assert(!checkGlErrors());
-  }
-
   glAttachShader(id, shader.getId());
   assert(!checkGlErrors());
 }
@@ -47,6 +44,7 @@ void Program::attachShader(const Shader & shader)
 void Program::link()
 {
   assert(id);
+
   glLinkProgram(id);
   assert(!checkGlErrors());
   GLint Result = GL_FALSE;
@@ -70,6 +68,8 @@ void Program::link()
 
 void Program::use() const
 {
+  assert(id);
+
   glUseProgram(id);
   assert(!checkGlErrors());
 }
@@ -77,6 +77,7 @@ void Program::use() const
 
 void Program::setUniform(const char * name, GLint value)
 {
+  assert(id);
   GLint uid = glGetUniformLocation(id, name);
   assert(!checkGlErrors());
   assert(uid >= 0);
@@ -91,6 +92,7 @@ void Program::setUniform(const char * name, GLint value)
 
 void Program::setUniform(const char * name, GLfloat value)
 {
+  assert(id);
   GLint uid = glGetUniformLocation(id, name);
   assert(!checkGlErrors());
   assert(uid >= 0);
@@ -105,6 +107,7 @@ void Program::setUniform(const char * name, GLfloat value)
 
 void Program::setUniform(const char * name, GLfloat value1, GLfloat value2)
 {
+  assert(id);
   GLint uid = glGetUniformLocation(id, name);
   assert(!checkGlErrors());
   assert(uid >= 0);
@@ -119,6 +122,7 @@ void Program::setUniform(const char * name, GLfloat value1, GLfloat value2)
 
 void Program::setUniform(const char * name, const glm::vec2 & value)
 {
+  assert(id);
   GLint uid = glGetUniformLocation(id, name);
   assert(!checkGlErrors());
   assert(uid >= 0);
@@ -133,6 +137,7 @@ void Program::setUniform(const char * name, const glm::vec2 & value)
 
 void Program::setUniform(const char * name, const glm::mat3 & value)
 {
+  assert(id);
   GLint uid = glGetUniformLocation(id, name);
   assert(!checkGlErrors());
   assert(uid >= 0);

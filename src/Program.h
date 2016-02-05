@@ -4,14 +4,16 @@
 class Program
 {
 private:
-  // TODO : forbid copy constructor and operator
   GLint id;
   mutable std::vector<char> errMsg;
+  Program & operator=(const Program &);
+  Program(const Program &);
 
 public:
   Program();
-  ~Program();
 
+  void init();
+  void quit();
   void attachShader(const Shader & shader);
   void link();
   void use() const;
