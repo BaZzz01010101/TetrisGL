@@ -136,6 +136,7 @@ private:
   float falloff;
   bool initialized;
   
+  int firstPowerOfTwoGreaterThen(int value);
   float createSdf(const FT_Bitmap & ftBitmap, int falloff, DistanceFieldVector & result) const;
   float createDf(const FT_Bitmap & ftBitmap, int falloff, bool invert, DistanceFieldVector & result) const;
   void copyBitmap(const SDFF_Bitmap & srcBitmap, SDFF_Bitmap & destBitmap, int posX, int posY) const;

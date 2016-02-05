@@ -202,7 +202,7 @@ void GameLogic::shiftFigureConveyor()
   nextFigures[GameLogic::nextFiguresCount - 1].buildRandom();
 
   curFigureX = (Field::width - curFigure.dim) / 2;
-  // TODO : fix L - figure appearance vertical coordinate
+  // TODO : fix I - figure appearance vertical coordinate
   curFigureY = 0;
 
   if (!check(curFigure, curFigureX, curFigureY))
