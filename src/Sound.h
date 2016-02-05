@@ -28,9 +28,6 @@ public:
   static void play(Sample sample);
 
 private:
-  Sound();
-  ~Sound();
-
   static FMOD::Sound * samples[SAMPLE_COUNT];
   static FMOD::System * system;
   static FMOD::Channel * musicChannel;
@@ -38,5 +35,29 @@ private:
   static void * extradriverdata;
   static bool initialized;
   static std::string soundPath;
+  static int lastFigureId;
+  static int lastFigureX;
+  static int lastFigureAngle;
+  static int lastHoldFigureId;
+  static unsigned int lastFastDownCounter;
+  static unsigned int lastDropTrailCounter;
+  static int lastDeletedRowsCount;
+  static int lastLevel;
+  static int lastCountdownTimeLeft;
+  static GameLogic::State lastGameState;
+  static MenuLogic::State lastMainMenuState;
+  static MenuLogic::State lastInGameMenuState;
+  static MenuLogic::State lastQuitConfirmationMenuState;
+  static MenuLogic::State lastRestartConfirmationMenuState;
+  static MenuLogic::State lastExitToMainConfirmationMenuState;
+  static SettingsLogic::State lastSettingsState;
+  static LeaderboardLogic::State lastLeaderboardState;
+  static float lastSoundVolume;
+  static float lastMusicVolume;
+
+  Sound();
+  ~Sound();
+
+  static void resetLastState();
 };
 

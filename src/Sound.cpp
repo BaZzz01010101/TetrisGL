@@ -14,10 +14,30 @@ unsigned int Sound::version = 0;
 void * Sound::extradriverdata = NULL;
 bool Sound::initialized = false;
 std::string Sound::soundPath = Crosy::getExePath() + "Sounds/";
+int Sound::lastFigureId = 0;
+int Sound::lastFigureX = 0;
+int Sound::lastFigureAngle = 0;
+int Sound::lastHoldFigureId = 0;
+unsigned int Sound::lastFastDownCounter = 0;
+unsigned int Sound::lastDropTrailCounter = 0;
+int Sound::lastDeletedRowsCount = 0;
+int Sound::lastLevel = 0;
+int Sound::lastCountdownTimeLeft = 0;
+GameLogic::State Sound::lastGameState = GameLogic::stStopped;
+MenuLogic::State Sound::lastMainMenuState = MenuLogic::stHidden;
+MenuLogic::State Sound::lastInGameMenuState = MenuLogic::stHidden;
+MenuLogic::State Sound::lastQuitConfirmationMenuState = MenuLogic::stHidden;
+MenuLogic::State Sound::lastRestartConfirmationMenuState = MenuLogic::stHidden;
+MenuLogic::State Sound::lastExitToMainConfirmationMenuState = MenuLogic::stHidden;
+SettingsLogic::State Sound::lastSettingsState = SettingsLogic::stHidden;
+LeaderboardLogic::State Sound::lastLeaderboardState = LeaderboardLogic::stHidden;
+float Sound::lastSoundVolume = 0.0f;
+float Sound::lastMusicVolume = 0.0f;
 
 void Sound::init()
 {
   assert(!initialized);
+  resetLastState();
 
   if (!initialized)
   {
@@ -104,149 +124,138 @@ void Sound::init()
 
 void Sound::update()
 {
-  // TODO : move all static cur*** variables into class and make reset function
   if (!initialized)
     return;
 
-  static int curFigureId = GameLogic::curFigure.id;
-  static int curFigureX = GameLogic::curFigureX;
-  static int curFigureAngle = GameLogic::curFigure.angle;
-
-  if (curFigureId != GameLogic::curFigure.id)
+  if (GameLogic::state != lastGameState)
   {
-    curFigureId = GameLogic::curFigure.id;
-    curFigureX = GameLogic::curFigureX;
-    curFigureAngle = GameLogic::curFigure.angle;
+    if (GameLogic::state == GameLogic::stStopped)
+    {
+      lastFigureId = GameLogic::curFigure.id;
+      lastFigureX = GameLogic::curFigureX;
+      lastFigureAngle = GameLogic::curFigure.angle;
+      lastHoldFigureId = GameLogic::holdFigure.id;
+      lastFastDownCounter = GameLogic::fastDownCounter;
+      lastDropTrailCounter = GameLogic::dropTrailCounter;
+      lastDeletedRowsCount = GameLogic::getDeletedRowsCount();
+      lastLevel = GameLogic::curLevel;
+    }
+
+    lastGameState = GameLogic::state;
   }
 
-  if (curFigureX != GameLogic::curFigureX)
+  if (lastFigureId != GameLogic::curFigure.id)
   {
-    if (GameLogic::curFigureX < curFigureX)
+    lastFigureId = GameLogic::curFigure.id;
+    lastFigureX = GameLogic::curFigureX;
+    lastFigureAngle = GameLogic::curFigure.angle;
+  }
+
+  if (GameLogic::curFigureX != lastFigureX)
+  {
+    if (GameLogic::curFigureX < lastFigureX)
       play(smpLeft);
-    else
+    else if (GameLogic::curFigureX > lastFigureX)
       play(smpRight);
 
-    curFigureX = GameLogic::curFigureX;
+    lastFigureX = GameLogic::curFigureX;
   }
 
-  if (curFigureAngle != GameLogic::curFigure.angle)
+  if (GameLogic::curFigure.angle != lastFigureAngle)
   {
-    if (GameLogic::curFigure.angle < curFigureAngle)
+    if (GameLogic::curFigure.angle < lastFigureAngle)
       play(smpLeft);
-    else
+    else if (GameLogic::curFigure.angle > lastFigureAngle)
       play(smpRight);
 
-    curFigureAngle = GameLogic::curFigure.angle;
+    lastFigureAngle = GameLogic::curFigure.angle;
   }
 
-  static int holdFigureId = GameLogic::holdFigure.id;
-
-  if (holdFigureId != GameLogic::holdFigure.id)
+  if (GameLogic::holdFigure.id != lastHoldFigureId)
   {
     play(smpHold);
-    holdFigureId = GameLogic::holdFigure.id;
+    lastHoldFigureId = GameLogic::holdFigure.id;
   }
 
-  static unsigned int fastDownCounter = GameLogic::fastDownCounter;
-
-  if (GameLogic::fastDownCounter > fastDownCounter)
+  if (GameLogic::fastDownCounter != lastFastDownCounter)
   {
     play(smpDown);
-    fastDownCounter = GameLogic::fastDownCounter;
+    lastFastDownCounter = GameLogic::fastDownCounter;
   }
 
-  static unsigned int dropTrailCounter = GameLogic::dropTrailCounter;
-
-  if (GameLogic::dropTrailCounter > dropTrailCounter)
+  if (GameLogic::dropTrailCounter > lastDropTrailCounter)
     play(smpDrop);
 
-  dropTrailCounter = GameLogic::dropTrailCounter;
+  lastDropTrailCounter = GameLogic::dropTrailCounter;
 
-  static int deletedRowsCount = GameLogic::getDeletedRowsCount();
-  static int curLevel = GameLogic::curLevel;
-
-  if (GameLogic::getDeletedRowsCount() > deletedRowsCount)
+  if (GameLogic::getDeletedRowsCount() > lastDeletedRowsCount)
   {
-    if (GameLogic::curLevel > curLevel)
+    if (GameLogic::curLevel > lastLevel)
       play(smpLevelUp);
     else
       play(smpWipe);
   }
 
-  deletedRowsCount = GameLogic::getDeletedRowsCount();
-  curLevel = GameLogic::curLevel;
+  lastDeletedRowsCount = GameLogic::getDeletedRowsCount();
+  lastLevel = GameLogic::curLevel;
 
-  static int countdownTimeLeft = (int)GameLogic::countdownTimeLeft;
-
-  if (countdownTimeLeft != (int)GameLogic::countdownTimeLeft)
+  if (lastCountdownTimeLeft != (int)GameLogic::countdownTimeLeft)
   {
     play(smpCountdown);
-    countdownTimeLeft = (int)GameLogic::countdownTimeLeft;
+    lastCountdownTimeLeft = (int)GameLogic::countdownTimeLeft;
   }
 
-  static MenuLogic::State mainMenuState = InterfaceLogic::mainMenu.state;
-
-  if (mainMenuState != InterfaceLogic::mainMenu.state)
+  if (lastMainMenuState != InterfaceLogic::mainMenu.state)
   {
     if (InterfaceLogic::mainMenu.state == MenuLogic::stShowing)
       play(smpUiAnimIn);
     else if (InterfaceLogic::mainMenu.state == MenuLogic::stHiding)
       play(smpUiAnimOut);
 
-    mainMenuState = InterfaceLogic::mainMenu.state;
+    lastMainMenuState = InterfaceLogic::mainMenu.state;
   }
 
-  static MenuLogic::State inGameMenuState = InterfaceLogic::inGameMenu.state;
-
-  if (inGameMenuState != InterfaceLogic::inGameMenu.state)
+  if (lastInGameMenuState != InterfaceLogic::inGameMenu.state)
   {
     if (InterfaceLogic::inGameMenu.state == MenuLogic::stShowing)
       play(smpUiAnimIn);
     else if (InterfaceLogic::inGameMenu.state == MenuLogic::stHiding)
       play(smpUiAnimOut);
 
-    inGameMenuState = InterfaceLogic::inGameMenu.state;
+    lastInGameMenuState = InterfaceLogic::inGameMenu.state;
   }
 
-  static MenuLogic::State quitConfirmationMenuState = InterfaceLogic::quitConfirmationMenu.state;
-
-  if (quitConfirmationMenuState != InterfaceLogic::quitConfirmationMenu.state)
+  if (lastQuitConfirmationMenuState != InterfaceLogic::quitConfirmationMenu.state)
   {
     if (InterfaceLogic::quitConfirmationMenu.state == MenuLogic::stShowing)
       play(smpUiAnimIn);
     else if (InterfaceLogic::quitConfirmationMenu.state == MenuLogic::stHiding)
       play(smpUiAnimOut);
 
-    quitConfirmationMenuState = InterfaceLogic::quitConfirmationMenu.state;
+    lastQuitConfirmationMenuState = InterfaceLogic::quitConfirmationMenu.state;
   }
 
-  static MenuLogic::State restartConfirmationMenuState = InterfaceLogic::restartConfirmationMenu.state;
-
-  if (restartConfirmationMenuState != InterfaceLogic::restartConfirmationMenu.state)
+  if (lastRestartConfirmationMenuState != InterfaceLogic::restartConfirmationMenu.state)
   {
     if (InterfaceLogic::restartConfirmationMenu.state == MenuLogic::stShowing)
       play(smpUiAnimIn);
     else if (InterfaceLogic::restartConfirmationMenu.state == MenuLogic::stHiding)
       play(smpUiAnimOut);
 
-    restartConfirmationMenuState = InterfaceLogic::restartConfirmationMenu.state;
+    lastRestartConfirmationMenuState = InterfaceLogic::restartConfirmationMenu.state;
   }
 
-  static MenuLogic::State exitToMainConfirmationMenuState = InterfaceLogic::exitToMainConfirmationMenu.state;
-
-  if (exitToMainConfirmationMenuState != InterfaceLogic::exitToMainConfirmationMenu.state)
+  if (lastExitToMainConfirmationMenuState != InterfaceLogic::exitToMainConfirmationMenu.state)
   {
     if (InterfaceLogic::exitToMainConfirmationMenu.state == MenuLogic::stShowing)
       play(smpUiAnimIn);
     else if (InterfaceLogic::exitToMainConfirmationMenu.state == MenuLogic::stHiding)
       play(smpUiAnimOut);
 
-    exitToMainConfirmationMenuState = InterfaceLogic::exitToMainConfirmationMenu.state;
+    lastExitToMainConfirmationMenuState = InterfaceLogic::exitToMainConfirmationMenu.state;
   }
 
-  static SettingsLogic::State settingsState = InterfaceLogic::settingsLogic.state;
-
-  if (settingsState != InterfaceLogic::settingsLogic.state)
+  if (lastSettingsState != InterfaceLogic::settingsLogic.state)
   {
     if (InterfaceLogic::settingsLogic.state == SettingsLogic::stShowing)
       play(smpUiAnimIn);
@@ -255,24 +264,20 @@ void Sound::update()
     else if (InterfaceLogic::settingsLogic.state == SettingsLogic::stKeyWaiting)
       play(smpUiClick);
 
-    settingsState = InterfaceLogic::settingsLogic.state;
+    lastSettingsState = InterfaceLogic::settingsLogic.state;
   }
 
-  static LeaderboardLogic::State leaderboardState = InterfaceLogic::leaderboardLogic.state;
-
-  if (leaderboardState != InterfaceLogic::leaderboardLogic.state)
+  if (lastLeaderboardState != InterfaceLogic::leaderboardLogic.state)
   {
     if (InterfaceLogic::leaderboardLogic.state == LeaderboardLogic::stShowing)
       play(smpUiAnimIn);
     else if (InterfaceLogic::leaderboardLogic.state == LeaderboardLogic::stHiding)
       play(smpUiAnimOut);
 
-    leaderboardState = InterfaceLogic::leaderboardLogic.state;
+    lastLeaderboardState = InterfaceLogic::leaderboardLogic.state;
   }
 
-  static float soundVolume = InterfaceLogic::settingsLogic.getSoundVolume();
-
-  if (abs(soundVolume - InterfaceLogic::settingsLogic.getSoundVolume()) > 0.001)
+  if (abs(lastSoundVolume - InterfaceLogic::settingsLogic.getSoundVolume()) > 0.001)
   {
     if (InterfaceLogic::settingsLogic.state == SettingsLogic::stVisible)
     {
@@ -286,17 +291,15 @@ void Sound::update()
       }
     }
 
-    soundVolume = InterfaceLogic::settingsLogic.getSoundVolume();
+    lastSoundVolume = InterfaceLogic::settingsLogic.getSoundVolume();
   }
 
-  static float musicVolume = InterfaceLogic::settingsLogic.getMusicVolume();
-
-  if (musicVolume != InterfaceLogic::settingsLogic.getMusicVolume())
+  if (lastMusicVolume != InterfaceLogic::settingsLogic.getMusicVolume())
   {
     if (musicChannel)
       musicChannel->setVolume(InterfaceLogic::settingsLogic.getMusicVolume());
 
-    musicVolume = InterfaceLogic::settingsLogic.getMusicVolume();
+    lastMusicVolume = InterfaceLogic::settingsLogic.getMusicVolume();
   }
 
   FMOD_RESULT result = system->update();
@@ -331,4 +334,27 @@ void Sound::play(Sample sample)
     result = channel->setVolume(InterfaceLogic::settingsLogic.getSoundVolume());
     assert(result == FMOD_OK);
   }
+}
+
+void Sound::resetLastState()
+{
+  lastFigureId = GameLogic::curFigure.id;
+  lastFigureX = GameLogic::curFigureX;
+  lastFigureAngle = GameLogic::curFigure.angle;
+  lastHoldFigureId = GameLogic::holdFigure.id;
+  lastFastDownCounter = GameLogic::fastDownCounter;
+  lastDropTrailCounter = GameLogic::dropTrailCounter;
+  lastDeletedRowsCount = GameLogic::getDeletedRowsCount();
+  lastLevel = GameLogic::curLevel;
+  lastCountdownTimeLeft = (int)GameLogic::countdownTimeLeft;
+  lastGameState = GameLogic::state;
+  lastMainMenuState = InterfaceLogic::mainMenu.state;
+  lastInGameMenuState = InterfaceLogic::inGameMenu.state;
+  lastQuitConfirmationMenuState = InterfaceLogic::quitConfirmationMenu.state;
+  lastRestartConfirmationMenuState = InterfaceLogic::restartConfirmationMenu.state;
+  lastExitToMainConfirmationMenuState = InterfaceLogic::exitToMainConfirmationMenu.state;
+  lastSettingsState = InterfaceLogic::settingsLogic.state;
+  lastLeaderboardState = InterfaceLogic::leaderboardLogic.state;
+  lastSoundVolume = InterfaceLogic::settingsLogic.getSoundVolume();
+  lastMusicVolume = InterfaceLogic::settingsLogic.getMusicVolume();
 }
