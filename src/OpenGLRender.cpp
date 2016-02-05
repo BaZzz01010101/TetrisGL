@@ -23,9 +23,9 @@ OpenGLRender::OpenGLRender() :
     texPos[ind].y = 0.0625f + 0.25f * (ind / 4);
   }
 
-  bkVertexBuffer.reserve(2048);
-  atlasVertexBuffer.reserve(65536);
-  textVertexBuffer.reserve(2048);
+  bkVertexBuffer.reserve(16384);
+  atlasVertexBuffer.reserve(131072);
+  textVertexBuffer.reserve(4096);
 }
 
 
@@ -917,887 +917,492 @@ void OpenGLRender::buildBackground()
 }
 
 
-void OpenGLRender::buidFieldShadows()
+void OpenGLRender::buidField()
 {
   if (LayoutObject * fieldLayout = Layout::screen.getChildRecursive(loField))
   {
-    const float scale = fieldLayout->width / GameLogic::fieldWidth;
+    const float scale = fieldLayout->width / Field::width;
     const glm::vec2 fieldPos(fieldLayout->getGlobalLeft(), fieldLayout->getGlobalTop());
-    const float shadowWidth = 0.15f;
-    const float innerOffset = 2.0f / atlasSpriteSize;
+    glm::vec2 origin = fieldPos;
 
-    for (int y = 0; y < GameLogic::fieldHeight; y++)
-    {
-      for (int x = 0; x < GameLogic::fieldWidth; x++)
+    GameLogic::storeCurFigureIntoField();
+      
+    for (int y = 0; y < Field::height; y++)
+      for (int x = 0; x < Field::width; x++)
       {
-        const Cell * cell = GameLogic::getFieldCell(x, y);
-        glm::vec2 origin = fieldPos;
-
         if (GameLogic::getRowElevation(y))
-          origin.y -= scale * GameLogic::getRowCurrentElevation(y);
+          origin.y = fieldPos.y - scale * GameLogic::getRowCurrentElevation(y);
+        else
+          origin.y = fieldPos.y;
 
-        if (cell->figureId)
-        {
-          const Cell * rightCell = GameLogic::getFieldCell(x + 1, y);
-          const Cell * rightBottomCell = GameLogic::getFieldCell(x + 1, y + 1);
-          const Cell * bottomCell = GameLogic::getFieldCell(x, y + 1);
-
-          if (bottomCell && bottomCell->figureId != cell->figureId)
-          {
-            const Cell * leftCell = GameLogic::getFieldCell(x - 1, y);
-            const Cell * bottomLeftCell = GameLogic::getFieldCell(x - 1, y + 1);
-            bool softLeft = !leftCell || leftCell->figureId != cell->figureId;
-
-            glm::vec2 verts[4] =
-            {
-              { x,        y + 1.0f - innerOffset },
-              { x,        y + 1.0f + shadowWidth },
-              { x + 1.0f, y + 1.0f - innerOffset },
-              { x + 1.0f, y + 1.0f + shadowWidth }
-            };
-
-            glm::vec2 uv[4] =
-            {
-              { softLeft ? 1.0f : 0.5f, 0.5f },
-              { 1.0f,                   1.0f },
-              { 0.5f,                   0.5f },
-              { 1.0f,                   1.0f }
-            };
-
-            if (softLeft)
-              verts[1].x += shadowWidth;
-
-            if (bottomLeftCell && bottomLeftCell->figureId == cell->figureId)
-            {
-              verts[0].x -= innerOffset;
-              verts[1].x += shadowWidth;
-            }
-
-            if (rightBottomCell && rightBottomCell->figureId != cell->figureId && 
-                rightCell && rightCell->figureId != cell->figureId)
-            {
-              verts[2].x -= innerOffset;
-              verts[3].x += shadowWidth;
-            }
-
-            addAtlasVertex(origin + scale * verts[0], uv[0], tiFigureShadow, Palette::figureShadow, 1.0f);
-            addAtlasVertex(origin + scale * verts[1], uv[1], tiFigureShadow, Palette::figureShadow, 1.0f);
-            addAtlasVertex(origin + scale * verts[2], uv[2], tiFigureShadow, Palette::figureShadow, 1.0f);
-            addAtlasVertex(origin + scale * verts[1], uv[1], tiFigureShadow, Palette::figureShadow, 1.0f);
-            addAtlasVertex(origin + scale * verts[2], uv[2], tiFigureShadow, Palette::figureShadow, 1.0f);
-            addAtlasVertex(origin + scale * verts[3], uv[3], tiFigureShadow, Palette::figureShadow, 1.0f);
-          }
-
-          if (rightCell && rightCell->figureId != cell->figureId)
-          {
-            const Cell * topCell = GameLogic::getFieldCell(x, y - 1);
-            const Cell * topRightCell = GameLogic::getFieldCell(x + 1, y - 1);
-            bool softTop = !topCell || topCell->figureId != cell->figureId;
-
-            glm::vec2 verts[4] =
-            {
-              { x + 1.0f - innerOffset, y },
-              { x + 1.0f + shadowWidth, y },
-              { x + 1.0f - innerOffset, y + 1.0f },
-              { x + 1.0f + shadowWidth, y + 1.0f }
-            };
-
-            glm::vec2 uv[4] =
-            {
-              { softTop ? 1.0f : 0.5f, 0.5f },
-              { 1.0f,                  1.0f },
-              { 0.5f,                  0.5f },
-              { 1.0f,                  1.0f }
-            };
-
-            if (softTop)
-              verts[1].y += shadowWidth;
-
-            if (topRightCell && topRightCell->figureId == cell->figureId)
-            {
-              verts[0].y -= innerOffset;
-              verts[1].y += shadowWidth;
-            }
-
-            if (rightBottomCell && rightBottomCell->figureId != cell->figureId && 
-                bottomCell && bottomCell->figureId != cell->figureId)
-            {
-              verts[2].y -= innerOffset;
-              verts[3].y += shadowWidth;
-            }
-
-            addAtlasVertex(origin + scale * verts[0], uv[0], tiFigureShadow, Palette::figureShadow, 1.0f);
-            addAtlasVertex(origin + scale * verts[1], uv[1], tiFigureShadow, Palette::figureShadow, 1.0f);
-            addAtlasVertex(origin + scale * verts[2], uv[2], tiFigureShadow, Palette::figureShadow, 1.0f);
-            addAtlasVertex(origin + scale * verts[1], uv[1], tiFigureShadow, Palette::figureShadow, 1.0f);
-            addAtlasVertex(origin + scale * verts[2], uv[2], tiFigureShadow, Palette::figureShadow, 1.0f);
-            addAtlasVertex(origin + scale * verts[3], uv[3], tiFigureShadow, Palette::figureShadow, 1.0f);
-          }
-        }
+        buildCellShadow(origin, scale, GameLogic::field, x, y, true);
       }
+
+    for (int y = 0; y < Field::height; y++)
+      for (int x = 0; x < Field::width; x++)
+      {
+        if (GameLogic::getRowElevation(y))
+          origin.y = fieldPos.y - scale * GameLogic::getRowCurrentElevation(y);
+        else
+          origin.y = fieldPos.y;
+
+        buildCell(origin, scale, GameLogic::field, x, y, false);
+      }
+
+    for (int y = 0; y < Field::height; y++)
+      for (int x = 0; x < Field::width; x++)
+      {
+        if (GameLogic::getRowElevation(y))
+          origin.y = fieldPos.y - scale * GameLogic::getRowCurrentElevation(y);
+        else
+          origin.y = fieldPos.y;
+
+        buildCellGlow(origin, scale, GameLogic::field, x, y, true);
+      }
+
+    GameLogic::removeCurFigureFromField();
+  }
+}
+
+
+void OpenGLRender::buildHoldFigure()
+{
+  if (GameLogic::haveHold)
+  {
+    if (LayoutObject * holdPanelLayout = Layout::screen.getChildRecursive(loHoldPanel))
+    {
+      const float scale = Layout::holdNextFigureScale;
+      const float holdPanelLeft = holdPanelLayout->getGlobalLeft();
+      const float holdPanelTop = holdPanelLayout->getGlobalTop();
+      const float holdPanelWidth = holdPanelLayout->width;
+      const float holdPanelHeight = holdPanelLayout->height;
+      const Figure & figure = GameLogic::holdFigure;
+
+      glm::vec2 origin(holdPanelLeft + 0.5f * holdPanelWidth, holdPanelTop + 0.5f * holdPanelHeight);
+      origin -= scale * figure.getCenterPos();
+
+      for (int y = 0; y < figure.dim; y++)
+        for (int x = 0; x < figure.dim; x++)
+          buildCell(origin, scale, figure, x, y, true);
+
+      for (int y = 0; y < figure.dim; y++)
+        for (int x = 0; x < figure.dim; x++)
+          buildCellGlow(origin, scale, figure, x, y, false);
     }
   }
 }
 
 
-void OpenGLRender::buidFieldBlocks()
+void OpenGLRender::buildNextFigures()
 {
-  if (LayoutObject * fieldLayout = Layout::screen.getChildRecursive(loField))
+  if (LayoutObject * nextPanelLayout = Layout::screen.getChildRecursive(loNextPanel))
   {
-    const float scale = fieldLayout->width / GameLogic::fieldWidth;
-    const glm::vec2 fieldPos(fieldLayout->getGlobalLeft(), fieldLayout->getGlobalTop());
+    const float scale = Layout::holdNextFigureScale;
+    const float nextPanelLeft = nextPanelLayout->getGlobalLeft();
+    const float nextPanelTop = nextPanelLayout->getGlobalTop();
+    const float nextPanelWidth = nextPanelLayout->width;
+    const float nextPanelHeight = nextPanelLayout->height;
 
-    for (int y = 0; y < GameLogic::fieldHeight; y++)
+    for (int i = 0; i < GameLogic::nextFiguresCount; ++i)
     {
-      for (int x = 0; x < GameLogic::fieldWidth; x++)
-      {
-        const Cell * cell = GameLogic::getFieldCell(x, y);
-        glm::vec2 origin = fieldPos;
+      const Figure & figure = GameLogic::nextFigures[i];
 
-        if (GameLogic::getRowElevation(y))
-          origin.y -= scale * GameLogic::getRowCurrentElevation(y);
+      glm::vec2 origin(nextPanelLeft + 0.5f * nextPanelWidth, nextPanelTop + (0.5f + i) * nextPanelHeight);
+      origin -= scale * figure.getCenterPos();
 
-        if (cell && cell->figureId)
-        {
-          const int cellId = cell->figureId;
+      for (int y = 0; y < figure.dim; y++)
+        for (int x = 0; x < figure.dim; x++)
+          buildCell(origin, scale, figure, x, y, true);
 
-          for (int i = 0; i < 4; i++)
-          {
-            int cornerDX = (i & 1) * 2 - 1;
-            int cornerDY = (i & 2) - 1;
-
-            const Cell * horzAdjCell = GameLogic::getFieldCell(x + cornerDX, y);
-            const Cell * vertAdjCell = GameLogic::getFieldCell(x, y + cornerDY);
-            const Cell * cornerAdjCell = GameLogic::getFieldCell(x + cornerDX, y + cornerDY);
-
-            bool haveHorzAdjCell = (horzAdjCell && horzAdjCell->figureId == cellId);
-            bool haveVertAdjCell = (vertAdjCell && vertAdjCell->figureId == cellId);
-            bool haveCornerAdjCell = (cornerAdjCell && cornerAdjCell->figureId == cellId);
-
-            static const glm::vec2 openSegmentUV[3] =
-            { 
-              { 0.5f, 0.5f },
-              { 0.5f, 1.0f },
-              { 0.0f, 1.0f }, 
-            };
-
-            static const glm::vec2 partialSegmentUV[3] =
-            { 
-              { 0.5f, 0.5f },
-              { 0.0f, 0.5f },
-              { 0.0f, 0.0f }, 
-            };
-
-            static const glm::vec2 closedSegmentUV[3] = 
-            { 
-              { 0.5f, 0.5f },
-              { 0.5f, 0.0f },
-              { 0.0f, 0.0f }, 
-            };
-
-            const glm::vec2 * horzSegmentUV = NULL;
-            const glm::vec2 * vertSegmentUV = NULL;
-
-            if (haveHorzAdjCell && haveVertAdjCell && haveCornerAdjCell)
-            {
-              horzSegmentUV = openSegmentUV;
-              vertSegmentUV = openSegmentUV;
-            }
-            else
-            {
-              horzSegmentUV = haveHorzAdjCell ? partialSegmentUV : closedSegmentUV;
-              vertSegmentUV = haveVertAdjCell ? partialSegmentUV : closedSegmentUV;
-            }
-
-            const float dx = float(i & 1);
-            const float dy = float((i & 2) >> 1);
-
-            glm::vec2 verts[4] =
-            {
-              { x + 0.5f, y + 0.5f },
-              { x + 0.5f, y + dy },
-              { x + dx,   y + dy },
-              { x + dx,   y + 0.5f },
-            };
-
-            const glm::vec3 & color = Palette::cellColorArray[cell->color];
-
-            addAtlasVertex(origin + scale * verts[0], vertSegmentUV[0], tiFigureCellNormal, color, 1.0f);
-            addAtlasVertex(origin + scale * verts[1], vertSegmentUV[1], tiFigureCellNormal, color, 1.0f);
-            addAtlasVertex(origin + scale * verts[2], vertSegmentUV[2], tiFigureCellNormal, color, 1.0f);
-            addAtlasVertex(origin + scale * verts[0], horzSegmentUV[0], tiFigureCellNormal, color, 1.0f);
-            addAtlasVertex(origin + scale * verts[3], horzSegmentUV[1], tiFigureCellNormal, color, 1.0f);
-            addAtlasVertex(origin + scale * verts[2], horzSegmentUV[2], tiFigureCellNormal, color, 1.0f);
-          }
-        }
-      }
+      for (int y = 0; y < figure.dim; y++)
+        for (int x = 0; x < figure.dim; x++)
+          buildCellGlow(origin, scale, figure, x, y, false);
     }
   }
 }
 
 
-void OpenGLRender::biuldFieldGlow()
+void OpenGLRender::buildCell(const glm::vec2 & origin, float scale, const CellArray & cells, int x, int y, bool bold)
 {
-  if (LayoutObject * fieldLayout = Layout::screen.getChildRecursive(loField))
+  const Cell * cell = cells.getCell(x, y);
+
+  if (cell && cell->figureId)
   {
-    const float scale = fieldLayout->width / GameLogic::fieldWidth;
-    const glm::vec2 fieldPos(fieldLayout->getGlobalLeft(), fieldLayout->getGlobalTop());
-    const float innerOffset = 2.0f / atlasSpriteSize;
-    const float glowWidth = 0.5f;
-    const glm::vec2 centerUV(0.5f);
+    const int cellId = cell->figureId;
 
-    for (int y = 0; y < GameLogic::fieldHeight; y++)
+    for (int i = 0; i < 4; i++)
     {
-      for (int x = 0; x < GameLogic::fieldWidth; x++)
+      int cornerDX = (i & 1) * 2 - 1;
+      int cornerDY = (i & 2) - 1;
+
+      const Cell * horzAdjCell = cells.getCell(x + cornerDX, y);
+      const Cell * vertAdjCell = cells.getCell(x, y + cornerDY);
+      const Cell * cornerAdjCell = cells.getCell(x + cornerDX, y + cornerDY);
+
+      bool haveHorzAdjCell = (horzAdjCell && horzAdjCell->figureId == cellId);
+      bool haveVertAdjCell = (vertAdjCell && vertAdjCell->figureId == cellId);
+      bool haveCornerAdjCell = (cornerAdjCell && cornerAdjCell->figureId == cellId);
+
+      static const glm::vec2 openSegmentUV[3] =
       {
-        const Cell * cell = GameLogic::getFieldCell(x, y);
-        glm::vec2 origin = fieldPos;
+        { 0.5f, 0.5f },
+        { 0.5f, 1.0f },
+        { 0.0f, 1.0f },
+      };
 
-        if (GameLogic::getRowElevation(y))
-          origin.y -= scale * GameLogic::getRowCurrentElevation(y);
-
-        if (cell->figureId)
-        {
-          const Cell * leftCell = GameLogic::getFieldCell(x - 1, y);
-          const Cell * leftTopCell = GameLogic::getFieldCell(x - 1, y - 1);
-          const Cell * topCell = GameLogic::getFieldCell(x, y - 1);
-          const Cell * topRightCell = GameLogic::getFieldCell(x + 1, y - 1);
-          const Cell * rightCell = GameLogic::getFieldCell(x + 1, y);
-          const Cell * rightBottomCell = GameLogic::getFieldCell(x + 1, y + 1);
-          const Cell * bottomCell = GameLogic::getFieldCell(x, y + 1);
-          const Cell * bottomLeftCell = GameLogic::getFieldCell(x - 1, y + 1);
-
-          bool haveLeftCell = leftCell && leftCell->figureId == cell->figureId;
-          bool haveLeftTopCell = leftTopCell && leftTopCell->figureId == cell->figureId;
-          bool haveTopCell = topCell && topCell->figureId == cell->figureId;
-          bool haveTopRightCell = topRightCell && topRightCell->figureId == cell->figureId;
-          bool haveRightCell = rightCell && rightCell->figureId == cell->figureId;
-          bool haveRightBottomCell = rightBottomCell && rightBottomCell->figureId == cell->figureId;
-          bool haveBottomCell = bottomCell && bottomCell->figureId == cell->figureId;
-          bool haveBottomLeftCell = bottomLeftCell && bottomLeftCell->figureId == cell->figureId;
-
-          const glm::vec3 & glowColor = Palette::cellColorArray[cell->color];
-          const glm::vec3 glowInnerColor = glowColor * Palette::figureGlowInnerBright;
-          const glm::vec3 glowOuterColor = glowColor * Palette::figureGlowOuterBright;
-
-          if (leftCell && leftCell->figureId != cell->figureId)
-          {
-            glm::vec2 verts[4] =
-            {
-              { x + innerOffset, y },
-              { x - glowWidth,   y },
-              { x + innerOffset, y + 1.0f },
-              { x - glowWidth,   y + 1.0f }
-            };
-
-            if (haveLeftTopCell)
-            {
-              verts[0].y -= innerOffset;
-              verts[1].y += glowWidth;
-            }
-            else if (topCell && !haveTopCell)
-            {
-              verts[0].y += innerOffset;
-              verts[1].y -= glowWidth;
-            }
-
-            if (haveBottomLeftCell)
-            {
-              verts[2].y += innerOffset;
-              verts[3].y -= glowWidth;
-            }
-            else if (bottomCell && !haveBottomCell)
-            {
-              verts[2].y -= innerOffset;
-              verts[3].y += glowWidth;
-            }
-
-            addAtlasVertex(origin + scale * verts[0], centerUV, tiEmpty, glowInnerColor, 0.0f);
-            addAtlasVertex(origin + scale * verts[1], centerUV, tiEmpty, glowOuterColor, 0.0f);
-            addAtlasVertex(origin + scale * verts[2], centerUV, tiEmpty, glowInnerColor, 0.0f);
-            addAtlasVertex(origin + scale * verts[1], centerUV, tiEmpty, glowOuterColor, 0.0f);
-            addAtlasVertex(origin + scale * verts[2], centerUV, tiEmpty, glowInnerColor, 0.0f);
-            addAtlasVertex(origin + scale * verts[3], centerUV, tiEmpty, glowOuterColor, 0.0f);
-          }
-
-          if (rightCell && rightCell->figureId != cell->figureId)
-          {
-            glm::vec2 verts[4] =
-            {
-              { x + 1.0f - innerOffset, y },
-              { x + 1.0f + glowWidth,   y },
-              { x + 1.0f - innerOffset, y + 1.0f },
-              { x + 1.0f + glowWidth,   y + 1.0f }
-            };
-
-            if (haveTopRightCell)
-            {
-              verts[0].y -= innerOffset;
-              verts[1].y += glowWidth;
-            }
-            else if (topCell && !haveTopCell)
-            {
-              verts[0].y += innerOffset;
-              verts[1].y -= glowWidth;
-            }
-
-            if (haveRightBottomCell)
-            {
-              verts[2].y += innerOffset;
-              verts[3].y -= glowWidth;
-            }
-            else if (bottomCell && !haveBottomCell)
-            {
-              verts[2].y -= innerOffset;
-              verts[3].y += glowWidth;
-            }
-
-            addAtlasVertex(origin + scale * verts[0], centerUV, tiEmpty, glowInnerColor, 0.0f);
-            addAtlasVertex(origin + scale * verts[1], centerUV, tiEmpty, glowOuterColor, 0.0f);
-            addAtlasVertex(origin + scale * verts[2], centerUV, tiEmpty, glowInnerColor, 0.0f);
-            addAtlasVertex(origin + scale * verts[1], centerUV, tiEmpty, glowOuterColor, 0.0f);
-            addAtlasVertex(origin + scale * verts[2], centerUV, tiEmpty, glowInnerColor, 0.0f);
-            addAtlasVertex(origin + scale * verts[3], centerUV, tiEmpty, glowOuterColor, 0.0f);
-          }
-
-          if (topCell && topCell->figureId != cell->figureId)
-          {
-            glm::vec2 verts[4] =
-            {
-              { x,        y + innerOffset },
-              { x,        y - glowWidth },
-              { x + 1.0f, y + innerOffset },
-              { x + 1.0f, y - glowWidth }
-            };
-
-            if (haveLeftTopCell)
-            {
-              verts[0].x -= innerOffset;
-              verts[1].x += glowWidth;
-            }
-            else if (leftCell && !haveLeftCell)
-            {
-              verts[0].x += innerOffset;
-              verts[1].x -= glowWidth;
-            }
-
-            if (haveTopRightCell)
-            {
-              verts[2].x += innerOffset;
-              verts[3].x -= glowWidth;
-            }
-            else if (rightCell && !haveRightCell)
-            {
-              verts[2].x -= innerOffset;
-              verts[3].x += glowWidth;
-            }
-
-            addAtlasVertex(origin + scale * verts[0], centerUV, tiEmpty, glowInnerColor, 0.0f);
-            addAtlasVertex(origin + scale * verts[1], centerUV, tiEmpty, glowOuterColor, 0.0f);
-            addAtlasVertex(origin + scale * verts[2], centerUV, tiEmpty, glowInnerColor, 0.0f);
-            addAtlasVertex(origin + scale * verts[1], centerUV, tiEmpty, glowOuterColor, 0.0f);
-            addAtlasVertex(origin + scale * verts[2], centerUV, tiEmpty, glowInnerColor, 0.0f);
-            addAtlasVertex(origin + scale * verts[3], centerUV, tiEmpty, glowOuterColor, 0.0f);
-          }
-
-          if (bottomCell && bottomCell->figureId != cell->figureId)
-          {
-            glm::vec2 verts[4] =
-            {
-              { x,        y + 1.0f - innerOffset },
-              { x,        y + 1.0f + glowWidth },
-              { x + 1.0f, y + 1.0f - innerOffset },
-              { x + 1.0f, y + 1.0f + glowWidth }
-            };
-
-            if (haveBottomLeftCell)
-            {
-              verts[0].x -= innerOffset;
-              verts[1].x += glowWidth;
-            }
-            else if (leftCell && !haveLeftCell)
-            {
-              verts[0].x += innerOffset;
-              verts[1].x -= glowWidth;
-            }
-
-            if (haveRightBottomCell)
-            {
-              verts[2].x += innerOffset;
-              verts[3].x -= glowWidth;
-            }
-            else if (rightCell && !haveRightCell)
-            {
-              verts[2].x -= innerOffset;
-              verts[3].x += glowWidth;
-            }
-
-            addAtlasVertex(origin + scale * verts[0], centerUV, tiEmpty, glowInnerColor, 0.0f);
-            addAtlasVertex(origin + scale * verts[1], centerUV, tiEmpty, glowOuterColor, 0.0f);
-            addAtlasVertex(origin + scale * verts[2], centerUV, tiEmpty, glowInnerColor, 0.0f);
-            addAtlasVertex(origin + scale * verts[1], centerUV, tiEmpty, glowOuterColor, 0.0f);
-            addAtlasVertex(origin + scale * verts[2], centerUV, tiEmpty, glowInnerColor, 0.0f);
-            addAtlasVertex(origin + scale * verts[3], centerUV, tiEmpty, glowOuterColor, 0.0f);
-          }
-        }
-      }
-    }
-  }
-}
-
-
-void OpenGLRender::buildFigureBlocks()
-{
-  // TODO : make separate function for building figure blocks
-  LayoutObject * holdPanelLayout = Layout::screen.getChildRecursive(loHoldPanel);
-  LayoutObject * nextPanelLayout = Layout::screen.getChildRecursive(loNextPanel);
-
-  if (!holdPanelLayout || !nextPanelLayout)
-    return;
-
-  const float scale = Layout::holdNextFigureScale;
-  const float holdPanelLeft = holdPanelLayout->getGlobalLeft();
-  const float holdPanelTop = holdPanelLayout->getGlobalTop();
-  const float holdPanelWidth = holdPanelLayout->width;
-  const float holdPanelHeight = holdPanelLayout->height;
-  const float nextPanelLeft = nextPanelLayout->getGlobalLeft();
-  const float nextPanelTop = nextPanelLayout->getGlobalTop();
-  const float nextPanelWidth = nextPanelLayout->width;
-  const float nextPanelHeight = nextPanelLayout->height;
-
-  for (int figureIndex = (GameLogic::haveHold ? -1 : 0); 
-       figureIndex < GameLogic::nextFiguresCount; 
-       figureIndex++)
-  {
-    Figure * figure = NULL;
-
-    if (figureIndex < 0)
-      figure = &GameLogic::holdFigure;
-    else
-      figure = &GameLogic::nextFigures[figureIndex];
-
-    if (figure->dim)
-    {
-      int figureLeftGap = figure->dim;
-      int figureWidth = 0;
-      int figureTopGap = figure->dim;
-      int figureHeight = 0;
-
-      for (int x = 0; x < figure->dim; x++)
+      static const glm::vec2 partialSegmentUV[3] =
       {
-        bool horzEmpty = true;
-        bool vertEmpty = true;
+        { 0.5f, 0.5f },
+        { 0.0f, 0.5f },
+        { 0.0f, 0.0f },
+      };
 
-        for (int y = 0; y < figure->dim; y++)
-        {
-          if (!figure->getCell(x, y)->isEmpty())
-            horzEmpty = false;
-
-          if (!figure->getCell(x, y)->isEmpty())
-            vertEmpty = false;
-        }
-
-        if (!horzEmpty)
-        {
-          if(x < figureTopGap)
-            figureTopGap = x;
-
-          if (x > figureHeight)
-            figureHeight = x;
-        }
-
-        if (!vertEmpty)
-        {
-          if(x < figureLeftGap)
-            figureLeftGap = x;
-
-          if (x > figureWidth)
-            figureWidth = x;
-        }
-      }
-
-      figureHeight -= figureTopGap - 1;
-      figureWidth -= figureLeftGap - 1;
-      glm::vec2 origin;
-
-      if (figureIndex < 0)
+      static const glm::vec2 closedSegmentUV[3] =
       {
-        origin.x = holdPanelLeft + 0.5f * holdPanelWidth - scale * (0.5f * figureWidth + figureLeftGap);
-        origin.y = holdPanelTop + 0.5f * holdPanelHeight - scale * (0.5f * figureHeight + figureTopGap);
+        { 0.5f, 0.5f },
+        { 0.5f, 0.0f },
+        { 0.0f, 0.0f },
+      };
+
+      const glm::vec2 * horzSegmentUV = NULL;
+      const glm::vec2 * vertSegmentUV = NULL;
+
+      if (haveHorzAdjCell && haveVertAdjCell && haveCornerAdjCell)
+      {
+        horzSegmentUV = openSegmentUV;
+        vertSegmentUV = openSegmentUV;
       }
       else
       {
-        origin.x = nextPanelLeft + 0.5f * nextPanelWidth - scale * (0.5f * figureWidth + figureLeftGap);
-        origin.y = nextPanelTop + 0.5f * nextPanelHeight - scale * (0.5f * figureHeight + figureTopGap) + 
-          figureIndex * nextPanelHeight;
+        horzSegmentUV = haveHorzAdjCell ? partialSegmentUV : closedSegmentUV;
+        vertSegmentUV = haveVertAdjCell ? partialSegmentUV : closedSegmentUV;
       }
 
-      for (int y = 0; y < figure->dim; y++)
+      const float dx = float(i & 1);
+      const float dy = float((i & 2) >> 1);
+
+      glm::vec2 verts[4] =
       {
-        for (int x = 0; x < figure->dim; x++)
-        {
-          const Cell * cell = figure->getCell(x, y);
+        { x + 0.5f, y + 0.5f },
+        { x + 0.5f, y + dy },
+        { x + dx,   y + dy },
+        { x + dx,   y + 0.5f },
+      };
 
-          if (cell && !cell->isEmpty())
-          {
-            for (int i = 0; i < 4; i++)
-            {
-              int cornerDX = (i & 1) * 2 - 1;
-              int cornerDY = (i & 2) - 1;
+      const glm::vec3 & color = Palette::cellColorArray[cell->color];
+      int texIndex = bold ? tiFigureCellBold : tiFigureCellNormal;
 
-              const Cell * horzAdjCell = figure->getCell(x + cornerDX, y);
-              const Cell * vertAdjCell = figure->getCell(x, y + cornerDY);
-              const Cell * cornerAdjCell = figure->getCell(x + cornerDX, y + cornerDY);
-
-              bool haveHorzAdjCell = (horzAdjCell && !horzAdjCell->isEmpty());
-              bool haveVertAdjCell = (vertAdjCell && !vertAdjCell->isEmpty());
-              bool haveCornerAdjCell = (cornerAdjCell && !cornerAdjCell->isEmpty());
-
-              static const glm::vec2 openSegmentUV[3] =
-              {
-                { 0.5f, 0.5f },
-                { 0.5f, 1.0f },
-                { 0.0f, 1.0f },
-              };
-
-              static const glm::vec2 partialSegmentUV[3] =
-              {
-                { 0.5f, 0.5f },
-                { 0.0f, 0.5f },
-                { 0.0f, 0.0f },
-              };
-
-              static const glm::vec2 closedSegmentUV[3] =
-              {
-                { 0.5f, 0.5f },
-                { 0.5f, 0.0f },
-                { 0.0f, 0.0f },
-              };
-
-              const glm::vec2 * horzSegmentUV = NULL;
-              const glm::vec2 * vertSegmentUV = NULL;
-
-              if (haveHorzAdjCell && haveVertAdjCell && haveCornerAdjCell)
-              {
-                horzSegmentUV = openSegmentUV;
-                vertSegmentUV = openSegmentUV;
-              }
-              else
-              {
-                horzSegmentUV = haveHorzAdjCell ? partialSegmentUV : closedSegmentUV;
-                vertSegmentUV = haveVertAdjCell ? partialSegmentUV : closedSegmentUV;
-              }
-
-              const float dx = float(i & 1);
-              const float dy = float((i & 2) >> 1);
-
-              glm::vec2 verts[4] =
-              {
-                { x + 0.5f, y + 0.5f },
-                { x + 0.5f, y + dy },
-                { x + dx,   y + dy },
-                { x + dx,   y + 0.5f },
-              };
-
-              const glm::vec3 & color = Palette::cellColorArray[cell->color];
-
-              addAtlasVertex(origin + scale * verts[0], vertSegmentUV[0], tiFigureCellBold, color, 1.0f);
-              addAtlasVertex(origin + scale * verts[1], vertSegmentUV[1], tiFigureCellBold, color, 1.0f);
-              addAtlasVertex(origin + scale * verts[2], vertSegmentUV[2], tiFigureCellBold, color, 1.0f);
-              addAtlasVertex(origin + scale * verts[0], horzSegmentUV[0], tiFigureCellBold, color, 1.0f);
-              addAtlasVertex(origin + scale * verts[3], horzSegmentUV[1], tiFigureCellBold, color, 1.0f);
-              addAtlasVertex(origin + scale * verts[2], horzSegmentUV[2], tiFigureCellBold, color, 1.0f);
-            }
-          }
-        }
-      }
+      addAtlasVertex(origin + scale * verts[0], vertSegmentUV[0], texIndex, color, 1.0f);
+      addAtlasVertex(origin + scale * verts[1], vertSegmentUV[1], texIndex, color, 1.0f);
+      addAtlasVertex(origin + scale * verts[2], vertSegmentUV[2], texIndex, color, 1.0f);
+      addAtlasVertex(origin + scale * verts[0], horzSegmentUV[0], texIndex, color, 1.0f);
+      addAtlasVertex(origin + scale * verts[3], horzSegmentUV[1], texIndex, color, 1.0f);
+      addAtlasVertex(origin + scale * verts[2], horzSegmentUV[2], texIndex, color, 1.0f);
     }
   }
 }
 
 
-void OpenGLRender::buildFigureGlow()
+void OpenGLRender::buildCellShadow(const glm::vec2 & origin, float scale, const CellArray & cells, int x, int y, bool crop)
 {
-  // TODO : make separate function for building figure glow
-  LayoutObject * holdPanelLayout = Layout::screen.getChildRecursive(loHoldPanel);
-  LayoutObject * nextPanelLayout = Layout::screen.getChildRecursive(loNextPanel);
-
-  if (!holdPanelLayout || !nextPanelLayout)
-    return;
-
-  const float scale = Layout::holdNextFigureScale;
-  const float holdPanelLeft = holdPanelLayout->getGlobalLeft();
-  const float holdPanelTop = holdPanelLayout->getGlobalTop();
-  const float holdPanelWidth = holdPanelLayout->width;
-  const float holdPanelHeight = holdPanelLayout->height;
-  const float nextPanelLeft = nextPanelLayout->getGlobalLeft();
-  const float nextPanelTop = nextPanelLayout->getGlobalTop();
-  const float nextPanelWidth = nextPanelLayout->width;
-  const float nextPanelHeight = nextPanelLayout->height;
-  const float glowWidth = 0.3f;
+  const float shadowWidth = 0.15f;
   const float innerOffset = 2.0f / atlasSpriteSize;
-  const glm::vec2 centerUV(0.5f);
+  const Cell * cell = cells.getCell(x, y);
 
-  for (int i = -1; i < GameLogic::nextFiguresCount; i++)
+  if (cell->figureId)
   {
+    const Cell * rightCell = cells.getCell(x + 1, y);
+    const Cell * rightBottomCell = cells.getCell(x + 1, y + 1);
+    const Cell * bottomCell = cells.getCell(x, y + 1);
 
-    Figure * figure = NULL;
-
-    if (i < 0)
-      figure = &GameLogic::holdFigure;
-    else
-      figure = &GameLogic::nextFigures[i];
-
-    if (figure->dim)
+    if (bottomCell && bottomCell->figureId != cell->figureId)
     {
+      const Cell * leftCell = cells.getCell(x - 1, y);
+      const Cell * bottomLeftCell = cells.getCell(x - 1, y + 1);
+      bool softLeft = !leftCell || leftCell->figureId != cell->figureId;
 
-      glm::vec2 origin;
-
-      int figureLeftGap = figure->dim;
-      int figureWidth = 0;
-      int figureTopGap = figure->dim;
-      int figureHeight = 0;
-
-      const glm::vec3 & glowColor = Palette::cellColorArray[figure->color];
-      const glm::vec3 glowInnerColor = glowColor * Palette::figureGlowInnerBright;
-      const glm::vec3 glowOuterColor = glowColor * Palette::figureGlowOuterBright;
-
-      for (int x = 0; x < figure->dim; x++)
+      glm::vec2 verts[4] =
       {
-        bool horzEmpty = true;
-        bool vertEmpty = true;
+        { x,        y + 1.0f - innerOffset },
+        { x,        y + 1.0f + shadowWidth },
+        { x + 1.0f, y + 1.0f - innerOffset },
+        { x + 1.0f, y + 1.0f + shadowWidth }
+      };
 
-        for (int y = 0; y < figure->dim; y++)
-        {
-          if (!figure->getCell(x, y)->isEmpty())
-            horzEmpty = false;
+      glm::vec2 uv[4] =
+      {
+        { softLeft ? 1.0f : 0.5f, 0.5f },
+        { 1.0f,                   1.0f },
+        { 0.5f,                   0.5f },
+        { 1.0f,                   1.0f }
+      };
 
-          if (!figure->getCell(x, y)->isEmpty())
-            vertEmpty = false;
-        }
+      if (softLeft)
+        verts[1].x += shadowWidth;
 
-        if (!horzEmpty)
-        {
-          if (x < figureTopGap)
-            figureTopGap = x;
-
-          if (x > figureHeight)
-            figureHeight = x;
-        }
-
-        if (!vertEmpty)
-        {
-          if (x < figureLeftGap)
-            figureLeftGap = x;
-
-          if (x > figureWidth)
-            figureWidth = x;
-        }
+      if (bottomLeftCell && bottomLeftCell->figureId == cell->figureId)
+      {
+        verts[0].x -= innerOffset;
+        verts[1].x += shadowWidth;
       }
 
-      figureHeight -= figureTopGap - 1;
-      figureWidth -= figureLeftGap - 1;
-
-      if (i < 0)
+      if (rightBottomCell && rightBottomCell->figureId != cell->figureId &&
+          rightCell && rightCell->figureId != cell->figureId)
       {
-        origin.x = holdPanelLeft + 0.5f * holdPanelWidth - scale * (0.5f * figureWidth + figureLeftGap);
-        origin.y = holdPanelTop + 0.5f * holdPanelHeight - scale * (0.5f * figureHeight + figureTopGap);
-      }
-      else
-      {
-        origin.x = nextPanelLeft + 0.5f * nextPanelWidth - scale * (0.5f * figureWidth + figureLeftGap);
-        origin.y = nextPanelTop + 0.5f * nextPanelHeight - scale * (0.5f * figureHeight + figureTopGap) + 
-          i * nextPanelHeight;
+        verts[2].x -= innerOffset;
+        verts[3].x += shadowWidth;
       }
 
-      for (int y = 0; y < figure->dim; y++)
+      addAtlasVertex(origin + scale * verts[0], uv[0], tiFigureShadow, Palette::figureShadow, 1.0f);
+      addAtlasVertex(origin + scale * verts[1], uv[1], tiFigureShadow, Palette::figureShadow, 1.0f);
+      addAtlasVertex(origin + scale * verts[2], uv[2], tiFigureShadow, Palette::figureShadow, 1.0f);
+      addAtlasVertex(origin + scale * verts[1], uv[1], tiFigureShadow, Palette::figureShadow, 1.0f);
+      addAtlasVertex(origin + scale * verts[2], uv[2], tiFigureShadow, Palette::figureShadow, 1.0f);
+      addAtlasVertex(origin + scale * verts[3], uv[3], tiFigureShadow, Palette::figureShadow, 1.0f);
+    }
+
+    if (rightCell && rightCell->figureId != cell->figureId)
+    {
+      const Cell * topCell = cells.getCell(x, y - 1);
+      const Cell * topRightCell = cells.getCell(x + 1, y - 1);
+      bool softTop = !topCell || topCell->figureId != cell->figureId;
+
+      glm::vec2 verts[4] =
       {
-        for (int x = 0; x < figure->dim; x++)
-        {
-          const Cell * cell = figure->getCell(x, y);
+        { x + 1.0f - innerOffset, y },
+        { x + 1.0f + shadowWidth, y },
+        { x + 1.0f - innerOffset, y + 1.0f },
+        { x + 1.0f + shadowWidth, y + 1.0f }
+      };
 
-          if (cell && !cell->isEmpty())
-          {
-            const Cell * leftCell = figure->getCell(x - 1, y);
-            const Cell * leftTopCell = figure->getCell(x - 1, y - 1);
-            const Cell * topCell = figure->getCell(x, y - 1);
-            const Cell * topRightCell = figure->getCell(x + 1, y - 1);
-            const Cell * rightCell = figure->getCell(x + 1, y);
-            const Cell * rightBottomCell = figure->getCell(x + 1, y + 1);
-            const Cell * bottomCell = figure->getCell(x, y + 1);
-            const Cell * bottomLeftCell = figure->getCell(x - 1, y + 1);
+      glm::vec2 uv[4] =
+      {
+        { softTop ? 1.0f : 0.5f, 0.5f },
+        { 1.0f,                  1.0f },
+        { 0.5f,                  0.5f },
+        { 1.0f,                  1.0f }
+      };
 
-            bool haveLeftCell = leftCell && !leftCell->isEmpty();
-            bool haveLeftTopCell = leftTopCell && !leftTopCell->isEmpty();
-            bool haveTopCell = topCell && !topCell->isEmpty();
-            bool haveTopRightCell = topRightCell && !topRightCell->isEmpty();
-            bool haveRightCell = rightCell && !rightCell->isEmpty();
-            bool haveRightBottomCell = rightBottomCell && !rightBottomCell->isEmpty();
-            bool haveBottomCell = bottomCell && !bottomCell->isEmpty();
-            bool haveBottomLeftCell = bottomLeftCell && !bottomLeftCell->isEmpty();
+      if (softTop)
+        verts[1].y += shadowWidth;
 
-            if (!haveLeftCell)
-            {
-              glm::vec2 verts[4] =
-              {
-                { x + innerOffset, y },
-                { x - glowWidth,   y },
-                { x + innerOffset, y + 1.0f },
-                { x - glowWidth,   y + 1.0f }
-              };
-
-              if (haveLeftTopCell)
-              {
-                verts[0].y -= innerOffset;
-                verts[1].y += glowWidth;
-              }
-              else if (!haveTopCell)
-              {
-                verts[0].y += innerOffset;
-                verts[1].y -= glowWidth;
-              }
-
-              if (haveBottomLeftCell)
-              {
-                verts[2].y += innerOffset;
-                verts[3].y -= glowWidth;
-              }
-              else if (!haveBottomCell)
-              {
-                verts[2].y -= innerOffset;
-                verts[3].y += glowWidth;
-              }
-
-              addAtlasVertex(origin + scale * verts[0], centerUV, tiEmpty, glowInnerColor, 0.0f);
-              addAtlasVertex(origin + scale * verts[1], centerUV, tiEmpty, glowOuterColor, 0.0f);
-              addAtlasVertex(origin + scale * verts[2], centerUV, tiEmpty, glowInnerColor, 0.0f);
-              addAtlasVertex(origin + scale * verts[1], centerUV, tiEmpty, glowOuterColor, 0.0f);
-              addAtlasVertex(origin + scale * verts[2], centerUV, tiEmpty, glowInnerColor, 0.0f);
-              addAtlasVertex(origin + scale * verts[3], centerUV, tiEmpty, glowOuterColor, 0.0f);
-            }
-
-            if (!haveRightCell)
-            {
-              glm::vec2 verts[4] =
-              {
-                { x + 1.0f - innerOffset, y },
-                { x + 1.0f + glowWidth,   y },
-                { x + 1.0f - innerOffset, y + 1.0f },
-                { x + 1.0f + glowWidth,   y + 1.0f }
-              };
-
-              if (haveTopRightCell)
-              {
-                verts[0].y -= innerOffset;
-                verts[1].y += glowWidth;
-              }
-              else if (!haveTopCell)
-              {
-                verts[0].y += innerOffset;
-                verts[1].y -= glowWidth;
-              }
-
-              if (haveRightBottomCell)
-              {
-                verts[2].y += innerOffset;
-                verts[3].y -= glowWidth;
-              }
-              else if (!haveBottomCell)
-              {
-                verts[2].y -= innerOffset;
-                verts[3].y += glowWidth;
-              }
-
-              addAtlasVertex(origin + scale * verts[0], centerUV, tiEmpty, glowInnerColor, 0.0f);
-              addAtlasVertex(origin + scale * verts[1], centerUV, tiEmpty, glowOuterColor, 0.0f);
-              addAtlasVertex(origin + scale * verts[2], centerUV, tiEmpty, glowInnerColor, 0.0f);
-              addAtlasVertex(origin + scale * verts[1], centerUV, tiEmpty, glowOuterColor, 0.0f);
-              addAtlasVertex(origin + scale * verts[2], centerUV, tiEmpty, glowInnerColor, 0.0f);
-              addAtlasVertex(origin + scale * verts[3], centerUV, tiEmpty, glowOuterColor, 0.0f);
-            }
-
-            if (!haveTopCell)
-            {
-              glm::vec2 verts[4] =
-              {
-                { x,        y + innerOffset },
-                { x,        y - glowWidth },
-                { x + 1.0f, y + innerOffset },
-                { x + 1.0f, y - glowWidth }
-              };
-
-              if (haveLeftTopCell)
-              {
-                verts[0].x -= innerOffset;
-                verts[1].x += glowWidth;
-              }
-              else if (!haveLeftCell)
-              {
-                verts[0].x += innerOffset;
-                verts[1].x -= glowWidth;
-              }
-
-              if (haveTopRightCell)
-              {
-                verts[2].x += innerOffset;
-                verts[3].x -= glowWidth;
-              }
-              else if (!haveRightCell)
-              {
-                verts[2].x -= innerOffset;
-                verts[3].x += glowWidth;
-              }
-
-              addAtlasVertex(origin + scale * verts[0], centerUV, tiEmpty, glowInnerColor, 0.0f);
-              addAtlasVertex(origin + scale * verts[1], centerUV, tiEmpty, glowOuterColor, 0.0f);
-              addAtlasVertex(origin + scale * verts[2], centerUV, tiEmpty, glowInnerColor, 0.0f);
-              addAtlasVertex(origin + scale * verts[1], centerUV, tiEmpty, glowOuterColor, 0.0f);
-              addAtlasVertex(origin + scale * verts[2], centerUV, tiEmpty, glowInnerColor, 0.0f);
-              addAtlasVertex(origin + scale * verts[3], centerUV, tiEmpty, glowOuterColor, 0.0f);
-            }
-
-            if (!haveBottomCell)
-            {
-              glm::vec2 verts[4] =
-              {
-                { x,        y + 1.0f - innerOffset },
-                { x,        y + 1.0f + glowWidth },
-                { x + 1.0f, y + 1.0f - innerOffset },
-                { x + 1.0f, y + 1.0f + glowWidth }
-              };
-
-              if (haveBottomLeftCell)
-              {
-                verts[0].x -= innerOffset;
-                verts[1].x += glowWidth;
-              }
-              else if (!haveLeftCell)
-              {
-                verts[0].x += innerOffset;
-                verts[1].x -= glowWidth;
-              }
-
-              if (haveRightBottomCell)
-              {
-                verts[2].x += innerOffset;
-                verts[3].x -= glowWidth;
-              }
-              else if (!haveRightCell)
-              {
-                verts[2].x -= innerOffset;
-                verts[3].x += glowWidth;
-              }
-
-              addAtlasVertex(origin + scale * verts[0], centerUV, tiEmpty, glowInnerColor, 0.0f);
-              addAtlasVertex(origin + scale * verts[1], centerUV, tiEmpty, glowOuterColor, 0.0f);
-              addAtlasVertex(origin + scale * verts[2], centerUV, tiEmpty, glowInnerColor, 0.0f);
-              addAtlasVertex(origin + scale * verts[1], centerUV, tiEmpty, glowOuterColor, 0.0f);
-              addAtlasVertex(origin + scale * verts[2], centerUV, tiEmpty, glowInnerColor, 0.0f);
-              addAtlasVertex(origin + scale * verts[3], centerUV, tiEmpty, glowOuterColor, 0.0f);
-            }
-          }
-        }
+      if (topRightCell && topRightCell->figureId == cell->figureId)
+      {
+        verts[0].y -= innerOffset;
+        verts[1].y += shadowWidth;
       }
+
+      if (rightBottomCell && rightBottomCell->figureId != cell->figureId &&
+          bottomCell && bottomCell->figureId != cell->figureId)
+      {
+        verts[2].y -= innerOffset;
+        verts[3].y += shadowWidth;
+      }
+
+      addAtlasVertex(origin + scale * verts[0], uv[0], tiFigureShadow, Palette::figureShadow, 1.0f);
+      addAtlasVertex(origin + scale * verts[1], uv[1], tiFigureShadow, Palette::figureShadow, 1.0f);
+      addAtlasVertex(origin + scale * verts[2], uv[2], tiFigureShadow, Palette::figureShadow, 1.0f);
+      addAtlasVertex(origin + scale * verts[1], uv[1], tiFigureShadow, Palette::figureShadow, 1.0f);
+      addAtlasVertex(origin + scale * verts[2], uv[2], tiFigureShadow, Palette::figureShadow, 1.0f);
+      addAtlasVertex(origin + scale * verts[3], uv[3], tiFigureShadow, Palette::figureShadow, 1.0f);
+    }
+  }
+}
+
+
+void OpenGLRender::buildCellGlow(const glm::vec2 & origin, float scale, const CellArray & cells, int x, int y, bool crop)
+{
+  const float innerOffset = 2.0f / atlasSpriteSize;
+  const float glowWidth = 0.5f;
+  const glm::vec2 centerUV(0.5f);
+  const Cell * cell = cells.getCell(x, y);
+
+  if (cell->figureId)
+  {
+    const Cell * leftCell = cells.getCell(x - 1, y);
+    const Cell * leftTopCell = cells.getCell(x - 1, y - 1);
+    const Cell * topCell = cells.getCell(x, y - 1);
+    const Cell * topRightCell = cells.getCell(x + 1, y - 1);
+    const Cell * rightCell = cells.getCell(x + 1, y);
+    const Cell * rightBottomCell = cells.getCell(x + 1, y + 1);
+    const Cell * bottomCell = cells.getCell(x, y + 1);
+    const Cell * bottomLeftCell = cells.getCell(x - 1, y + 1);
+
+    bool haveLeftCell = leftCell && leftCell->figureId == cell->figureId;
+    bool haveLeftTopCell = leftTopCell && leftTopCell->figureId == cell->figureId;
+    bool haveTopCell = topCell && topCell->figureId == cell->figureId;
+    bool haveTopRightCell = topRightCell && topRightCell->figureId == cell->figureId;
+    bool haveRightCell = rightCell && rightCell->figureId == cell->figureId;
+    bool haveRightBottomCell = rightBottomCell && rightBottomCell->figureId == cell->figureId;
+    bool haveBottomCell = bottomCell && bottomCell->figureId == cell->figureId;
+    bool haveBottomLeftCell = bottomLeftCell && bottomLeftCell->figureId == cell->figureId;
+
+    const glm::vec3 & glowColor = Palette::cellColorArray[cell->color];
+    const glm::vec3 glowInnerColor = glowColor * Palette::figureGlowInnerBright;
+    const glm::vec3 glowOuterColor = glowColor * Palette::figureGlowOuterBright;
+
+    if ((leftCell && leftCell->figureId != cell->figureId) ||
+        (!leftCell && !crop))
+    {
+      glm::vec2 verts[4] =
+      {
+        { x + innerOffset, y },
+        { x - glowWidth,   y },
+        { x + innerOffset, y + 1.0f },
+        { x - glowWidth,   y + 1.0f }
+      };
+
+      if (haveLeftTopCell)
+      {
+        verts[0].y -= innerOffset;
+        verts[1].y += glowWidth;
+      }
+      else if ((topCell || !crop) && !haveTopCell)
+      {
+        verts[0].y += innerOffset;
+        verts[1].y -= glowWidth;
+      }
+
+      if (haveBottomLeftCell)
+      {
+        verts[2].y += innerOffset;
+        verts[3].y -= glowWidth;
+      }
+      else if ((bottomCell || !crop) && !haveBottomCell)
+      {
+        verts[2].y -= innerOffset;
+        verts[3].y += glowWidth;
+      }
+
+      addAtlasVertex(origin + scale * verts[0], centerUV, tiEmpty, glowInnerColor, 0.0f);
+      addAtlasVertex(origin + scale * verts[1], centerUV, tiEmpty, glowOuterColor, 0.0f);
+      addAtlasVertex(origin + scale * verts[2], centerUV, tiEmpty, glowInnerColor, 0.0f);
+      addAtlasVertex(origin + scale * verts[1], centerUV, tiEmpty, glowOuterColor, 0.0f);
+      addAtlasVertex(origin + scale * verts[2], centerUV, tiEmpty, glowInnerColor, 0.0f);
+      addAtlasVertex(origin + scale * verts[3], centerUV, tiEmpty, glowOuterColor, 0.0f);
+    }
+
+    if ((rightCell && rightCell->figureId != cell->figureId) ||
+       (!rightCell && !crop))
+    {
+      glm::vec2 verts[4] =
+      {
+        { x + 1.0f - innerOffset, y },
+        { x + 1.0f + glowWidth,   y },
+        { x + 1.0f - innerOffset, y + 1.0f },
+        { x + 1.0f + glowWidth,   y + 1.0f }
+      };
+
+      if (haveTopRightCell)
+      {
+        verts[0].y -= innerOffset;
+        verts[1].y += glowWidth;
+      }
+      else if ((topCell || !crop) && !haveTopCell)
+      {
+        verts[0].y += innerOffset;
+        verts[1].y -= glowWidth;
+      }
+
+      if (haveRightBottomCell)
+      {
+        verts[2].y += innerOffset;
+        verts[3].y -= glowWidth;
+      }
+      else if ((bottomCell || !crop) && !haveBottomCell)
+      {
+        verts[2].y -= innerOffset;
+        verts[3].y += glowWidth;
+      }
+
+      addAtlasVertex(origin + scale * verts[0], centerUV, tiEmpty, glowInnerColor, 0.0f);
+      addAtlasVertex(origin + scale * verts[1], centerUV, tiEmpty, glowOuterColor, 0.0f);
+      addAtlasVertex(origin + scale * verts[2], centerUV, tiEmpty, glowInnerColor, 0.0f);
+      addAtlasVertex(origin + scale * verts[1], centerUV, tiEmpty, glowOuterColor, 0.0f);
+      addAtlasVertex(origin + scale * verts[2], centerUV, tiEmpty, glowInnerColor, 0.0f);
+      addAtlasVertex(origin + scale * verts[3], centerUV, tiEmpty, glowOuterColor, 0.0f);
+    }
+
+    if ((topCell && topCell->figureId != cell->figureId) ||
+       (!topCell && !crop))
+    {
+      glm::vec2 verts[4] =
+      {
+        { x,        y + innerOffset },
+        { x,        y - glowWidth },
+        { x + 1.0f, y + innerOffset },
+        { x + 1.0f, y - glowWidth }
+      };
+
+      if (haveLeftTopCell)
+      {
+        verts[0].x -= innerOffset;
+        verts[1].x += glowWidth;
+      }
+      else if ((leftCell || !crop) && !haveLeftCell)
+      {
+        verts[0].x += innerOffset;
+        verts[1].x -= glowWidth;
+      }
+
+      if (haveTopRightCell)
+      {
+        verts[2].x += innerOffset;
+        verts[3].x -= glowWidth;
+      }
+      else if ((rightCell || !crop) && !haveRightCell)
+      {
+        verts[2].x -= innerOffset;
+        verts[3].x += glowWidth;
+      }
+
+      addAtlasVertex(origin + scale * verts[0], centerUV, tiEmpty, glowInnerColor, 0.0f);
+      addAtlasVertex(origin + scale * verts[1], centerUV, tiEmpty, glowOuterColor, 0.0f);
+      addAtlasVertex(origin + scale * verts[2], centerUV, tiEmpty, glowInnerColor, 0.0f);
+      addAtlasVertex(origin + scale * verts[1], centerUV, tiEmpty, glowOuterColor, 0.0f);
+      addAtlasVertex(origin + scale * verts[2], centerUV, tiEmpty, glowInnerColor, 0.0f);
+      addAtlasVertex(origin + scale * verts[3], centerUV, tiEmpty, glowOuterColor, 0.0f);
+    }
+
+    if ((bottomCell && bottomCell->figureId != cell->figureId) ||
+       (!bottomCell && !crop))
+    {
+      glm::vec2 verts[4] =
+      {
+        { x,        y + 1.0f - innerOffset },
+        { x,        y + 1.0f + glowWidth },
+        { x + 1.0f, y + 1.0f - innerOffset },
+        { x + 1.0f, y + 1.0f + glowWidth }
+      };
+
+      if (haveBottomLeftCell)
+      {
+        verts[0].x -= innerOffset;
+        verts[1].x += glowWidth;
+      }
+      else if ((leftCell || !crop) && !haveLeftCell)
+      {
+        verts[0].x += innerOffset;
+        verts[1].x -= glowWidth;
+      }
+
+      if (haveRightBottomCell)
+      {
+        verts[2].x += innerOffset;
+        verts[3].x -= glowWidth;
+      }
+      else if ((rightCell || !crop) && !haveRightCell)
+      {
+        verts[2].x -= innerOffset;
+        verts[3].x += glowWidth;
+      }
+
+      addAtlasVertex(origin + scale * verts[0], centerUV, tiEmpty, glowInnerColor, 0.0f);
+      addAtlasVertex(origin + scale * verts[1], centerUV, tiEmpty, glowOuterColor, 0.0f);
+      addAtlasVertex(origin + scale * verts[2], centerUV, tiEmpty, glowInnerColor, 0.0f);
+      addAtlasVertex(origin + scale * verts[1], centerUV, tiEmpty, glowOuterColor, 0.0f);
+      addAtlasVertex(origin + scale * verts[2], centerUV, tiEmpty, glowInnerColor, 0.0f);
+      addAtlasVertex(origin + scale * verts[3], centerUV, tiEmpty, glowOuterColor, 0.0f);
     }
   }
 }
@@ -1809,7 +1414,7 @@ void OpenGLRender::buildDropTrails()
   {
     const float left = fieldLayout->getGlobalLeft();
     const float top = fieldLayout->getGlobalTop();
-    const float scale = fieldLayout->width / GameLogic::fieldWidth;
+    const float scale = fieldLayout->width / Field::width;
 
     for (int trailInd = GameLogic::dropTrailsTail; 
          trailInd != GameLogic::dropTrailsHead; 
@@ -1840,7 +1445,7 @@ void OpenGLRender::buildDropTrails()
         glm::vec3 sparkleColor = 
           sparkle.alpha * (0.5f + Palette::cellColorArray[dropTrail.color]) * sparklesOpSqProgress;
 
-        if (sparkleX < GameLogic::fieldWidth - sparkleSize && sparkleY > 0.0f)
+        if (sparkleX < Field::width - sparkleSize && sparkleY > 0.0f)
           buildTexturedRect(left + sparkleX, top + sparkleY, sparkleSize, sparkleSize, 
                             tiDropSparkle, sparkleColor, 0.0f);
       }
@@ -1855,7 +1460,7 @@ void OpenGLRender::buildRowFlashes()
   {
     const float fieldLeft = fieldLayout->getGlobalLeft();
     const float fieldTop = fieldLayout->getGlobalTop();
-    const float scale = fieldLayout->width / GameLogic::fieldWidth;
+    const float scale = fieldLayout->width / Field::width;
     float overallProgress = glm::clamp(float(Time::timer - GameLogic::rowsDeleteTimer) /
                                        GameLogic::rowsDeletionEffectTime, 0.0f, 1.0f);
     float mul = 1.0f - cos((overallProgress - 0.5f) * 
@@ -1872,7 +1477,7 @@ void OpenGLRender::buildRowFlashes()
       int row = *delRowIt;
       float flashLeft = fieldLeft - scale * dx;
       float flashTop = fieldTop + scale * (row - dy);
-      float flashWidth = scale * (GameLogic::fieldWidth + 2.0f * dx);
+      float flashWidth = scale * (Field::width + 2.0f * dx);
       float flashHeight = scale * (1.0f + 2.0f * dy);
       buildTexturedRect(flashLeft, flashTop, flashWidth, flashHeight, tiRowFlash, flashColor, 0.0f);
     }
@@ -1883,7 +1488,7 @@ void OpenGLRender::buildRowFlashes()
       int firstRow = *GameLogic::getDeletedRowsBegin();
       int lastRow = *(GameLogic::getDeletedRowsEnd() - 1);
 
-      float lightSourceX = (shineProgress - 0.5f) * 3.0f * GameLogic::fieldWidth;
+      float lightSourceX = (shineProgress - 0.5f) * 3.0f * Field::width;
       float lightSourceY = 0.5f * (firstRow + lastRow + 1);
 
       for (GameLogic::DeletedRowGapsIterator rowGapsIt = GameLogic::getDeletedRowGapsBegin(); 
@@ -2691,7 +2296,7 @@ void OpenGLRender::buildLeaderboardWindow()
           {
             const float cursorHeight = 0.9f * Layout::leaderboardPanelRowTextHeight;
             const float cursorWidth = 0.5f * cursorHeight;
-            // TODO : subtract font falloff size from cursof left position
+            // TODO : subtract font falloff size from cursor left position
             const float cursorLeft = nameColLeft + Layout::leaderboardPanelNameLeftIndent + nameWidth;
             const float cursorTop = rowTop + 0.5f * (rowHeight - cursorHeight);
             buildSmoothRect(cursorLeft, cursorTop, cursorWidth, cursorHeight, 0.1f * cursorWidth, 
@@ -2804,10 +2409,10 @@ void OpenGLRender::buildDropPredictor()
   {
     const float fieldLeft = fieldLayout->getGlobalLeft();
     const float fieldTop = fieldLayout->getGlobalTop();
-    const float cellSize = fieldLayout->width / GameLogic::fieldWidth;
+    const float cellSize = fieldLayout->width / Field::width;
     const glm::vec3 figureColor = Palette::cellColorArray[GameLogic::curFigure.color];
-    const int fieldWidth = GameLogic::fieldWidth;
-    const int fieldHeight = GameLogic::fieldHeight;
+    const int fieldWidth = Field::width;
+    const int fieldHeight = Field::height;
     int dim = GameLogic::curFigure.dim;
     int yArray[Figure::dimMax];
 
@@ -2822,7 +2427,7 @@ void OpenGLRender::buildDropPredictor()
           int fieldX = GameLogic::curFigureX + x;
           int fieldY = GameLogic::curFigureY + y + 1;
 
-          while (fieldY < fieldHeight && GameLogic::field[fieldX + fieldY * fieldWidth].isEmpty())
+          while (fieldY < fieldHeight && GameLogic::field.getCell(fieldX, fieldY)->isEmpty())
             fieldY++;
 
           if (fieldY > GameLogic::curFigureY + y + 1)
@@ -3051,11 +2656,9 @@ void OpenGLRender::updateGameLayer()
     GameLogic::state == GameLogic::stPaused || 
     GameLogic::state == GameLogic::stGameOver)
   {
-    buidFieldShadows();
-    buidFieldBlocks();
-    biuldFieldGlow();
-    buildFigureBlocks();
-    buildFigureGlow();
+    buidField();
+    buildHoldFigure();
+    buildNextFigures();
     buildDropTrails();
     buildRowFlashes();
     buildLevelUp();

@@ -176,12 +176,45 @@ void Figure::clear()
 }
 
 
-const Cell * Figure::getCell(int x, int y) const
-{
-  if (x < 0 || y < 0 || x >= dim || y >= dim)
-    return NULL;
+bool Figure::inBounds(int x, int y) const 
+{ 
+  return (x >= 0 && x < dim && y >= 0 && y < dim); 
+}
 
+
+Cell * Figure::getCell(int x, int y)
+{
   // TODO : non continuous figure storing in the cell buffer could be more optimal
   // so we could use dimMax == 4 instead of dim to multiply
-  return &cells[x + y * dim];
+  if (inBounds(x, y))
+    return &cells[x + y * dim];
+  else
+    return NULL;
+}
+
+
+void Figure::setCell(const Cell & cell, int x, int y)
+{
+  if (inBounds(x, y))
+    cells[x + y * dim] = cell;
+}
+
+glm::vec2 Figure::getCenterPos() const
+{
+  int leftMostCell = dim;
+  int topMostCell = dim;
+  int rightMostCell = 0;
+  int bottomMostCell = 0;
+
+  for (int y = 0; y < dim; y++)
+    for (int x = 0; x < dim; x++)
+      if (!getCell(x, y)->isEmpty())
+      {
+        leftMostCell = glm::min(leftMostCell, x);
+        topMostCell = glm::min(topMostCell, y);
+        rightMostCell = glm::max(rightMostCell, x + 1);
+        bottomMostCell = glm::max(bottomMostCell, y + 1);
+      }
+
+  return glm::vec2(0.5f * (leftMostCell + rightMostCell), 0.5f * (topMostCell + bottomMostCell));
 }

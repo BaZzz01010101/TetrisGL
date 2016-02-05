@@ -22,6 +22,8 @@
     <ClCompile Include="..\..\src\Application.cpp" />
     <ClCompile Include="..\..\src\Binding.cpp" />
     <ClCompile Include="..\..\src\Cell.cpp" />
+    <ClCompile Include="..\..\src\CellArray.cpp" />
+    <ClCompile Include="..\..\src\Field.cpp" />
     <ClCompile Include="..\..\src\LeaderboardLogic.cpp" />
     <ClCompile Include="..\..\src\Logic.cpp" />
     <ClCompile Include="..\..\src\Palette.cpp" />
@@ -139,6 +141,8 @@
     <ClInclude Include="..\..\src\Application.h" />
     <ClInclude Include="..\..\src\Binding.h" />
     <ClInclude Include="..\..\src\Cell.h" />
+    <ClInclude Include="..\..\src\CellArray.h" />
+    <ClInclude Include="..\..\src\Field.h" />
     <ClInclude Include="..\..\src\LeaderboardLogic.h" />
     <ClInclude Include="..\..\src\Logic.h" />
     <ClInclude Include="..\..\src\Palette.h" />

@@ -131,15 +131,19 @@ private:
   float buildTextMesh(float left, float top, float width, float height, const char * str, 
                       float size, const glm::vec3 & color, float alpha, float blur, 
                       HorzAllign horzAllign = haLeft, VertAllign vertAllign = vaTop);
+  void buildCell(const glm::vec2 & origin, float scale, const CellArray & cells, 
+                 int x, int y, bool bold);
+  void buildCellShadow(const glm::vec2 & origin, float scale, const CellArray & cells, 
+                       int x, int y, bool crop);
+  void buildCellGlow(const glm::vec2 & origin, float scale, const CellArray & cells, 
+                     int x, int y, bool crop);
   void buildMenu(MenuLogic * menuLogic, LayoutObject * menuLayout);
   void buildSettingsWindow();
   void buildLeaderboardWindow();
   void buildBackground();
-  void buidFieldShadows();
-  void buidFieldBlocks();
-  void biuldFieldGlow();
-  void buildFigureBlocks();
-  void buildFigureGlow();
+  void buidField();
+  void buildHoldFigure();
+  void buildNextFigures();
   void buildDropTrails();
   void buildRowFlashes();
   void buildDropPredictor();

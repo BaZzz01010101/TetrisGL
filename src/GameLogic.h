@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Cell.h"
+#include "Field.h"
 #include "Figure.h"
 #include "DropSparkle.h"
 #include "DropTrail.h"
@@ -41,12 +42,10 @@ public:
   typedef std::vector<CellCoord>::const_iterator DeletedRowGapsIterator;
 
   static State state;
-  static std::vector<Cell> field;
+  static Field field;
   static std::vector<Figure> nextFigures;
   static Figure holdFigure;
   static Figure curFigure;
-  static const int fieldWidth = 10;
-  static const int fieldHeight = 20;
   static int curFigureX;
   static int curFigureY;
   static int curScore;
@@ -64,7 +63,7 @@ public:
   static float gameOverTimeLeft;
   static const int nextFiguresCount = 3;
   static float rowsDeletionEffectTime;
-  static const int dropTrailsSize = fieldWidth * fieldHeight;
+  static const int dropTrailsSize = Field::width * Field::height;
   static DropTrail dropTrails[dropTrailsSize];
   static int dropTrailsHead;
   static int dropTrailsTail;
@@ -78,6 +77,7 @@ public:
   static void shiftCurrentFigureLeft();
   static void shiftCurrentFigureRight();
   static void storeCurFigureIntoField();
+  static void removeCurFigureFromField();
   static void newGame() { state = stInit; }
   static void pauseGame() { state = stPaused; }
   static void continueGame() { state = stPlaying; }
@@ -92,7 +92,6 @@ public:
   static void init();
   static int getRowElevation(int y);
   static float getRowCurrentElevation(int y);
-  static const Cell * getFieldCell(int x, int y);
 
 private:
   static const int maxLevel;

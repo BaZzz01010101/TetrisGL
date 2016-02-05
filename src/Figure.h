@@ -1,7 +1,8 @@
 #pragma once
 #include "Cell.h"
+#include "CellArray.h"
 
-class Figure
+class Figure : public CellArray
 {
 public:
   enum Type 
@@ -32,7 +33,13 @@ public:
   void rotateRight();
   static void swap(Figure & figure1, Figure & figure2);
   void clear();
-  const Cell * getCell(int x, int y) const;
+  int getWidth() const { return dim; }
+  int getHeight() const { return dim; }
+  bool inBounds(int x, int y) const;
+  Cell * getCell(int x, int y);
+  const Cell * getCell(int x, int y) const { return const_cast<Figure *>(this)->getCell(x, y); }
+  void setCell(const Cell & cell, int x, int y);
+  glm::vec2 getCenterPos() const;
 
 private:
   static int nextId;

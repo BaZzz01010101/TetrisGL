@@ -25,7 +25,7 @@ Figure GameLogic::curFigure;
 const int GameLogic::maxLevel = 20;
 double GameLogic::lastStepTimer = -1.0f;
 bool  GameLogic::justHolded = false;
-std::vector<Cell> GameLogic::field;
+Field GameLogic::field;
 std::vector<Figure> GameLogic::nextFigures;
 std::vector<int> GameLogic::rowElevation;
 std::vector<float> GameLogic::rowCurrentElevation;
@@ -37,12 +37,11 @@ int GameLogic::dropTrailsTail = 0;
 
 void GameLogic::init()
 {
-  field.reserve(fieldWidth * fieldHeight);
   nextFigures.reserve(nextFiguresCount);
-  rowElevation.reserve(fieldHeight);
-  rowCurrentElevation.reserve(fieldHeight);
-  deletedRows.reserve(fieldHeight);
-  deletedRowGaps.reserve((fieldWidth + 1) * Figure::dimMax);
+  rowElevation.reserve(Field::height);
+  rowCurrentElevation.reserve(Field::height);
+  deletedRows.reserve(Field::height);
+  deletedRowGaps.reserve((Field::width + 1) * Figure::dimMax);
   resetGame();
 }
 
@@ -54,10 +53,10 @@ void GameLogic::resetGame()
   curGoal = 5;
   haveHold = false;
   holdFigure.clear();
-  rowElevation.assign(fieldHeight, 0);
-  rowCurrentElevation.assign(fieldHeight, 0.0f);
+  rowElevation.assign(Field::height, 0);
+  rowCurrentElevation.assign(Field::height, 0.0f);
   nextFigures.resize(GameLogic::nextFiguresCount);
-  field.assign(fieldWidth * fieldHeight, Cell(0, Cell::clNone));
+  field.clear();
   dropTrailsHead = 0;
   dropTrailsTail = 0;
 
@@ -176,7 +175,18 @@ void GameLogic::storeCurFigureIntoField()
   for (int x = 0; x < dim; x++)
     for (int y = 0; y < dim; y++)
       if (!curFigure.getCell(x, y)->isEmpty())
-        field[curFigureX + x + (curFigureY + y) * fieldWidth] = *curFigure.getCell(x, y);
+        field.setCell(*curFigure.getCell(x, y), curFigureX + x, curFigureY + y);
+}
+
+
+void GameLogic::removeCurFigureFromField()
+{
+  int dim = curFigure.dim;
+
+  for (int x = 0; x < dim; x++)
+    for (int y = 0; y < dim; y++)
+      if (!curFigure.getCell(x, y)->isEmpty())
+        field.getCell(curFigureX + x, curFigureY + y)->clear();
 }
 
 
@@ -191,7 +201,7 @@ void GameLogic::shiftFigureConveyor()
 
   nextFigures[GameLogic::nextFiguresCount - 1].buildRandom();
 
-  curFigureX = (fieldWidth - curFigure.dim) / 2;
+  curFigureX = (Field::width - curFigure.dim) / 2;
   // TODO : fix L - figure appearance vertical coordinate
   curFigureY = 0;
 
@@ -214,9 +224,9 @@ bool GameLogic::check(const Figure & figure, int figureX, int figureY)
         int y = figureY + cellY;
 
         if (x < 0 ||
-            x >= fieldWidth ||
-            y >= fieldHeight ||
-            (y >= 0 && !field[x + y * fieldWidth].isEmpty()))
+            x >= Field::width ||
+            y >= Field::height ||
+            (y >= 0 && !field.getCell(x, y)->isEmpty()))
         {
           return false;
         }
@@ -253,7 +263,7 @@ void GameLogic::holdCurrentFigure()
 {
   if (!justHolded)
   {
-    const int defaultX = (fieldWidth - curFigure.dim) / 2;
+    const int defaultX = (Field::width - curFigure.dim) / 2;
     const int defaultY = 0;
 
     if (haveHold)
@@ -372,12 +382,12 @@ void GameLogic::checkFieldRows()
 {
   int elevation = 0;
 
-  for (int y = fieldHeight - 1; y >= 0; y--)
+  for (int y = Field::height - 1; y >= 0; y--)
   {
     bool fullRow = true;
 
-    for (int x = 0; x < fieldWidth; x++)
-      if (field[x + y * fieldWidth].isEmpty())
+    for (int x = 0; x < Field::width; x++)
+      if (field.getCell(x, y)->isEmpty())
         fullRow = false;
 
     if (fullRow)
@@ -388,17 +398,13 @@ void GameLogic::checkFieldRows()
     }
     else if (elevation)
     {
-      for (int x = 0; x < fieldWidth; x++)
-      {
-        field[x + (y + elevation) * fieldWidth] = field[x + y * fieldWidth];
-        rowElevation[y + elevation] = elevation;
-        rowCurrentElevation[y + elevation] = (float)elevation;
-      }
+      field.copyRow(y, y + elevation);
+      rowElevation[y + elevation] = elevation;
+      rowCurrentElevation[y + elevation] = (float)elevation;
     }
   }
 
-  for (int i = 0; i < elevation * fieldWidth; i++)
-    field[i].clear();
+  field.clearRows(0, elevation - 1);
 
   if (elevation)
   {
@@ -423,8 +429,8 @@ void GameLogic::proceedFallingRows()
     haveFallingRows = false;
     float timePassed = float(Time::timer - rowsDeleteTimer);
 
-    for (int y = 0; y < fieldHeight; y++)
-      for (int x = 0; x < fieldWidth; x++)
+    for (int y = 0; y < Field::height; y++)
+      for (int x = 0; x < Field::width; x++)
         if (rowElevation[y] > 0)
         {
           rowCurrentElevation[y] = glm::max(float(rowElevation[y]) - 
@@ -456,10 +462,10 @@ void GameLogic::addDropTrail(int x, int y, int height, Cell::Color color)
 void GameLogic::addRowGaps(int y)
 {
   deletedRowGaps.push_back(CellCoord(0, y));
-  deletedRowGaps.push_back(CellCoord(fieldWidth, y));
+  deletedRowGaps.push_back(CellCoord(Field::width, y));
 
-  for (int x = 1; x < fieldWidth; x++)
-    if (field[x + y * fieldWidth].figureId != field[x - 1 + y * fieldWidth].figureId)
+  for (int x = 1; x < Field::width; x++)
+    if (field.getCell(x, y)->figureId != field.getCell(x - 1, y)->figureId)
       deletedRowGaps.push_back(CellCoord(x, y));
 }
 
@@ -481,39 +487,16 @@ void GameLogic::updateEffects()
 int GameLogic::getRowElevation(int y)
 {
   assert(y >= 0);
-  assert(y < fieldHeight);
+  assert(y < Field::height);
 
-  return (y >= 0 && y < fieldHeight) ? rowElevation[y] : 0;
+  return (y >= 0 && y < Field::height) ? rowElevation[y] : 0;
 }
 
 
 float GameLogic::getRowCurrentElevation(int y) 
 {
   assert(y >= 0);
-  assert(y < fieldHeight);
+  assert(y < Field::height);
 
-  return (y >= 0 && y < fieldHeight) ? rowCurrentElevation[y] : 0.0f;
-}
-
-
-// Gets cell of the game field considering current figure
-// returns NULL if out of field bounds
-const Cell * GameLogic::getFieldCell(int x, int y) 
-{
-  const Cell * fieldCell = NULL;
-
-  if (x >= 0 && y >= 0 && x < fieldWidth && y < fieldHeight)
-  {
-    fieldCell = &field[x + y * fieldWidth];
-
-    if (!fieldCell->figureId && !haveFallingRows)
-    {
-      const Cell * figureCell = curFigure.getCell(x - curFigureX, y - curFigureY);
-
-      if (figureCell)
-        return figureCell;
-    }
-  }
-
-  return fieldCell;
+  return (y >= 0 && y < Field::height) ? rowCurrentElevation[y] : 0.0f;
 }
