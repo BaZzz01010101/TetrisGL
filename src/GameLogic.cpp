@@ -160,7 +160,7 @@ float GameLogic::getStepTime()
   const float maxStepTime = 1.0f;
   const float minStepTime = 0.0f;
   float opRelLevel = 1.0f - float(curLevel) / maxLevel;
-  float k = 1.0f - opRelLevel * opRelLevel;
+  float k = glm::clamp(1.0f - opRelLevel * opRelLevel, 0.0f, 1.0f);
 
   return maxStepTime - (maxStepTime - minStepTime) * k;
 }
