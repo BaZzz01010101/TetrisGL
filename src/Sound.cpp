@@ -129,18 +129,14 @@ void Sound::update()
 
   if (GameLogic::state != lastGameState)
   {
-    if (GameLogic::state == GameLogic::stStopped)
-    {
-      lastFigureId = GameLogic::curFigure.id;
-      lastFigureX = GameLogic::curFigureX;
-      lastFigureAngle = GameLogic::curFigure.angle;
-      lastHoldFigureId = GameLogic::holdFigure.id;
-      lastFastDownCounter = GameLogic::fastDownCounter;
-      lastDropTrailCounter = GameLogic::dropTrailCounter;
-      lastDeletedRowsCount = GameLogic::getDeletedRowsCount();
-      lastLevel = GameLogic::curLevel;
-    }
-
+    lastFigureId = GameLogic::curFigure.id;
+    lastFigureX = GameLogic::curFigureX;
+    lastFigureAngle = GameLogic::curFigure.angle;
+    lastHoldFigureId = GameLogic::holdFigure.id;
+    lastFastDownCounter = GameLogic::fastDownCounter;
+    lastDropTrailCounter = GameLogic::dropTrailCounter;
+    lastDeletedRowsCount = GameLogic::getDeletedRowsCount();
+    lastLevel = GameLogic::curLevel;
     lastGameState = GameLogic::state;
   }
 
