@@ -5,18 +5,19 @@
 class Binding
 {
 public:
+  // must be continuous and have first real action = 0
   enum Action 
   { 
     doNothing = -1, 
-    FIRST_ACTION = 0, 
-    moveLeft = 0, 
+    FIRST_ACTION = 0,
+    moveLeft = 0,
     moveRight, 
     rotateLeft, 
     rotateRight, 
     fastDown, 
     dropDown, 
     swapHold, 
-    ACTION_COUNT 
+    ACTION_COUNT,
   };
 
   static void init();

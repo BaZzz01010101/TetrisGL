@@ -16,8 +16,8 @@ SettingsLogic::SettingsLogic() :
   musicVolume(0.5f),
   selectedControl(ctrlSoundVolume),
   highlightedControl(ctrlNone),
-  selectedAction(Binding::doNothing),
-  highlightedAction(Binding::doNothing),
+  selectedAction(Binding::FIRST_ACTION),
+  highlightedAction(Binding::FIRST_ACTION),
   backButtonHighlighted(false)
 {
 }
@@ -279,7 +279,7 @@ void SettingsLogic::selectPrevious()
     break;
   case ctrlKeyBindTable:
 
-    if (--selectedAction == Binding::doNothing)
+    if (selectedAction-- == Binding::FIRST_ACTION)
       selectedControl = ctrlMusicVolume;
 
     break;
