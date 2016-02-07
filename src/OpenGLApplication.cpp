@@ -116,10 +116,10 @@ void OpenGLApplication::run()
     if (vSync)
     {
       float maxSleepTime = 0.001f;
-      const float targetFps = 70.0f;
+      const float targetFps = 100.0f;
       float currentTimerDelta = Time::getCurrentTimerDelta();
 
-      while (currentTimerDelta + 2.0f * maxSleepTime < 1.0f / targetFps)
+      while (currentTimerDelta + maxSleepTime < 1.0f / targetFps)
       {
         float prevDelta = currentTimerDelta;
         Crosy::sleep(1);
