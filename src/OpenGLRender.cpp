@@ -937,42 +937,44 @@ void OpenGLRender::buidField()
     const glm::vec2 fieldPos(fieldLayout->getGlobalLeft(), fieldLayout->getGlobalTop());
     glm::vec2 origin = fieldPos;
 
-    GameLogic::storeCurFigureIntoField();
-
+    if(!GameLogic::haveFallingRows)
+      GameLogic::storeCurFigureIntoField();
+      
     for (int y = 0; y < Field::height; y++)
-      for (int x = 0; x < Field::width; x++)
-      {
-        if (GameLogic::getRowElevation(y))
-          origin.y = fieldPos.y - scale * GameLogic::getRowCurrentElevation(y);
-        else
-          origin.y = fieldPos.y;
+    {
+      if (GameLogic::getRowElevation(y))
+        origin.y = fieldPos.y - scale * GameLogic::getRowCurrentElevation(y);
+      else
+        origin.y = fieldPos.y;
 
+      for (int x = 0; x < Field::width; x++)
         buildCellShadow(origin, scale, GameLogic::field, x, y, true);
-      }
+    }
 
     for (int y = 0; y < Field::height; y++)
-      for (int x = 0; x < Field::width; x++)
-      {
-        if (GameLogic::getRowElevation(y))
-          origin.y = fieldPos.y - scale * GameLogic::getRowCurrentElevation(y);
-        else
-          origin.y = fieldPos.y;
+    {
+      if (GameLogic::getRowElevation(y))
+        origin.y = fieldPos.y - scale * GameLogic::getRowCurrentElevation(y);
+      else
+        origin.y = fieldPos.y;
 
+      for (int x = 0; x < Field::width; x++)
         buildCell(origin, scale, GameLogic::field, x, y, false);
-      }
+    }
 
     for (int y = 0; y < Field::height; y++)
+    {
+      if (GameLogic::getRowElevation(y))
+        origin.y = fieldPos.y - scale * GameLogic::getRowCurrentElevation(y);
+      else
+        origin.y = fieldPos.y;
+
       for (int x = 0; x < Field::width; x++)
-      {
-        if (GameLogic::getRowElevation(y))
-          origin.y = fieldPos.y - scale * GameLogic::getRowCurrentElevation(y);
-        else
-          origin.y = fieldPos.y;
-
         buildCellGlow(origin, scale, GameLogic::field, x, y, true);
-      }
+    }
 
-    GameLogic::removeCurFigureFromField();
+    if (!GameLogic::haveFallingRows)
+      GameLogic::removeCurFigureFromField();
   }
 }
 
