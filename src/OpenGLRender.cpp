@@ -938,7 +938,7 @@ void OpenGLRender::buidField()
     glm::vec2 origin = fieldPos;
 
     GameLogic::storeCurFigureIntoField();
-      
+
     for (int y = 0; y < Field::height; y++)
       for (int x = 0; x < Field::width; x++)
       {
@@ -1931,9 +1931,9 @@ float OpenGLRender::buildTextMesh(float left, float top, float width, float heig
                                   float size, const glm::vec3 & color, float alpha, float blur, 
                                   HorzAllign horzAllign, VertAllign vertAllign)
 {
-  assert(font.falloff >= VERY_SMALL_NUMBER);
+  assert(font.falloff() >= VERY_SMALL_NUMBER);
 
-  if (size < VERY_SMALL_NUMBER || font.falloff < VERY_SMALL_NUMBER)
+  if (size < VERY_SMALL_NUMBER || font.falloff() < VERY_SMALL_NUMBER)
     return 0.0f;
 
   float penX = 0;
@@ -1949,10 +1949,10 @@ float OpenGLRender::buildTextMesh(float left, float top, float width, float heig
     {
       float kern = leftChar ? font.getKerning(leftChar, *pch) : 0.0f;
       leftChar = *pch;
-      float leftTopX = penX + size * (kern + glyph->bearingX - font.falloff);
-      float leftTopY = -size * (glyph->bearingY + font.falloff);
-      float rightBottomX = leftTopX + size * (glyph->width + 2.0f * font.falloff);
-      float rightBottomY = leftTopY + size * (glyph->height + 2.0f * font.falloff);
+      float leftTopX = penX + size * (kern + glyph->bearingX - font.falloff());
+      float leftTopY = -size * (glyph->bearingY + font.falloff());
+      float rightBottomX = leftTopX + size * (glyph->width + 2.0f * font.falloff());
+      float rightBottomY = leftTopY + size * (glyph->height + 2.0f * font.falloff());
 
       verts.push_back({ leftTopX,     leftTopY });
       verts.push_back({ leftTopX,     rightBottomY });
@@ -1976,7 +1976,7 @@ float OpenGLRender::buildTextMesh(float left, float top, float width, float heig
   {
     meshWidth = verts.back().x - verts.front().x;
     const float vOffs = 0.2f;
-    glm::vec2 origin(left, top + size * font.maxBearingY);
+    glm::vec2 origin(left, top + size * font.maxBearingY());
 
     if (horzAllign == haRight)
       origin.x += width - meshWidth;
@@ -1986,11 +1986,11 @@ float OpenGLRender::buildTextMesh(float left, float top, float width, float heig
     const float vOffset = -size * 0.05f;
 
     if (vertAllign == vaBottom)
-      origin.y += height - size * font.maxBearingY;
+      origin.y += height - size * font.maxBearingY();
     else if (vertAllign == vaCenter)
-      origin.y += 0.5f * (height - size * font.maxBearingY + vOffset);
+      origin.y += 0.5f * (height - size * font.maxBearingY() + vOffset);
 
-    const float fontBlur = 0.4f * pxSize / (size * font.falloff) * (1.0f - blur) + blur * 0.5f;
+    const float fontBlur = 0.4f * pxSize / (size * font.falloff()) * (1.0f - blur) + blur * 0.5f;
 
     for (int i = 0, cnt = (int)verts.size(); i < cnt; i+=4)
     {
@@ -2309,7 +2309,7 @@ void OpenGLRender::buildLeaderboardWindow()
             const float cursorHeight = 0.9f * Layout::leaderboardPanelRowTextHeight;
             const float cursorWidth = 0.5f * cursorHeight;
             const float cursorLeft = nameColLeft + Layout::leaderboardPanelNameLeftIndent + nameWidth - 
-                                     rowHeight * font.falloff;
+                                     rowHeight * font.falloff();
             const float cursorTop = rowTop + 0.5f * (rowHeight - cursorHeight);
             buildSmoothRect(cursorLeft, cursorTop, cursorWidth, cursorHeight, 0.1f * cursorWidth, 
                             textColor, 1.0f);

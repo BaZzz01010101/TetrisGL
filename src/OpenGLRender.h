@@ -6,7 +6,7 @@
 #include "GameLogic.h"
 #include "InterfaceLogic.h"
 #include "LayoutObject.h"
-#include "SDFF.h"
+#include "sdff_font.h"
 
 class OpenGLRender
 {

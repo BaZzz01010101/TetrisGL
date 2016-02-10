@@ -3,21 +3,21 @@ Just another tetris game with OpenGL graphics
 
 ## Overview
 This project has developed for training purposes only.  
-It written on C++ and uses OpenGL to render all graphics.  
-Signed Distance Field Font technique was used for drawing all texts in the game.
+It has been written in C++ and uses OpenGL to render all graphics.  
+Signed Distance Field Font technique was used for rendering all texts in the game.
 
 ## Installation
 1. Download the latest [release](https://github.com/BaZzz01010101/TetrisGL/releases/latest)
 2. Unpack it to any folder you want
 3. Run TetrisGL or TetrisGL64 executable
 
-## 3rd party libraries used
+## Third-party libraries used
 + [GLEW](http://glew.sourceforge.net/) - The OpenGL Extension Wrangler Library
 + [GLFW](http://www.glfw.org/) - Library for creating windows with OpenGL contexts and processing events
 + [GLM](http://glm.g-truc.net) - Mathematics library based on the OpenGL Shading Language (GLSL) specifications
 + [FMOD](http://www.fmod.org/) - FMOD Low Level Programmer API
 + [RapidJSON](http://rapidjson.org/) - A fast JSON parser/generator for C++ with both SAX/DOM style API
-+ [FreeType](http://www.freetype.org/) - Library to render fonts
++ ~~[FreeType](http://www.freetype.org/) - Library to render fonts~~ *dependency removed*
 + [stb_image](https://github.com/nothings/stb) - Image loader/decoder
 
 ## Music credits

@@ -17,15 +17,12 @@
 #include <GL/glfw3.h>
 #include <GLM/glm.hpp>
 #include <GLM/gtc/matrix_transform.hpp>
-#include "ft2build.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/filereadstream.h"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
 #include "FMOD/fmod.hpp"
-#include FT_FREETYPE_H
-#include "stb_image_write.h"
 #include "stb_image.h"
 
 #pragma warning(pop)
