@@ -8,24 +8,29 @@
 
 int main()
 {
+  int exitCode = 0;
+
   srand((unsigned int)Crosy::getPerformanceCounter());
   Binding::init();
   Logic::init();
   Application * application = new OpenGLApplication();
 
-  if (!application->init())
+  if (application->init())
+  {
+    application->run();
+    application->quit();
+  }
+  else
   {
 #ifdef _DEBUG
     std::cout << "Press 'Enter'\n";
     getchar();
 #endif // DEBUG
-    return 1;
-  }
 
-  application->run();
-  application->quit();
+    exitCode = 1;
+  }
 
   delete application;
 
-  return 0;
+  return exitCode;
 }

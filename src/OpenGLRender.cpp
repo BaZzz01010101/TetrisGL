@@ -233,6 +233,13 @@ void OpenGLRender::quit()
   fontProg.quit();
   fontVert.quit();
   fontFrag.quit();
+  glDeleteTextures(1, &bkTextureId);
+  glDeleteTextures(1, &atlasTextureId);
+  glDeleteTextures(1, &fontTextureId);
+  glDeleteBuffers(1, &bkVertexBufferId);
+  glDeleteBuffers(1, &atlasVertexBufferId);
+  glDeleteBuffers(1, &textVertexBufferId);
+  glDeleteVertexArrays(1, &vaoId);
 }
 
 
