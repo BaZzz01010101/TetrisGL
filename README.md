@@ -36,3 +36,10 @@ Signed Distance Field Font technique was used for rendering all texts in the gam
 
 ## License
 This software released under [GNU GPL v3](http://www.gnu.org/licenses/gpl.html)
+
+## Screenshots
+[<img src="https://raw.githubusercontent.com/BaZzz01010101/TetrisGL/master/screenshots/Play1.jpg" width="50%" />](https://raw.githubusercontent.com/BaZzz01010101/TetrisGL/master/screenshots/Play1.jpg)
+[<img src="https://raw.githubusercontent.com/BaZzz01010101/TetrisGL/master/screenshots/Play2.jpg" width="50%" />](https://raw.githubusercontent.com/BaZzz01010101/TetrisGL/master/screenshots/Play2.jpg)
+[<img src="https://raw.githubusercontent.com/BaZzz01010101/TetrisGL/master/screenshots/MainMenu.jpg" width="50%" />](https://raw.githubusercontent.com/BaZzz01010101/TetrisGL/master/screenshots/MainMenu.jpg)
+[<img src="https://raw.githubusercontent.com/BaZzz01010101/TetrisGL/master/screenshots/Settings.jpg" width="50%" />](https://raw.githubusercontent.com/BaZzz01010101/TetrisGL/master/screenshots/Settings.jpg)
+[<img src="https://raw.githubusercontent.com/BaZzz01010101/TetrisGL/master/screenshots/Leaderboard.jpg" width="50%" />](https://raw.githubusercontent.com/BaZzz01010101/TetrisGL/master/screenshots/Leaderboard.jpg)
