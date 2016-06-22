@@ -167,3 +167,4 @@ cmakeit.bat
 *.ipdb
 bin/leaderboard.dat
 bin/settings.dat
+proj/vs14/TetrisGL.VC.db

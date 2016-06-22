@@ -38,7 +38,7 @@ void Figure::build(Type type)
     case typeI:
       haveSpecificRotation = true;
       dim = 4;
-      color = Cell::clCyan;
+      color = Cell::clOrange;
       cdata = "0000111100000000";
       break;
 
@@ -52,35 +52,35 @@ void Figure::build(Type type)
     case typeL:
       haveSpecificRotation = false;
       dim = 3;
-      color = Cell::clOrange;
+      color = Cell::clGreen;
       cdata = "001111000";
       break;
 
     case typeO:
       haveSpecificRotation = false;
       dim = 2;
-      color = Cell::clYellow;
+      color = Cell::clCyan;
       cdata = "1111";
       break;
 
     case typeS:
       haveSpecificRotation = true;
       dim = 3;
-      color = Cell::clGreen;
+      color = Cell::clPurple;
       cdata = "011110000";
       break;
 
     case typeT:
       haveSpecificRotation = false;
       dim = 3;
-      color = Cell::clPurple;
+      color = Cell::clRed;
       cdata = "010111000";
       break;
 
     case typeZ:
       haveSpecificRotation = true;
       dim = 3;
-      color = Cell::clRed;
+      color = Cell::clYellow;
       cdata = "110011000";
       break;
 
