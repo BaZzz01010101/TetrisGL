@@ -33,7 +33,7 @@ char * FpsCounter::count(float interval)
     bool redraw = false;
     uint64_t counter = Crosy::getPerformanceCounter();
     float intervalTime = float(double(counter - lastIntervalCounter) / double(freq));
-    float frameTime = Time::getCurrentTimerDelta();// float(double(counter - lastFrameCounter) / double(freq));
+    float frameTime = PerfTime::getCurrentTimerDelta();// float(double(counter - lastFrameCounter) / double(freq));
     lastFrameCounter = counter;
 
     if (intervalTime > interval)

@@ -8,6 +8,18 @@
 #include "Time.h"
 #include "Layout.h"
 #include "Palette.h"
+#include <stdlib.h>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
+static const char * my_itoa(int i, char * buf, int base)
+{
+  assert(base == 10);
+  snprintf(buf, 16, "%d", i);
+  return buf;
+}
+
 
 OpenGLRender::OpenGLRender() :
   commonVert(GL_VERTEX_SHADER),
@@ -135,7 +147,7 @@ void OpenGLRender::init(int width, int height)
   fontProg.setUniform("tex", 0);
 
   int imageWidth, imageHeight, channels;
-  std::string bkTextureFileName = Crosy::getExePath() + "\\textures\\BackgroundTile.png";
+  std::string bkTextureFileName = Crosy::getExePath() + "/textures/BackgroundTile.png";
 
   if (unsigned char * bkTextureImage = stbi_load(bkTextureFileName.c_str(),
       &imageWidth, &imageHeight, &channels, 4))
@@ -160,7 +172,7 @@ void OpenGLRender::init(int width, int height)
   else
     assert(0);
 
-  std::string mainAtlasFileName = Crosy::getExePath() + "\\textures\\MainAtlas.png";
+  std::string mainAtlasFileName = Crosy::getExePath() + "/textures/MainAtlas.png";
 
   if (unsigned char * mainAtlasImage = stbi_load(mainAtlasFileName.c_str(),
       &imageWidth, &imageHeight, &channels, 4))
@@ -185,8 +197,8 @@ void OpenGLRender::init(int width, int height)
   else
     assert(0);
 
-  std::string fontTextureFileName = Crosy::getExePath() + "\\fonts\\MontserratTexture.png";
-  std::string fontMetricsFileName = Crosy::getExePath() + "\\fonts\\MontserratMetrics.json";
+  std::string fontTextureFileName = Crosy::getExePath() + "/fonts/MontserratTexture.png";
+  std::string fontMetricsFileName = Crosy::getExePath() + "/fonts/MontserratMetrics.json";
   font.load(fontMetricsFileName.c_str());
 
   if (unsigned char * fontTextureImage = stbi_load(fontTextureFileName.c_str(),
@@ -811,7 +823,7 @@ void OpenGLRender::buildBackground()
     const float height = scoreBarValueLayout->height;
     buildRect(left, top, width, height, glm::vec3(0.0f), 0.6f);
     char scoreStr[32];
-    itoa(GameLogic::curScore, scoreStr, 10);
+    my_itoa(GameLogic::curScore, scoreStr, 10);
     buildTextMesh(left, top, width, height, scoreStr, height, 
                   Palette::scoreBarText, 1.0f, 0.0f, haCenter, vaCenter);
   }
@@ -904,7 +916,7 @@ void OpenGLRender::buildBackground()
     buildTexturedRect(left, top, width, height, tiLevelGoalBackground, 
                       Palette::levelPanelBackground, 1.0f);
     char levelStr[32];
-    itoa(GameLogic::curLevel, levelStr, 10);
+    my_itoa(GameLogic::curLevel, levelStr, 10);
     buildTextMesh(left, top, width, height, levelStr, Layout::levelGoalTextHeight,
                   Palette::levelPanelText, 1.0f, 0.0f, haCenter, vaCenter);
   }
@@ -929,7 +941,7 @@ void OpenGLRender::buildBackground()
     buildTexturedRect(left, top, width, height, tiLevelGoalBackground, 
                       Palette::goalPanelBackground, 1.0f);
     char goalStr[32];
-    itoa(GameLogic::curGoal, goalStr, 10);
+    my_itoa(GameLogic::curGoal, goalStr, 10);
     buildTextMesh(left, top, width, height, goalStr, Layout::levelGoalTextHeight, 
                   Palette::goalPanelText, 1.0f, 0.0f, haCenter, vaCenter);
   }
@@ -1482,7 +1494,7 @@ void OpenGLRender::buildRowFlashes()
     const float fieldLeft = fieldLayout->getGlobalLeft();
     const float fieldTop = fieldLayout->getGlobalTop();
     const float scale = fieldLayout->width / Field::width;
-    float overallProgress = glm::clamp(float(Time::timer - GameLogic::rowsDeleteTimer) /
+    float overallProgress = glm::clamp(float(PerfTime::timer - GameLogic::rowsDeleteTimer) /
                                        GameLogic::rowsDeletionEffectTime, 0.0f, 1.0f);
     float mul = 1.0f - cos((overallProgress - 0.5f) * 
                            (overallProgress < 0.5f ? 0.5f : 2.0f) * 
@@ -2305,7 +2317,7 @@ void OpenGLRender::buildLeaderboardWindow()
           const float rowTop = settingPanelLayout->getRowGlobalTop(i + 1) + shift;
           const float rowHeight = settingPanelLayout->getRowHeight(i + 1);
           char strbuf[32];
-          itoa(i + 1, strbuf, 10);
+          my_itoa(i + 1, strbuf, 10);
           buildTextMesh(placeColLeft, rowTop, placeColWidth, rowHeight, strbuf, 
                         Layout::leaderboardPanelRowTextHeight, textColor, 1.0f, 0.0f, haCenter, vaCenter);
           float nameWidth = buildTextMesh(nameColLeft + Layout::leaderboardPanelNameLeftIndent, rowTop, 
@@ -2313,7 +2325,7 @@ void OpenGLRender::buildLeaderboardWindow()
                                           Layout::leaderboardPanelRowTextHeight,
                                           textColor, 1.0f, 0.0f, haLeft, vaCenter);
 
-          if (i == editRow && (Time::counter % Time::freq > Time::freq / 2))
+          if (i == editRow && (PerfTime::counter % PerfTime::freq > PerfTime::freq / 2))
           {
             const float cursorHeight = 0.9f * Layout::leaderboardPanelRowTextHeight;
             const float cursorWidth = 0.5f * cursorHeight;
@@ -2324,10 +2336,10 @@ void OpenGLRender::buildLeaderboardWindow()
                             textColor, 1.0f);
           }
 
-          itoa(leader.level, strbuf, 10);
+          my_itoa(leader.level, strbuf, 10);
           buildTextMesh(levelColLeft, rowTop, levelColWidth, rowHeight, strbuf,
                         Layout::leaderboardPanelRowTextHeight, textColor, 1.0f, 0.0f, haCenter, vaCenter);
-          itoa(leader.score, strbuf, 10);
+          my_itoa(leader.score, strbuf, 10);
           buildTextMesh(scoreColLeft, rowTop, scoreColWidth - Layout::leaderboardPanelScoreRightIndent, 
                         rowHeight, strbuf, Layout::leaderboardPanelRowTextHeight, textColor, 
                         1.0f, 0.0f, haRight, vaCenter);
@@ -2363,8 +2375,8 @@ void OpenGLRender::buildCountdown()
     const int num = (int)GameLogic::countdownTimeLeft;
     const float numProgress = GameLogic::countdownTimeLeft - num;
     char numStr[32];
-    itoa(num, numStr, 10);
-    char * text = num ? numStr : "GO";
+    my_itoa(num, numStr, 10);
+    const char * text = num ? numStr : "GO";
     const float animInTime = 0.25f;
     const float animOutTime = 0.25f;
     const float inScale = 1.0f - glm::clamp(1.0f - numProgress, 0.0f, animInTime) / animInTime;
@@ -2418,7 +2430,7 @@ void OpenGLRender::buildLevelUp()
         effectTimeLeft = -1.0f;
     }
 
-    effectTimeLeft -= Time::timerDelta;
+    effectTimeLeft -= PerfTime::timerDelta;
     curLevel = GameLogic::curLevel;
   }
 }
@@ -2529,7 +2541,7 @@ void OpenGLRender::buildDropPredictor()
 
       float dh = targetHeight - currentHeight;
       float sign = (dh >= 0.0f) ? 1.0f : -1.0f;
-      currentHeight = glm::clamp(currentHeight + sign * speed * Time::timerDelta, 
+      currentHeight = glm::clamp(currentHeight + sign * speed * PerfTime::timerDelta, 
                                  glowMinHeight, glowMaxHeight);
 
       if (sign * (targetHeight - currentHeight) <= 0.0f)
@@ -2644,7 +2656,7 @@ void OpenGLRender::buildDropPredictor()
 
           buildTexturedRect(left, top, cellSize * size, cellSize * size, tiDropSparkle, 
                             figureColor * curAlpha, 0.0f);
-          timeLeft -= Time::timerDelta;
+          timeLeft -= PerfTime::timerDelta;
 
           if (timeLeft < 0.0f)
           {
@@ -2774,7 +2786,7 @@ void OpenGLRender::updateSettingsLayer()
     float shadeSpeed = (InterfaceLogic::settingsLogic.state == SettingsLogic::stKeyWaiting) ? 
                         keyBindBkShadingSpeed : 
                        -keyBindBkShadingSpeed;
-    keyBindBkShade = glm::clamp(keyBindBkShade + shadeSpeed * Time::timerDelta, 0.0f, 1.0f);
+    keyBindBkShade = glm::clamp(keyBindBkShade + shadeSpeed * PerfTime::timerDelta, 0.0f, 1.0f);
   }
 }
 

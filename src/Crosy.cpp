@@ -1,4 +1,5 @@
 #include "Crosy.h"
+#include <stdarg.h>
 
 std::string Crosy::getExePath()
 {

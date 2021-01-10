@@ -104,8 +104,8 @@ GameLogic::Result GameLogic::playingUpdate()
   const float stepTime = getStepTime();
 
   if (haveFallingRows)
-    lastStepTimer = Time::timer;
-  else if (Time::timer > lastStepTimer + stepTime)
+    lastStepTimer = PerfTime::timer;
+  else if (PerfTime::timer > lastStepTimer + stepTime)
   {
     // falling speed may be limited on extremely low FPS
     if (check(curFigure, curFigureX, curFigureY + 1))
@@ -117,7 +117,7 @@ GameLogic::Result GameLogic::playingUpdate()
       shiftFigureConveyor();
     }
 
-    lastStepTimer = Time::timer;
+    lastStepTimer = PerfTime::timer;
   }
 
   proceedFallingRows();
@@ -129,11 +129,11 @@ GameLogic::Result GameLogic::playingUpdate()
 
 GameLogic::Result GameLogic::countdownUpdate()
 {
-  countdownTimeLeft -= Time::timerDelta;
+  countdownTimeLeft -= PerfTime::timerDelta;
 
   if (countdownTimeLeft < 0.0f)
   {
-    lastStepTimer = Time::timer;
+    lastStepTimer = PerfTime::timer;
     state = stPlaying;
   }
 
@@ -143,7 +143,7 @@ GameLogic::Result GameLogic::countdownUpdate()
 
 GameLogic::Result GameLogic::gameOverUpdate()
 {
-  gameOverTimeLeft -= Time::timerDelta;
+  gameOverTimeLeft -= PerfTime::timerDelta;
 
   if (gameOverTimeLeft < 0.0f)
   {
@@ -272,7 +272,7 @@ void GameLogic::holdCurrentFigure()
         Figure::Type curFigureType = curFigure.type;
         curFigure = holdFigure;
         holdFigure.build(curFigureType);
-        lastStepTimer = Time::timer;
+        lastStepTimer = PerfTime::timer;
         justHolded = true;
       }
     }
@@ -283,7 +283,7 @@ void GameLogic::holdCurrentFigure()
         holdFigure.build(curFigure.type);
         shiftFigureConveyor();
         haveHold = true;
-        lastStepTimer = Time::timer;
+        lastStepTimer = PerfTime::timer;
         justHolded = true;
       }
     }
@@ -305,7 +305,7 @@ bool GameLogic::fastDownCurrentFigure()
     result = true;
   }
 
-  lastStepTimer = Time::timer;
+  lastStepTimer = PerfTime::timer;
   fastDownCounter++;
 
   return result;
@@ -335,7 +335,7 @@ void GameLogic::dropCurrentFigure()
         }
   }
 
-  lastStepTimer = Time::timer;
+  lastStepTimer = PerfTime::timer;
   storeCurFigureIntoField();
   checkFieldRows();
   shiftFigureConveyor();
@@ -407,7 +407,7 @@ void GameLogic::checkFieldRows()
   if (elevation)
   {
     haveFallingRows = true;
-    rowsDeleteTimer = Time::timer;
+    rowsDeleteTimer = PerfTime::timer;
     curScore += elevation * elevation * 10;
     curGoal -= (int)pow(elevation, 1.5f);
 
@@ -425,7 +425,7 @@ void GameLogic::proceedFallingRows()
   if (haveFallingRows)
   {
     haveFallingRows = false;
-    float timePassed = float(Time::timer - rowsDeleteTimer);
+    float timePassed = float(PerfTime::timer - rowsDeleteTimer);
 
     for (int y = 0; y < Field::height; y++)
       for (int x = 0; x < Field::width; x++)
@@ -471,10 +471,10 @@ void GameLogic::addRowGaps(int y)
 void GameLogic::updateEffects()
 {
   for (int i = dropTrailsTail; i != dropTrailsHead; i = (i + 1) % dropTrailsSize)
-    if (!dropTrails[i].update(Time::timerDelta))
+    if (!dropTrails[i].update(PerfTime::timerDelta))
       dropTrailsTail = (i + 1) % dropTrailsSize;
 
-  if (!deletedRows.empty() && Time::timer - rowsDeleteTimer > GameLogic::rowsDeletionEffectTime)
+  if (!deletedRows.empty() && PerfTime::timer - rowsDeleteTimer > GameLogic::rowsDeletionEffectTime)
   {
     deletedRows.clear();
     deletedRowGaps.clear();

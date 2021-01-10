@@ -7,6 +7,8 @@
 #include "Globals.h"
 #include "Time.h"
 
+#ifdef _WIN32
+
 FMOD::System * Sound::system = NULL;
 FMOD::Sound * Sound::samples[SAMPLE_COUNT];
 FMOD::Channel * Sound::musicChannel = NULL;
@@ -280,10 +282,10 @@ void Sound::update()
       static double lastPlayedTimer = 0.0;
       const double replayTime = 0.125;
 
-      if (Time::timer - lastPlayedTimer > replayTime)
+      if (PerfTime::timer - lastPlayedTimer > replayTime)
       {
         play(smpDrop);
-        lastPlayedTimer = Time::timer;
+        lastPlayedTimer = PerfTime::timer;
       }
     }
 
@@ -314,7 +316,7 @@ void Sound::quit()
     assert(result == FMOD_OK);
   }
 
-  result = system->release();       
+  result = system->release();
   assert(result == FMOD_OK);
 }
 
@@ -354,3 +356,57 @@ void Sound::resetLastState()
   lastSoundVolume = InterfaceLogic::settingsLogic.getSoundVolume();
   lastMusicVolume = InterfaceLogic::settingsLogic.getMusicVolume();
 }
+
+#else // linux
+
+FMOD::System * Sound::system = NULL;
+FMOD::Sound * Sound::samples[SAMPLE_COUNT];
+FMOD::Channel * Sound::musicChannel = NULL;
+unsigned int Sound::version = 0;
+void * Sound::extradriverdata = NULL;
+bool Sound::initialized = false;
+std::string Sound::soundPath = Crosy::getExePath() + "Sounds/";
+int Sound::lastFigureId = 0;
+int Sound::lastFigureX = 0;
+int Sound::lastFigureAngle = 0;
+int Sound::lastHoldFigureId = 0;
+unsigned int Sound::lastFastDownCounter = 0;
+unsigned int Sound::lastDropTrailCounter = 0;
+int Sound::lastDeletedRowsCount = 0;
+int Sound::lastLevel = 0;
+int Sound::lastCountdownTimeLeft = 0;
+GameLogic::State Sound::lastGameState = GameLogic::stStopped;
+MenuLogic::State Sound::lastMainMenuState = MenuLogic::stHidden;
+MenuLogic::State Sound::lastInGameMenuState = MenuLogic::stHidden;
+MenuLogic::State Sound::lastQuitConfirmationMenuState = MenuLogic::stHidden;
+MenuLogic::State Sound::lastRestartConfirmationMenuState = MenuLogic::stHidden;
+MenuLogic::State Sound::lastExitToMainConfirmationMenuState = MenuLogic::stHidden;
+SettingsLogic::State Sound::lastSettingsState = SettingsLogic::stHidden;
+LeaderboardLogic::State Sound::lastLeaderboardState = LeaderboardLogic::stHidden;
+float Sound::lastSoundVolume = 0.0f;
+float Sound::lastMusicVolume = 0.0f;
+
+void Sound::init()
+{
+}
+
+
+void Sound::update()
+{
+}
+
+
+void Sound::quit()
+{
+}
+
+
+void Sound::play(Sample sample)
+{
+}
+
+void Sound::resetLastState()
+{
+}
+
+#endif

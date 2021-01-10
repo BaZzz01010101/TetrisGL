@@ -4,7 +4,7 @@
 
 #include "Crosy.h"
 #include "Logic.h"
-#include "OpenGlApplication.h"
+#include "OpenGLApplication.h"
 
 int main()
 {
