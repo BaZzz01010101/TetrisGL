@@ -10,8 +10,8 @@ Control::Control() :
   mouseDoubleClicked(false),
   fastDownBlocked(false)
 {
-  repeatDelay = glm::max<uint64_t>(uint64_t(0.2 * Time::freq), 1);
-  repeatInterval = glm::max<uint64_t>(uint64_t(Time::freq / 30), 1);
+  repeatDelay = glm::max<uint64_t>(uint64_t(0.2 * PerfTime::freq), 1);
+  repeatInterval = glm::max<uint64_t>(uint64_t(PerfTime::freq / 30), 1);
 }
 
 
@@ -28,7 +28,7 @@ void Control::init()
 void Control::keyDown(Key key)
 {
   KeyInternalState & internalKeyState = internalKeyStates[key];
-  internalKeyState.keyNextRepeatCounter = Time::counter + repeatDelay;
+  internalKeyState.keyNextRepeatCounter = PerfTime::counter + repeatDelay;
   internalKeyState.pressCount++;
   internalKeyState.wasChanged = true;
 }
@@ -53,17 +53,17 @@ void Control::mouseMove(float x, float y)
 void Control::mouseDown(Key key)
 {
   KeyInternalState & internalKeyState = internalKeyStates[key];
-  internalKeyState.keyNextRepeatCounter = Time::counter + repeatDelay;
+  internalKeyState.keyNextRepeatCounter = PerfTime::counter + repeatDelay;
   internalKeyState.pressCount++;
   internalKeyState.wasChanged = true;
   const double doubleclickTime = 0.4;
   const float doubleclickRange = 0.005f;
-  mouseDoubleClicked = (Time::timer - lastLButtonClickTimer < doubleclickTime &&
+  mouseDoubleClicked = (PerfTime::timer - lastLButtonClickTimer < doubleclickTime &&
                         glm::length(glm::vec2(mouseX, mouseY) - lastLButtonClickPos) < doubleclickRange);
 
   if (!mouseDoubleClicked)
   {
-    lastLButtonClickTimer = Time::timer;
+    lastLButtonClickTimer = PerfTime::timer;
     lastLButtonClickPos = glm::vec2(mouseX, mouseY);
   }
 }
@@ -156,8 +156,8 @@ Control::KeyState Control::getKeyState(Key key) const
   keyState.wasChanged = keyInternalState.wasChanged;
   keyState.pressCount = keyInternalState.pressCount;
   keyState.repeatCount = 
-    (keyState.isPressed && Time::counter > keyInternalState.keyNextRepeatCounter) ? 
-    int((Time::counter - keyInternalState.keyNextRepeatCounter) / repeatInterval + 1) : 0;
+    (keyState.isPressed && PerfTime::counter > keyInternalState.keyNextRepeatCounter) ? 
+    int((PerfTime::counter - keyInternalState.keyNextRepeatCounter) / repeatInterval + 1) : 0;
 
   return keyState;
 }
@@ -170,10 +170,10 @@ void Control::updateInternalState()
     KeyInternalState & keyInternalState = internalKeyStates[key];
     bool isPressed = (keyInternalState.keyNextRepeatCounter > 0);
 
-    if (isPressed && Time::counter > keyInternalState.keyNextRepeatCounter)
+    if (isPressed && PerfTime::counter > keyInternalState.keyNextRepeatCounter)
     {
       keyInternalState.keyNextRepeatCounter +=
-        ((Time::counter - keyInternalState.keyNextRepeatCounter) / repeatInterval + 1) * repeatInterval;
+        ((PerfTime::counter - keyInternalState.keyNextRepeatCounter) / repeatInterval + 1) * repeatInterval;
     }
 
     keyInternalState.pressCount = 0;

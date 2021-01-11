@@ -54,7 +54,7 @@ LeaderboardLogic::Result LeaderboardLogic::update()
 
   case stShowing:
 
-    if ((transitionProgress += Time::timerDelta / showingTime) >= 1.0f)
+    if ((transitionProgress += PerfTime::timerDelta / showingTime) >= 1.0f)
     {
       transitionProgress = 1.0f;
       state = stVisible;
@@ -64,7 +64,7 @@ LeaderboardLogic::Result LeaderboardLogic::update()
 
   case stHiding:
 
-    if ((transitionProgress -= Time::timerDelta / hidingTime) <= 0.0f)
+    if ((transitionProgress -= PerfTime::timerDelta / hidingTime) <= 0.0f)
     {
       transitionProgress = 0.0f;
       state = stHidden;

@@ -1,10 +1,10 @@
 #pragma once
 
-class Time
+class PerfTime
 {
 private:
-  Time();
-  ~Time();
+  PerfTime();
+  ~PerfTime();
 
 public:
   static uint64_t freq;

@@ -3,13 +3,13 @@
 #include "Time.h"
 #include "Crosy.h"
 
-uint64_t Time::freq = Crosy::getPerformanceFrequency();
-uint64_t Time::counter = Crosy::getPerformanceCounter();
-uint64_t Time::counterDelta = 0;
-double Time::timer = freq > 0 ? double(counter) / freq : 0.0;
-float Time::timerDelta = 0.0f;
+uint64_t PerfTime::freq = Crosy::getPerformanceFrequency();
+uint64_t PerfTime::counter = Crosy::getPerformanceCounter();
+uint64_t PerfTime::counterDelta = 0;
+double PerfTime::timer = freq > 0 ? double(counter) / freq : 0.0;
+float PerfTime::timerDelta = 0.0f;
 
-void Time::update()
+void PerfTime::update()
 {
   assert(freq > 0);
   uint64_t newCounter = Crosy::getPerformanceCounter();
@@ -21,7 +21,7 @@ void Time::update()
 }
 
 
-float Time::getCurrentTimerDelta()
+float PerfTime::getCurrentTimerDelta()
 {
   assert(freq > 0);
   uint64_t newCounter = Crosy::getPerformanceCounter();
