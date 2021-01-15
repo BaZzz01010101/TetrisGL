@@ -25,7 +25,12 @@
 #include "rapidjson/filereadstream.h"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
+
+#ifdef __linux__
+#include <mm_core/fmod_subset.h>
+#else
 #include "FMOD/fmod.hpp"
+#endif
 
 #ifdef _MSC_VER
 #pragma warning(pop)

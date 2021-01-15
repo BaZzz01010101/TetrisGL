@@ -76,6 +76,8 @@ bool OpenGLApplication::init()
     return false;
   }
 
+  glfwSetWindowTitle(wnd, "TetrisGL");
+
   Layout::load("default");
   Palette::load("default");
   Sound::init();
@@ -101,7 +103,9 @@ void OpenGLApplication::run()
     Sound::update();
     render.update();
 
-    glfwSetWindowTitle(wnd, fps.count(0.5f));
+    if (fps.enabled)
+      glfwSetWindowTitle(wnd, fps.count(0.5f));
+
     glfwSwapInterval((int)vSync);
 
     if (!glfwGetWindowAttrib(wnd, GLFW_FOCUSED) && GameLogic::state == GameLogic::stPlaying)

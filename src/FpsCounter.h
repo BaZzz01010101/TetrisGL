@@ -14,6 +14,8 @@ private:
   char buf[bufSize];
 
 public:
+  bool enabled;
+
   FpsCounter();
   ~FpsCounter();
 

@@ -3,6 +3,7 @@
 #include "FpsCounter.h"
 #include "Crosy.h"
 #include "Time.h"
+#include <stdlib.h>
 
 FpsCounter::FpsCounter()
 {
@@ -16,6 +17,7 @@ FpsCounter::~FpsCounter()
 
 void FpsCounter::init()
 {
+  enabled = (getenv("FPS_COUNTER") != NULL);
   cnt = 0;
   fps = 0.0f;
   freq = Crosy::getPerformanceFrequency();
