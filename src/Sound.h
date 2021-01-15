@@ -31,6 +31,7 @@ private:
   static FMOD::Sound * samples[SAMPLE_COUNT];
   static FMOD::System * system;
   static FMOD::Channel * musicChannel;
+  static FMOD::Channel * soundChannel;
   static unsigned int version;
   static void * extradriverdata;
   static bool initialized;
