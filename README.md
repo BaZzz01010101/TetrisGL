@@ -22,7 +22,7 @@ cmake ..
 make -j 4
 ```
 4. Run bin/TerisGL
-You can change ALSA device by setting environment variable MMC_PLAY_DEVICE
+You can change ALSA device by setting environment variable MMC_PLAY_DEVICE.
 Also FPS can be displayed by setting environment variable FPS_COUNTER
 
 
