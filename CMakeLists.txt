@@ -10,7 +10,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 find_package(GLEW REQUIRED)
-find_package(glfw3 3.0 REQUIRED)
+find_package(glfw3 REQUIRED)
 find_package(ALSA REQUIRED)
 
 set(CMAKE_CONFIGURATION_TYPES "Release" "Debug")
@@ -22,5 +22,5 @@ set(EXECUTABLE_OUTPUT_PATH "../bin")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0")
 
-target_link_libraries(TetrisGL m X11 GL GLU GLEW glfw3 dl pthread asound)
+target_link_libraries(TetrisGL m X11 GL GLU GLEW glfw dl pthread asound)
 
