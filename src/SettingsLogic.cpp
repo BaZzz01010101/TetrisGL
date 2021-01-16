@@ -30,7 +30,7 @@ SettingsLogic::~SettingsLogic()
 
 void SettingsLogic::init()
 {
-  fileName = Crosy::getExePath() + "settings.dat";
+  fileName = Crosy::getConfigPath() + "settings.dat";
   saveConfirmationMenu.add("SAVE", MenuLogic::resSave);
   saveConfirmationMenu.add("DON'T SAVE", MenuLogic::resDontSave);
   saveConfirmationMenu.add("BACK", MenuLogic::resBack, true);

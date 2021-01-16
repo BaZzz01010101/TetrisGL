@@ -33,7 +33,7 @@ LeaderboardLogic::LeaderboardLogic() :
 
 void LeaderboardLogic::init()
 {
-  fileName = Crosy::getExePath() + "leaderboard.dat";
+  fileName = Crosy::getConfigPath() + "leaderboard.dat";
 
   if (!load())
     memcpy(leaders, defaultLeaders, sizeof(leaders));

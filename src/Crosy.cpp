@@ -135,3 +135,43 @@ void Crosy::snprintf(char * buf, size_t size, const char * format, ...)
   vsnprintf(buf, size, format, args);
   va_end(args);
 }
+
+#ifdef _WIN32
+std::string Crosy::WCHARtoString(wchat_t* str)
+{
+  wstring ws(str);
+  std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
+  return conv.to_bytes(ws);
+}
+#endif
+
+std::string Crosy::getConfigPath()
+{
+  const std::vector<std::string> priority
+  {
+#ifdef _WIN32
+    WCHARtoString(_wgetenv("AppData")) + "/",
+#endif
+#ifdef __linux__
+    std::string(std::getenv("HOME")) + "/.config/",
+    std::string(std::getenv("HOME")) + "/",
+#endif
+    ""
+  };
+  for (int i = 0; i < priority.size(); i++)
+  {
+    std::string path = priority[i];
+    struct stat sb;
+    if (stat(path.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode))
+    {
+      path += "TetrisGL/";
+#ifdef _WIN32
+      CreateDirectory(path.c_str(), NULL);
+#else
+      mkdir(path.c_str(), 0777);
+#endif
+      return path;
+    }
+  }
+  return getExePath();
+}
