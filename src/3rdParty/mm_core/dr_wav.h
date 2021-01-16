@@ -970,7 +970,6 @@ static drwav_bool32 drwav__on_seek_memory(void* pUserData, int offset, drwav_see
         }
     }
 
-
     return DRWAV_TRUE;
 }
 
@@ -1208,7 +1207,6 @@ drwav_bool32 drwav_init(drwav* pWav, drwav_read_proc onRead, drwav_seek_proc onS
             pWav->totalSampleCount = ((blockCount * (fmt.blockAlign - (4*pWav->channels))) * 2) + (blockCount * pWav->channels);
         }
     }
-
     if (pWav->translatedFormatTag == DR_WAVE_FORMAT_ADPCM) {
         pWav->bytesPerSample = 0;
     }
@@ -1316,7 +1314,6 @@ drwav_bool32 drwav_seek_to_first_sample(drwav* pWav)
     if (drwav__is_compressed_format_tag(pWav->translatedFormatTag)) {
         pWav->compressed.iCurrentSample = 0;
     }
-
     pWav->bytesRemaining = pWav->dataChunkDataSize;
     return DRWAV_TRUE;
 }

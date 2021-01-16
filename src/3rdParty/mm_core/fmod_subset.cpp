@@ -86,7 +86,6 @@ namespace FMOD
     virtual void onAudioPlay(float * data, int frames_count, const BufferSettings * buffer_settings)
     {
       memset(data, 0, frames_count * buffer_settings->channels * sizeof(float));
-
       ScopedLocker lock(cs);
 
       for (PlaySnd & s : playSnd)

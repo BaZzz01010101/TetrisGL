@@ -1399,7 +1399,6 @@ bool mmc_ex_init(
       NULL
     );
 
-
     if (!res)
     {
       printf("ERROR: Sound initialization failed\n");
