@@ -32,7 +32,7 @@ namespace Crosy
   void sleep(unsigned int timeMs);
   void snprintf(char * buf, size_t size, const char * format, ...);
 #ifdef _WIN32
-  std::string Crosy::UTF16toUTF8(wchat_t* str);
+  std::string Crosy::WCHARtoString(wchat_t* str);
 #endif
   std::string getConfigPath();
 }
