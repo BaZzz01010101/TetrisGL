@@ -13,7 +13,6 @@ find_package(GLEW REQUIRED)
 find_package(glfw3 3.0 REQUIRED)
 find_package(ALSA REQUIRED)
 
-set(CMAKE_CXX_COMPILER g++)
 set(CMAKE_CONFIGURATION_TYPES "Release" "Debug")
 file(GLOB SRC src/*.cpp src/3rdParty/mm_core/*.cpp)
 include_directories("src/3rdParty")
