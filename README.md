@@ -7,9 +7,24 @@ It has been written in C++ and uses OpenGL to render all graphics.
 Signed Distance Field Font technique was used for rendering all texts in the game.
 
 ## Installation
+### Windows
 1. Download the latest [release](https://github.com/BaZzz01010101/TetrisGL/releases/latest)
 2. Unpack it to any folder you want
 3. Run TetrisGL or TetrisGL64 executable
+### Linux
+1. Install packages libasound-dev, libglew-dev
+2. Install or compile GLFW
+3. Build
+```
+mkdir build
+cd build
+cmake ..
+make -j 4
+```
+4. Run bin/TerisGL
+You can change ALSA device by setting environment variable MMC_PLAY_DEVICE.
+Also FPS can be displayed by setting environment variable FPS_COUNTER
+
 
 ## Third-party libraries used
 + [GLEW](http://glew.sourceforge.net/) - The OpenGL Extension Wrangler Library
