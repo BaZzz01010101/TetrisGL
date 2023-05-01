@@ -1,5 +1,6 @@
 #include "Crosy.h"
 #include <stdarg.h>
+#include <time.h>
 
 std::string Crosy::getExePath()
 {
